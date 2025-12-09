@@ -61,11 +61,48 @@ def handle_scripts(config: ControllerConfig, args: argparse.Namespace) -> None:
 def handle_ai(config: ControllerConfig, store: MemoryStore, args: argparse.Namespace) -> None:
     planner = AIPlanner(config)
     memories: Iterable[MemoryEntry] = store.list(app=args.app) if args.app else store.list()
-    plan = planner.plan(goal=args.goal, memories=memories)
+    plan = planner.plan(goal=args.goal, memories=memories, mode=args.mode)
+    print("=== AI 规划结果 ===")
     print(plan.summary)
     print("建议步骤:")
     for idx, step in enumerate(plan.steps, 1):
         print(f" {idx}. {step}")
+
+
+def show_panel(config: ControllerConfig, store: MemoryStore) -> None:
+    print("=== 配置面板 ===")
+    print(f"ADB 路径: {config.adb_path}")
+    print(f"默认设备: {config.default_device or '未设置'}")
+    print(f"脚本目录: {config.scripts_dir}")
+    print(f"记忆库: {config.memory_path}")
+    print()
+
+    print("=== 模型配置 ===")
+    model = config.model
+    print(f"Provider: {model.provider}")
+    print(f"Model: {model.model}")
+    print(f"Base URL: {model.base_url or '未设置'}")
+    print(f"Temperature: {model.temperature}")
+    print(f"API Key: {'已配置' if model.api_key else '未配置'}")
+    print()
+
+    scripts = sorted(config.scripts_dir.glob("*.yaml"))
+    print("=== 可用脚本 ===")
+    if scripts:
+        for script in scripts:
+            print(f"- {script.stem}")
+    else:
+        print("(暂无脚本，向 scripts/ 目录添加 .yaml 文件)")
+    print()
+
+    entries = list(store.list())
+    apps = sorted({e.app for e in entries})
+    print("=== 记忆概览 ===")
+    print(f"总记忆条数: {len(entries)}")
+    if apps:
+        print("覆盖的应用: " + ", ".join(apps))
+    else:
+        print("(暂无记忆，使用 memory add 进行添加)")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -92,7 +129,7 @@ def build_parser() -> argparse.ArgumentParser:
     disconnect_parser.add_argument("target", nargs="?", help="target host:port or device serial")
 
     shell_parser = subparsers.add_parser("shell", help="Run an adb shell command")
-    shell_parser.add_argument("command", help="Shell command to run")
+    shell_parser.add_argument("shell_command", help="Shell command to run")
     shell_parser.add_argument("--device", help="Device serial", default=None)
 
     memory_parser = subparsers.add_parser("memory", help="Manage AI memory store")
@@ -110,9 +147,17 @@ def build_parser() -> argparse.ArgumentParser:
     scripts_run.add_argument("name", help="Script name without extension")
     scripts_run.add_argument("--device", help="Device serial", default=None)
 
+    subparsers.add_parser("panel", help="显示 CLI 面板，汇总配置与可用资源")
+
     ai_parser = subparsers.add_parser("ai", help="AI planning helper")
     ai_parser.add_argument("goal", help="目标描述，例如：自动登录并领取奖励")
     ai_parser.add_argument("--app", help="过滤记忆的应用名称")
+    ai_parser.add_argument(
+        "--mode",
+        choices=["auto", "remote", "offline"],
+        default="auto",
+        help="选择 AI 规划模式：auto 自动，remote 强制调用模型，offline 本地占位",
+    )
 
     return parser
 
@@ -142,12 +187,14 @@ def main() -> None:
     elif args.command == "disconnect":
         disconnect_device(config, args.target)
     elif args.command == "shell":
-        run_shell(config, args.device, args.command)
+        run_shell(config, args.device, args.shell_command)
     elif args.command == "memory":
         handle_memory(store, args)
     elif args.command == "scripts":
         if args.scripts_cmd == "run":
             handle_scripts(config, args)
+    elif args.command == "panel":
+        show_panel(config, store)
     elif args.command == "ai":
         handle_ai(config, store, args)
     else:
