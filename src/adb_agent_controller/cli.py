@@ -71,6 +71,15 @@ def handle_ai(config: ControllerConfig, store: MemoryStore, args: argparse.Names
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CLI to control Android devices via ADB and AI helpers")
     parser.add_argument("--config", type=str, default=None, help="Path to config.yaml")
+    parser.add_argument("--model-provider", type=str, help="Override model provider, e.g. openai or azure")
+    parser.add_argument("--model-name", type=str, help="Override model name")
+    parser.add_argument("--model-api-key", type=str, help="Override model API key")
+    parser.add_argument("--model-base-url", type=str, help="Override base URL for model API")
+    parser.add_argument(
+        "--model-temperature",
+        type=float,
+        help="Override sampling temperature (e.g. 0.2)",
+    )
 
     subparsers = parser.add_subparsers(dest="command")
 
@@ -112,6 +121,18 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     config = load_config(args.config)
+
+    if args.model_provider:
+        config.model.provider = args.model_provider
+    if args.model_name:
+        config.model.model = args.model_name
+    if args.model_api_key:
+        config.model.api_key = args.model_api_key
+    if args.model_base_url:
+        config.model.base_url = args.model_base_url
+    if args.model_temperature is not None:
+        config.model.temperature = args.model_temperature
+
     store = MemoryStore(config.memory_path)
 
     if args.command == "status":
