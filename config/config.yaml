@@ -1,0 +1,14 @@
+adb:
+  path: adb
+  default_device: null
+  scripts_dir: scripts
+
+model:
+  provider: openai
+  model: gpt-4o-mini
+  api_key: ${OPENAI_API_KEY}
+  base_url: https://api.openai.com/v1
+  temperature: 0.2
+
+memory:
+  path: data/memory.json
