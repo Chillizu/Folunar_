@@ -9,29 +9,56 @@
 - **AI 辅助规划**：离线的规划占位逻辑，会基于记忆给出执行建议，方便替换为真实 LLM 调用。
 - **可配置模型信息**：`config/config.yaml` 支持自定义 provider、model、api_key、base_url、温度等。
 
-## 快速开始
-1. 准备环境
+## 快速开始（傻瓜式配置）
+1. **安装依赖**
+   - 电脑已安装 Python 3.10+ 与 `adb`，并且 `adb` 可在终端直接运行。
+   - 克隆仓库后进入目录：`cd ADB-agent-Controller`。
+   - 安装 Python 依赖：
+     ```bash
+     pip install -r requirements.txt
+     ```
+   - 若使用默认的 OpenAI 兼容接口，先导出密钥（可选）：
+     ```bash
+     export OPENAI_API_KEY=your_key
+     ```
+
+2. **检查配置文件**
+   - 打开 `config/config.yaml`，根据实际环境修改：
+     - `adb.path`：若 `adb` 未加入 PATH，请填写绝对路径。
+     - `adb.default_device`：可填常用设备序列号，或留空。
+     - `model`：若使用其他网关/模型，直接改 `provider`、`model`、`base_url`、`api_key`、`temperature`。
+   - 记忆库默认位置是 `data/memory.json`，脚本目录是 `scripts/`，可按需调整。
+
+3. **最小化验证**（确保环境 OK）
    ```bash
-   pip install -r requirements.txt
-   export OPENAI_API_KEY=your_key  # 如使用默认配置，可留空
+   PYTHONPATH=src python -m adb_agent_controller.cli --help  # 查看可用命令
+   PYTHONPATH=src python -m adb_agent_controller.cli status  # 列出已连接设备
    ```
-2. 运行示例命令（需已安装 adb 并在 PATH 中）：
+
+4. **通过 CLI 临时覆盖模型信息（无需改 YAML）**
    ```bash
-   PYTHONPATH=src python -m adb_agent_controller.cli status
+   PYTHONPATH=src python -m adb_agent_controller.cli --model-provider openai \
+     --model-name gpt-4o-mini --model-api-key sk-xxx --model-base-url https://api.openai.com/v1 \
+     --model-temperature 0.3 ai "自动登录并领取奖励" --app example
+   ```
+
+5. **基础操作示例**
+   ```bash
+   # 连接 / 断开
    PYTHONPATH=src python -m adb_agent_controller.cli connect emulator-5554
-   PYTHONPATH=src python -m adb_agent_controller.cli shell "input keyevent 26"
-   ```
-3. 记忆管理
-   ```bash
+   PYTHONPATH=src python -m adb_agent_controller.cli disconnect emulator-5554
+
+   # 发送 shell 指令（示例：点亮屏幕）
+   PYTHONPATH=src python -m adb_agent_controller.cli shell "input keyevent 26" --device emulator-5554
+
+   # 记忆管理
    PYTHONPATH=src python -m adb_agent_controller.cli memory add --app example --note "首关需要跳过引导"
    PYTHONPATH=src python -m adb_agent_controller.cli memory list --app example
-   ```
-4. 运行示例脚本
-   ```bash
-   PYTHONPATH=src python -m adb_agent_controller.cli scripts run auto_login
-   ```
-5. AI 规划占位
-   ```bash
+
+   # 运行示例脚本
+   PYTHONPATH=src python -m adb_agent_controller.cli scripts run auto_login --device emulator-5554
+
+   # AI 规划占位
    PYTHONPATH=src python -m adb_agent_controller.cli ai "自动登录并领取每日奖励" --app example
    ```
 
