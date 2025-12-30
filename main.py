@@ -34,6 +34,10 @@ def create_app():
     async def list_agents():
         return {"agents": agent_manager.list_agents()}
 
+    @app.get("/health")
+    async def health_check():
+        return {"status": "healthy"}
+
     return app
 
 if __name__ == "__main__":

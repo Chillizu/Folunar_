@@ -12,6 +12,9 @@
 - ✅ 配置了Git远程仓库origin为git@github.com:Chillizu/Folunar_.git
 - ✅ 将master分支重命名为main
 - ✅ 推送了main分支到远程仓库
+- ✅ 修改main.py添加健康检查路由 (/health)
+- ✅ 确认FastAPI应用已加载config.yaml配置
+- ✅ 设置了基础路由包括根路由、agents列表和健康检查
 
 # 计划
 
