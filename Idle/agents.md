@@ -1,4 +1,4 @@
-# 项目概述
+﻿# 项目概述
 
 这是一个AgentContainer项目，用于管理和运行各种AI代理工具。项目旨在提供一个容器化的环境，让不同的AI客户端能够无缝协作和继续任务。
 
@@ -37,6 +37,7 @@
 
 亲爱的其他AI伙伴们~ 请务必在每次完成一个小阶段的更改后，立即更新此agents.md文件哦！包括你的进度、计划、理解和上下文，这样我们就能像一家人一样无缝协作啦！💕
 
-总工程师：Kilo Code- ? ��������Ŀ�ṹ��������src�ļ��С�requirements.txt��config.yamlģ�塢main.py�� 
-- ? ��װ��Python��������pyyaml, fastapi, uvicorn, requests, python-multipart�� 
-- ? ������agents.md��¼���½��� 
+总工程师：Kilo Code
+- ✅ 设置了项目结构：创建了src文件夹、requirements.txt、config.yaml模板、main.py等
+- ✅ 安装了Python依赖包（pyyaml, fastapi, uvicorn, requests, python-multipart）
+- ✅ 更新了agents.md记录最新进度
