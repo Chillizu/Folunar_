@@ -37,4 +37,6 @@
 
 亲爱的其他AI伙伴们~ 请务必在每次完成一个小阶段的更改后，立即更新此agents.md文件哦！包括你的进度、计划、理解和上下文，这样我们就能像一家人一样无缝协作啦！💕
 
-总工程师：Kilo Code
+总工程师：Kilo Code- ? ��������Ŀ�ṹ��������src�ļ��С�requirements.txt��config.yamlģ�塢main.py�� 
+- ? ��װ��Python��������pyyaml, fastapi, uvicorn, requests, python-multipart�� 
+- ? ������agents.md��¼���½��� 
