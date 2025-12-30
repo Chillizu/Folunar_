@@ -19,3 +19,6 @@ logging:
 database:
   type: "sqlite"
   path: "data/agents.db"
+
+api:
+  openai_key: "your-openai-api-key-here"

@@ -15,6 +15,9 @@
 - ✅ 修改main.py添加健康检查路由 (/health)
 - ✅ 确认FastAPI应用已加载config.yaml配置
 - ✅ 设置了基础路由包括根路由、agents列表和健康检查
+- ✅ 实现了AgentManager类，加载配置，处理chat completions请求，支持流式输出和工具调用预留
+- ✅ 添加了openai库到requirements.txt
+- ✅ 更新了config.yaml添加API key配置
 
 # 计划
 
