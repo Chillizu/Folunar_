@@ -5,7 +5,9 @@ AgentContainer 主入口文件
 
 import yaml
 import uvicorn
-from fastapi import FastAPI
+import json
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
 from src.core.agent_manager import AgentManager
 
 def load_config():
@@ -37,6 +39,42 @@ def create_app():
     @app.get("/health")
     async def health_check():
         return {"status": "healthy"}
+
+    @app.post("/v1/chat/completions")
+    async def chat_completions(request: Request):
+        """处理chat completions请求，支持流式和非流式响应"""
+        data = await request.json()
+        messages = data.get("messages", [])
+        model = data.get("model", "gpt-3.5-turbo")
+        stream = data.get("stream", False)
+        tools = data.get("tools")
+
+        if stream:
+            # 流式响应
+            async def generate():
+                async for chunk in agent_manager.chat_completion(
+                    messages=messages,
+                    model=model,
+                    stream=True,
+                    tools=tools
+                ):
+                    yield f"data: {json.dumps({'choices': [{'delta': {'content': chunk}}]})}\n\n"
+                yield "data: [DONE]\n\n"
+
+            return StreamingResponse(
+                generate(),
+                media_type="text/plain",
+                headers={"Content-Type": "text/plain; charset=utf-8"}
+            )
+        else:
+            # 非流式响应
+            result = await agent_manager.chat_completion(
+                messages=messages,
+                model=model,
+                stream=False,
+                tools=tools
+            )
+            return result
 
     return app
 
