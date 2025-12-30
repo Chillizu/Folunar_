@@ -9,7 +9,9 @@
 - ✅ 初始化了Git仓库
 - ✅ 添加了所有更改到Git暂存区
 - ✅ 提交了初始更改，提交消息："feat: 初始化Idle文件夹和agents.md文件，用于跨客户端AI协作"
-- ❌ 尝试推送至远程仓库失败（因为尚未配置远程仓库origin）
+- ✅ 配置了Git远程仓库origin为git@github.com:Chillizu/Folunar_.git
+- ✅ 将master分支重命名为main
+- ✅ 推送了main分支到远程仓库
 
 # 计划
 
