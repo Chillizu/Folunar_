@@ -10,15 +10,19 @@ ENV DEBIAN_FRONTEND=noninteractive
 # ENV HTTP_PROXY=http://proxy.example.com:8080
 # ENV HTTPS_PROXY=http://proxy.example.com:8080
 
-# 配置国内apt镜像源（使用清华大学镜像源）
-RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bullseye main contrib non-free" > /etc/apt/sources.list && \
-    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bullseye-updates main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security/ bullseye-security main contrib non-free" >> /etc/apt/sources.list
+# 配置apt镜像源（使用官方源）
+RUN echo "deb http://deb.debian.org/debian/ bullseye main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb http://deb.debian.org/debian/ bullseye-updates main contrib non-free" >> /etc/apt/sources.list && \
+    echo "deb http://security.debian.org/debian-security bullseye-security main contrib non-free" >> /etc/apt/sources.list
+
+# 安装ca-certificates以解决证书问题
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # 更新包列表并安装基本工具
-RUN apt-get update --allow-unauthenticated --allow-insecure-repositories && apt-get install -y --allow-unauthenticated \
-    systemd \
-    systemd-sysv \
+RUN apt-get update && apt-get install -y \
+    bash \
+    curl \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
 # 创建容器目录
