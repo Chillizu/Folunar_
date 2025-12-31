@@ -30,6 +30,7 @@
 - ✅ 提交了更改并推送到了远程仓库，提交消息："feat: 添加.gitignore忽略config.yaml，从Git中移除config.yaml并创建config.example.yaml示例文件"
 - 🔄 正在更新环境配置为uv版本管理：添加uv安装、依赖管理、使用说明，替换pip命令
 - ✅ 创建了pyproject.toml文件，添加了项目元数据（名称、版本、描述、作者）和依赖列表（从requirements.txt转换）
+- ✅ 更新了.gitignore文件，添加了常见的Python忽略项：__pycache__、*.pyc、.venv、.env等
 
 # 计划
 
