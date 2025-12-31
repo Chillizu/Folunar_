@@ -10,6 +10,7 @@ import logging
 import asyncio
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from src.core.agent_manager import AgentManager
 
 # 配置日志
@@ -31,12 +32,21 @@ app = FastAPI(
     description=config['app']['description']
 )
 
+# 挂载静态文件
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # 初始化代理管理器
 agent_manager = AgentManager(config)
 
 @app.get("/")
 async def root():
     return {"message": "Welcome to AgentContainer", "version": config['app']['version']}
+
+@app.get("/chat")
+async def chat_page():
+    """返回聊天页面"""
+    from fastapi.responses import FileResponse
+    return FileResponse("static/index.html")
 
 @app.get("/agents")
 async def list_agents():
