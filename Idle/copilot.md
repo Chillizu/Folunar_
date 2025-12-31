@@ -36,6 +36,12 @@
 - ✅ 使用git filter-branch重写了历史，移除了所有__pycache__文件
 - ✅ 推送了清理后的历史到远程仓库
 - ✅ 在copilot.md的测试部分添加了适用于Windows的通用健康检查命令，包括PowerShell Invoke-WebRequest和curl（如果安装了）
+- ✅ 完成了规划：让AI能够被成功调用并在API端点输出流式内容。分析发现流式输出已实现但响应格式需改进以符合OpenAI标准。确定测试策略：结合真实API和mock。规划了改进端点和添加测试功能。
+- 🔄 正在运行git status, add, commit, push以保存规划进度。
+- ✅ 修复了流式响应格式，使其符合OpenAI API标准：修改agent_manager.py yield完整chunk对象，更新main.py使用正确的SSE格式
+- ✅ 添加了错误处理和日志：导入logging模块，在chat_completion和chat_completions中添加try-except和日志记录
+- ✅ 创建了/test/streaming测试端点：返回模拟的OpenAI格式流式响应，用于验证流式功能
+- 🔄 正在更新copilot.md记录最新进度
 
 # 计划
 
@@ -212,3 +218,60 @@ curl -X POST "http://localhost:8000/v1/chat/completions" \
 ```
 
 这将返回流式响应，以 `data: ` 开头的行。
+
+## 5. 测试流式响应端点
+使用以下命令测试专门的流式测试端点：
+
+```bash
+curl -X GET "http://localhost:8000/test/streaming"
+```
+
+这将返回模拟的OpenAI格式流式响应，包括：
+- 第一个chunk设置assistant role
+- 逐字符发送内容
+- 最后一个chunk设置finish_reason
+- 以`data: [DONE]`结束
+
+预期输出示例：
+```
+data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1677652288,"model":"gpt-3.5-turbo","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1677652288,"model":"gpt-3.5-turbo","choices":[{"index":0,"delta":{"content":"H"},"finish_reason":null}]}
+
+...
+
+data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1677652288,"model":"gpt-3.5-turbo","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+
+data: [DONE]
+```
+
+# 流式输出改进计划
+
+## 当前实现分析
+- ✅ 流式输出已在agent_manager.py和main.py中实现
+- ✅ 使用AsyncOpenAI客户端，支持流式调用
+- ✅ SSE格式响应：`data: {json}\n\n`
+- ❌ 响应格式简化，不符合OpenAI标准（缺少id, object, created等字段）
+- ❌ 缺少错误处理和详细日志
+- ❌ 无测试端点验证流式功能
+
+## 测试策略
+- **开发阶段**：使用mock客户端模拟API响应，避免真实API调用成本
+- **集成测试**：使用真实API key进行端到端测试
+- **CI/CD**：使用mock确保快速反馈
+
+## 改进计划
+1. **修复流式响应格式**：使响应符合OpenAI API标准，包括完整chunk结构
+2. **添加错误处理**：捕获API错误，返回适当的HTTP状态码
+3. **增强日志记录**：记录请求/响应详情，便于调试
+4. **创建测试端点**：`/test/streaming` 用于验证流式输出
+5. **添加mock客户端**：在测试模式下使用模拟响应
+6. **更新配置**：添加`test_mode`选项切换真实/mock API
+
+## 实施步骤
+1. 修改agent_manager.py：改进流式响应格式和错误处理
+2. 更新main.py：添加测试端点和更好的错误响应
+3. 创建mock客户端模块：模拟OpenAI API响应
+4. 更新config.yaml：添加测试模式配置
+5. 编写测试脚本：验证流式输出功能
+6. 更新文档：添加流式测试说明

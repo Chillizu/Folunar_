@@ -53,11 +53,15 @@ class AgentManager:
         处理chat completions请求
         支持流式输出和工具调用
         """
+        import logging
+        logger = logging.getLogger(__name__)
+
         model = model or self.default_model
         assert model is not None  # 类型守卫
         try:
             if stream:
                 # 流式输出
+                logger.info(f"Starting streaming chat completion with model: {model}")
                 kwargs = {
                     "model": model,
                     "messages": cast(List[ChatCompletionMessageParam], messages),
@@ -67,10 +71,12 @@ class AgentManager:
                     kwargs["tools"] = cast(List[ChatCompletionToolParam], tools)
                 response = await self.client.chat.completions.create(**kwargs)
                 async for chunk in response:
-                    if chunk.choices[0].delta.content:
-                        yield chunk.choices[0].delta.content
+                    logger.debug(f"Streaming chunk: {chunk.model_dump()}")
+                    yield chunk.model_dump()
+                logger.info("Streaming chat completion finished")
             else:
                 # 非流式输出
+                logger.info(f"Starting non-streaming chat completion with model: {model}")
                 kwargs = {
                     "model": model,
                     "messages": cast(List[ChatCompletionMessageParam], messages),
@@ -78,8 +84,12 @@ class AgentManager:
                 if tools is not None:
                     kwargs["tools"] = cast(List[ChatCompletionToolParam], tools)
                 response = await self.client.chat.completions.create(**kwargs)
-                yield response.model_dump()
+                result = response.model_dump()
+                logger.debug(f"Non-streaming response: {result}")
+                yield result
+                logger.info("Non-streaming chat completion finished")
         except Exception as e:
+            logger.error(f"Chat completion failed: {str(e)}")
             raise Exception(f"Chat completion failed: {str(e)}")
 
     async def handle_tool_call(self, tool_call: Dict[str, Any]) -> Any:
