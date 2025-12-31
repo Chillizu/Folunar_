@@ -23,7 +23,7 @@ wheels/
 *.egg
 MANIFEST
 uv.lock
-src\core\__pycache__/
+src/core/__pycache__/
 
 # Virtual environments
 .venv/
