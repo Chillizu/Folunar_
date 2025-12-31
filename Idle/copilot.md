@@ -1,4 +1,4 @@
-﻿# 项目概述
+# 项目概述
 
 这是一个AgentContainer项目，用于管理和运行各种AI代理工具。项目旨在提供一个容器化的环境，让不同的AI客户端能够无缝协作和继续任务。
 
@@ -24,6 +24,11 @@
 - ✅ 更新了agent_manager.py以使用这些配置选项
 - ✅ 修复了agent_manager.py中的Pylance类型错误：添加了正确的类型注解，使用Optional、List等，修复了async generator返回类型，包括导入Union、cast、ChatCompletionMessageParam等，处理tools参数的条件传递，修复handle_tool_call中的arguments解析
 - ✅ 运行了git status查看状态，git add . 添加更改，提交带有描述性消息的提交，git push origin main 上传更改
+- ✅ 创建了.gitignore文件，添加config.yaml到忽略列表以保护配置文件
+- ✅ 创建了config.example.yaml作为配置文件示例，移除了敏感API key信息
+- ✅ 从Git中删除了config.yaml（保留本地文件），使用git rm --cached命令
+- ✅ 提交了更改并推送到了远程仓库，提交消息："feat: 添加.gitignore忽略config.yaml，从Git中移除config.yaml并创建config.example.yaml示例文件"
+- 🔄 正在更新环境配置为uv版本管理：添加uv安装、依赖管理、使用说明，替换pip命令
 
 # 计划
 
@@ -55,6 +60,47 @@
 - ✅ 更新了copilot.md记录最新进度
 - ✅ 添加了详细的测试方法到copilot.md，包括配置API key、启动应用、测试健康检查和chat completions端点
 
+# 环境配置
+
+## uv版本管理
+
+本项目使用uv作为Python包管理器，以提供更快的依赖安装和更好的性能。
+
+### uv安装
+
+首先，安装uv包管理器：
+
+**Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**macOS/Linux:**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+安装完成后，重启终端或刷新环境变量。
+
+### 依赖管理
+
+使用uv管理项目依赖：
+
+```bash
+# 安装项目依赖
+uv pip install -r requirements.txt
+
+# 或者，如果使用pyproject.toml（推荐）
+uv sync
+```
+
+### 使用说明
+
+- `uv pip install <package>`: 安装包
+- `uv pip uninstall <package>`: 卸载包
+- `uv pip list`: 查看已安装包
+- `uv sync`: 同步pyproject.toml中的依赖（如果适用）
+
 # 测试方法
 
 ## 1. 配置API Key
@@ -73,7 +119,7 @@ openai:
 安装依赖后，使用以下命令启动FastAPI应用：
 
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
