@@ -4,6 +4,9 @@
 
 # 当前进度
 
+- ✅ 修复了阿里云镜像源路径错误：添加了缺失的斜杠到debian-security源，解决了pull access denied问题
+- ✅ 改用清华大学镜像源：使用https协议，提供更稳定可靠的国内镜像源访问
+- ✅ 更新Dockerfile配置：使用清华大学Debian镜像源替换阿里云源，确保apt update正常工作
 - ✅ 创建了Idle文件夹
 - ✅ 创建了copilot.md文件并初始化内容，包括项目概述、进度、计划、上下文和协作要求
 - ✅ 初始化了Git仓库

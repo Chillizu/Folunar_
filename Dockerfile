@@ -7,10 +7,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV HTTP_PROXY=http://proxy.example.com:8080
 ENV HTTPS_PROXY=http://proxy.example.com:8080
 
-# 配置国内apt镜像源
-RUN echo "deb http://mirrors.aliyun.com/debian/ bullseye main non-free contrib" > /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian/ bullseye-updates main non-free contrib" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian-security bullseye-security main" >> /etc/apt/sources.list
+# 配置国内apt镜像源（使用清华大学镜像源）
+RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bullseye main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bullseye-updates main contrib non-free" >> /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security/ bullseye-security main contrib non-free" >> /etc/apt/sources.list
 
 # 更新包列表并安装基本工具
 RUN apt-get update --allow-unauthenticated --allow-insecure-repositories && apt-get install -y --allow-unauthenticated \
