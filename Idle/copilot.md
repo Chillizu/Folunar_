@@ -35,6 +35,7 @@
 - ✅ 检查Git历史，发现有__pycache__缓存文件被提交
 - ✅ 使用git filter-branch重写了历史，移除了所有__pycache__文件
 - ✅ 推送了清理后的历史到远程仓库
+- ✅ 在copilot.md的测试部分添加了适用于Windows的通用健康检查命令，包括PowerShell Invoke-WebRequest和curl（如果安装了）
 
 # 计划
 
@@ -132,9 +133,20 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 应用将在 http://localhost:8000 上运行。
 
 ## 3. 测试健康检查
-使用curl测试健康检查端点：
+使用以下命令测试健康检查端点：
 
+**Linux/macOS (curl):**
 ```bash
+curl -X GET "http://localhost:8000/health"
+```
+
+**Windows (PowerShell Invoke-WebRequest):**
+```powershell
+Invoke-WebRequest -Uri "http://localhost:8000/health" -Method GET
+```
+
+**Windows (curl，如果已安装):**
+```cmd
 curl -X GET "http://localhost:8000/health"
 ```
 
