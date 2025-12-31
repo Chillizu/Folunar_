@@ -23,4 +23,4 @@ database:
 api:
   base_url: "https://openrouter.ai/api/v1"
   default_model: "nvidia/nemotron-nano-12b-v2-vl:free"
-  key: "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"
+  key: "your-api-key-here"  # 请替换为你的实际API key
