@@ -22,6 +22,7 @@
 - ✅ 测试基础功能：安装依赖成功，应用成功启动在端口8000，/health端点返回200 {'status': 'healthy'}，/v1/chat/completions端点可达但返回500（API key配置问题）
 - ✅ 在config.yaml中添加了API基础路由base_url和默认模型default_model选项
 - ✅ 更新了agent_manager.py以使用这些配置选项
+- ✅ 修复了agent_manager.py中的Pylance类型错误：添加了正确的类型注解，使用Optional、List等，修复了async generator返回类型，包括导入Union、cast、ChatCompletionMessageParam等，处理tools参数的条件传递，修复handle_tool_call中的arguments解析
 
 # 计划
 
