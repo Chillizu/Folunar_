@@ -68,16 +68,37 @@ async def test_streaming():
         created = int(time.time())
 
         # 第一个chunk：设置role
-        yield f"data: {json.dumps({'id': chat_id, 'object': 'chat.completion.chunk', 'created': created, 'model': 'gpt-3.5-turbo', 'choices': [{'index': 0, 'delta': {'role': 'assistant'}, 'finish_reason': None}])}\n\n"
+        chunk = {
+            'id': chat_id,
+            'object': 'chat.completion.chunk',
+            'created': created,
+            'model': 'gpt-3.5-turbo',
+            'choices': [{'index': 0, 'delta': {'role': 'assistant'}, 'finish_reason': None}]
+        }
+        yield f"data: {json.dumps(chunk)}\n\n"
 
         # 内容chunks
         content = "Hello! This is a test streaming response from AgentContainer. "
         for char in content:
-            yield f"data: {json.dumps({'id': chat_id, 'object': 'chat.completion.chunk', 'created': created, 'model': 'gpt-3.5-turbo', 'choices': [{'index': 0, 'delta': {'content': char}, 'finish_reason': None}])}\n\n"
+            chunk = {
+                'id': chat_id,
+                'object': 'chat.completion.chunk',
+                'created': created,
+                'model': 'gpt-3.5-turbo',
+                'choices': [{'index': 0, 'delta': {'content': char}, 'finish_reason': None}]
+            }
+            yield f"data: {json.dumps(chunk)}\n\n"
             await asyncio.sleep(0.05)  # 模拟延迟
 
         # 最后一个chunk：设置finish_reason
-        yield f"data: {json.dumps({'id': chat_id, 'object': 'chat.completion.chunk', 'created': created, 'model': 'gpt-3.5-turbo', 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}])}\n\n"
+        chunk = {
+            'id': chat_id,
+            'object': 'chat.completion.chunk',
+            'created': created,
+            'model': 'gpt-3.5-turbo',
+            'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}]
+        }
+        yield f"data: {json.dumps(chunk)}\n\n"
 
         # 结束
         yield "data: [DONE]\n\n"
