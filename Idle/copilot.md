@@ -51,3 +51,98 @@
 - ✅ 设置了项目结构：创建了src文件夹、requirements.txt、config.yaml模板、main.py等
 - ✅ 安装了Python依赖包（pyyaml, fastapi, uvicorn, requests, python-multipart）
 - ✅ 更新了copilot.md记录最新进度
+- ✅ 添加了详细的测试方法到copilot.md，包括配置API key、启动应用、测试健康检查和chat completions端点
+
+# 测试方法
+
+## 1. 配置API Key
+在开始测试之前，请确保在 `config.yaml` 文件中正确配置了API key：
+
+```yaml
+openai:
+  api_key: "your-openai-api-key-here"  # 替换为你的实际API key
+  base_url: "https://api.openai.com/v1"  # 可选，默认值
+  default_model: "gpt-3.5-turbo"  # 可选，默认值
+```
+
+请将 `your-openai-api-key-here` 替换为你的实际OpenAI API key。你可以从 [OpenAI平台](https://platform.openai.com/api-keys) 获取API key。
+
+## 2. 启动应用
+安装依赖后，使用以下命令启动FastAPI应用：
+
+```bash
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+应用将在 http://localhost:8000 上运行。
+
+## 3. 测试健康检查
+使用curl测试健康检查端点：
+
+```bash
+curl -X GET "http://localhost:8000/health"
+```
+
+预期响应：
+```json
+{
+  "status": "healthy"
+}
+```
+
+## 4. 测试Chat Completions端点
+使用curl测试chat completions端点（非流式）：
+
+```bash
+curl -X POST "http://localhost:8000/v1/chat/completions" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "model": "gpt-3.5-turbo",
+       "messages": [
+         {"role": "user", "content": "Hello, how are you?"}
+       ],
+       "stream": false
+     }'
+```
+
+预期响应类似：
+```json
+{
+  "id": "chatcmpl-xxx",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "gpt-3.5-turbo",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Hello! I'm doing well, thank you for asking. How can I help you today?"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 13,
+    "completion_tokens": 20,
+    "total_tokens": 33
+  }
+}
+```
+
+对于流式响应，将 `"stream": true`：
+
+```bash
+curl -X POST "http://localhost:8000/v1/chat/completions" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "model": "gpt-3.5-turbo",
+       "messages": [
+         {"role": "user", "content": "Tell me a joke"}
+       ],
+       "stream": true
+     }'
+```
+
+这将返回流式响应，以 `data: ` 开头的行。
