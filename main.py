@@ -68,22 +68,22 @@ def create_app():
             )
         else:
             # 非流式响应
-            result = await agent_manager.chat_completion(
+            async for result in agent_manager.chat_completion(
                 messages=messages,
                 model=model,
                 stream=False,
                 tools=tools
-            )
-            return result
+            ):
+                return result
 
     return app
 
 if __name__ == "__main__":
     config = load_config()
-    app = create_app()
 
     uvicorn.run(
-        app,
+        "main:create_app",
+        factory=True,
         host=config['server']['host'],
         port=config['server']['port'],
         reload=config['server']['debug']

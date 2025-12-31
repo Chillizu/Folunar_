@@ -42,7 +42,7 @@ class AgentManager:
         model: str = "gpt-3.5-turbo",
         stream: bool = False,
         tools: Optional[List[Dict[str, Any]]] = None
-    ) -> AsyncGenerator[str, None] if stream else Dict[str, Any]:
+    ) -> AsyncGenerator[str, None]:
         """
         处理chat completions请求
         支持流式输出和工具调用
@@ -66,7 +66,7 @@ class AgentManager:
                     messages=messages,
                     tools=tools
                 )
-                return response.model_dump()
+                yield response.model_dump()
         except Exception as e:
             raise Exception(f"Chat completion failed: {str(e)}")
 
