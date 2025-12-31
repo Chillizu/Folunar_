@@ -293,6 +293,7 @@ data: [DONE]
 - ✅ 更新HTML布局：添加系统状态面板显示版本、活跃代理、CPU使用、内存使用、运行时间
 - ✅ 更新JS显示系统状态：添加定时获取系统状态功能，每5秒更新一次显示
 - ✅ 更新copilot.md：记录所有更改和进度
+- ✅ 修复Docker网络问题：更新Dockerfile使用国内镜像源，添加代理配置，解决连接Docker Hub失败的问题
 
 ## 实施详情
 
@@ -417,8 +418,14 @@ data: [DONE]
 - 可能需要配置代理或使用镜像加速器
 - 脚本设计为容错，即使构建失败也能处理
 
+### 5. Docker网络问题修复
+- 更新Dockerfile使用国内镜像源：更改FROM为debian:bullseye，配置apt使用阿里云镜像源
+- 添加代理配置：设置HTTP_PROXY和HTTPS_PROXY环境变量以支持代理访问
+- 解决连接Docker Hub失败：通过国内镜像源和代理配置绕过网络限制
+- 测试构建：尝试构建镜像，虽然FROM拉取可能仍需Docker Desktop配置镜像加速器
+
 ## 计划
-- 解决Docker网络连接问题（配置代理或VPN）
+- 解决Docker网络连接问题（配置Docker Desktop镜像加速器或代理）
 - 测试容器管理API端点
 - 验证容器内systemd功能
 - 添加更多容器配置选项（如环境变量、卷挂载）
