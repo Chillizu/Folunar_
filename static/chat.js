@@ -2,7 +2,54 @@ const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
 const messagesContainer = document.getElementById('messages');
 
+// 系统状态元素
+const versionElement = document.getElementById('version');
+const activeAgentsElement = document.getElementById('active-agents');
+const cpuPercentElement = document.getElementById('cpu-percent');
+const memoryPercentElement = document.getElementById('memory-percent');
+const uptimeElement = document.getElementById('uptime');
+
 let messages = [];
+
+// 获取系统状态
+async function fetchSystemStatus() {
+    try {
+        const response = await fetch('/api/system/status');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const status = await response.json();
+        updateStatusDisplay(status);
+    } catch (error) {
+        console.error('Error fetching system status:', error);
+        // 显示错误状态
+        versionElement.textContent = '错误';
+        activeAgentsElement.textContent = 'N/A';
+        cpuPercentElement.textContent = 'N/A';
+        memoryPercentElement.textContent = 'N/A';
+        uptimeElement.textContent = 'N/A';
+    }
+}
+
+// 更新状态显示
+function updateStatusDisplay(status) {
+    versionElement.textContent = status.version;
+    activeAgentsElement.textContent = status.active_agents;
+    cpuPercentElement.textContent = `${status.system.cpu_percent.toFixed(1)}%`;
+    memoryPercentElement.textContent = `${status.system.memory_percent.toFixed(1)}%`;
+
+    // 格式化运行时间
+    const uptime = formatUptime(status.uptime);
+    uptimeElement.textContent = uptime;
+}
+
+// 格式化运行时间
+function formatUptime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
 
 function addMessage(content, role) {
     const messageDiv = document.createElement('div');
@@ -105,6 +152,12 @@ async function sendMessage() {
         finalizeStreamingMessage();
     }
 }
+
+// 页面加载时获取初始状态，然后每5秒更新一次
+document.addEventListener('DOMContentLoaded', () => {
+    fetchSystemStatus(); // 初始加载
+    setInterval(fetchSystemStatus, 5000); // 每5秒更新一次
+});
 
 sendButton.addEventListener('click', sendMessage);
 messageInput.addEventListener('keypress', (e) => {

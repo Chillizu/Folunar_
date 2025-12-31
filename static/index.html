@@ -9,6 +9,31 @@
 <body>
     <div class="container">
         <h1>AgentContainer 聊天</h1>
+
+        <!-- 系统状态面板 -->
+        <div class="status-panel">
+            <div class="status-item">
+                <span class="status-label">版本:</span>
+                <span class="status-value" id="version">加载中...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">活跃代理:</span>
+                <span class="status-value" id="active-agents">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">CPU使用:</span>
+                <span class="status-value" id="cpu-percent">0%</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">内存使用:</span>
+                <span class="status-value" id="memory-percent">0%</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">运行时间:</span>
+                <span class="status-value" id="uptime">00:00:00</span>
+            </div>
+        </div>
+
         <div id="chat-container">
             <div id="messages"></div>
         </div>

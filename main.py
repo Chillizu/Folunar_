@@ -8,6 +8,8 @@ import uvicorn
 import json
 import logging
 import asyncio
+import time
+import psutil
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -55,6 +57,36 @@ async def list_agents():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+@app.get("/api/system/status")
+async def system_status():
+    """获取系统状态信息"""
+    try:
+        # 获取系统信息
+        memory = psutil.virtual_memory()
+        cpu_percent = psutil.cpu_percent(interval=1)
+
+        # 计算运行时间（从应用启动开始）
+        uptime = time.time() - psutil.boot_time()
+
+        status = {
+            "version": config['app']['version'],
+            "uptime": uptime,
+            "active_agents": len(agent_manager.list_agents()),
+            "system": {
+                "cpu_percent": cpu_percent,
+                "memory_used": memory.used,
+                "memory_total": memory.total,
+                "memory_percent": memory.percent
+            },
+            "timestamp": int(time.time())
+        }
+
+        logger.info(f"System status requested: {status}")
+        return status
+    except Exception as e:
+        logger.error(f"Failed to get system status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get system status: {str(e)}")
 
 @app.get("/test/streaming")
 async def test_streaming():
