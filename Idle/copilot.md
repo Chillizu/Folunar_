@@ -56,6 +56,8 @@
 - ✅ 检查了终端错误：运行应用成功启动，无错误信息
 - ✅ 构建Docker容器：修复了Dockerfile中的证书和包安装问题，成功构建debian容器镜像
 - ✅ 检查代码语法：所有Python文件（main.py, agent_manager.py, container_manager.py）语法正确，无逻辑错误
+- ✅ 修复CSS Safari兼容性：为backdrop-filter添加-webkit-backdrop-filter前缀，支持Safari浏览器
+- ✅ 修复markdown格式问题：检查并确认所有URL正确格式化，无裸URL、多标题或空格问题
 
 # 计划
 
