@@ -32,6 +32,9 @@
 - ✅ 创建了pyproject.toml文件，添加了项目元数据（名称、版本、描述、作者）和依赖列表（从requirements.txt转换）
 - ✅ 更新了.gitignore文件，添加了常见的Python忽略项：__pycache__、*.pyc、.venv、.env等
 - 🔄 正在更新.gitignore添加*.egg-info/（确认已存在），从Git中删除src/agent_container.egg-info/目录，提交更改
+- ✅ 检查Git历史，发现有__pycache__缓存文件被提交
+- ✅ 使用git filter-branch重写了历史，移除了所有__pycache__文件
+- ✅ 推送了清理后的历史到远程仓库
 
 # 计划
 
