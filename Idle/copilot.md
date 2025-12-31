@@ -20,6 +20,8 @@
 - ✅ 更新了config.yaml添加API key配置
 - ✅ 添加了 /v1/chat/completions 端点：集成AgentManager，处理POST请求，支持流式和非流式响应
 - ✅ 测试基础功能：安装依赖成功，应用成功启动在端口8000，/health端点返回200 {'status': 'healthy'}，/v1/chat/completions端点可达但返回500（API key配置问题）
+- ✅ 在config.yaml中添加了API基础路由base_url和默认模型default_model选项
+- ✅ 更新了agent_manager.py以使用这些配置选项
 
 # 计划
 

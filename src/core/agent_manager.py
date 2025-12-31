@@ -13,7 +13,11 @@ class AgentManager:
         self.config = config
         self.agents = {}  # 存储活跃的代理实例
         self.tools = {}  # 预留工具调用框架
-        self.client = AsyncOpenAI(api_key=config.get('api', {}).get('openai_key'))
+        self.default_model = config.get('api', {}).get('default_model', 'gpt-3.5-turbo')
+        self.client = AsyncOpenAI(
+            api_key=config.get('api', {}).get('openai_key'),
+            base_url=config.get('api', {}).get('base_url', 'https://api.openai.com/v1')
+        )
 
     def list_agents(self):
         """列出所有活跃的代理"""
@@ -39,7 +43,7 @@ class AgentManager:
     async def chat_completion(
         self,
         messages: List[Dict[str, Any]],
-        model: str = "gpt-3.5-turbo",
+        model: str = None,
         stream: bool = False,
         tools: Optional[List[Dict[str, Any]]] = None
     ) -> AsyncGenerator[str, None]:
@@ -47,6 +51,8 @@ class AgentManager:
         处理chat completions请求
         支持流式输出和工具调用
         """
+        if model is None:
+            model = self.default_model
         try:
             if stream:
                 # 流式输出
