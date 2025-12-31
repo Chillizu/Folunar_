@@ -10,10 +10,12 @@ import logging
 import asyncio
 import time
 import psutil
+from typing import Optional, Dict
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from src.core.agent_manager import AgentManager
+from src.container_manager import ContainerManager
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -39,6 +41,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 初始化代理管理器
 agent_manager = AgentManager(config)
+
+# 初始化容器管理器
+container_manager = ContainerManager()
 
 @app.get("/")
 async def root():
@@ -87,6 +92,79 @@ async def system_status():
     except Exception as e:
         logger.error(f"Failed to get system status: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get system status: {str(e)}")
+
+# 容器管理端点
+@app.post("/api/container/build")
+async def build_container():
+    """构建Debian容器镜像"""
+    try:
+        success = container_manager.build_image()
+        if success:
+            return {"status": "success", "message": "容器镜像构建成功"}
+        else:
+            raise HTTPException(status_code=500, detail="容器镜像构建失败")
+    except Exception as e:
+        logger.error(f"构建容器镜像失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"构建容器镜像失败: {str(e)}")
+
+@app.post("/api/container/start")
+async def start_container(ports: Optional[Dict[str, str]] = None):
+    """启动Debian容器"""
+    try:
+        success = container_manager.start_container(ports)
+        if success:
+            return {"status": "success", "message": "容器启动成功"}
+        else:
+            raise HTTPException(status_code=500, detail="容器启动失败")
+    except Exception as e:
+        logger.error(f"启动容器失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"启动容器失败: {str(e)}")
+
+@app.post("/api/container/stop")
+async def stop_container():
+    """停止Debian容器"""
+    try:
+        success = container_manager.stop_container()
+        if success:
+            return {"status": "success", "message": "容器停止成功"}
+        else:
+            return {"status": "warning", "message": "容器停止失败或容器不存在"}
+    except Exception as e:
+        logger.error(f"停止容器失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"停止容器失败: {str(e)}")
+
+@app.post("/api/container/remove")
+async def remove_container():
+    """删除Debian容器"""
+    try:
+        success = container_manager.remove_container()
+        if success:
+            return {"status": "success", "message": "容器删除成功"}
+        else:
+            return {"status": "warning", "message": "容器删除失败或容器不存在"}
+    except Exception as e:
+        logger.error(f"删除容器失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"删除容器失败: {str(e)}")
+
+@app.get("/api/container/status")
+async def get_container_status():
+    """获取容器状态"""
+    try:
+        status = container_manager.get_container_status()
+        return {"status": "success", "data": status}
+    except Exception as e:
+        logger.error(f"获取容器状态失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取容器状态失败: {str(e)}")
+
+@app.post("/api/container/exec")
+async def exec_in_container(command: str):
+    """在容器中执行命令"""
+    try:
+        output = container_manager.exec_command(command)
+        return {"status": "success", "output": output}
+    except Exception as e:
+        logger.error(f"在容器中执行命令失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"在容器中执行命令失败: {str(e)}")
 
 @app.get("/test/streaming")
 async def test_streaming():
