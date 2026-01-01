@@ -58,6 +58,8 @@
 - ✅ 检查代码语法：所有Python文件（main.py, agent_manager.py, container_manager.py）语法正确，无逻辑错误
 - ✅ 修复CSS Safari兼容性：为backdrop-filter添加-webkit-backdrop-filter前缀，支持Safari浏览器
 - ✅ 修复markdown格式问题：检查并确认所有URL正确格式化，无裸URL、多标题或空格问题
+- ✅ 创建了新Git分支'container-optimization'用于容器优化任务
+- ✅ 推送了新分支到远程仓库
 
 # 计划
 
@@ -400,6 +402,79 @@ data: [DONE]
   - GET /api/container/status - 获取容器状态
   - POST /api/container/exec - 在容器中执行命令
 - 🔄 等待网络问题解决后构建镜像，或配置Docker代理
+
+## Docker容器测试结果
+
+### 测试概述
+- **测试时间**: 2025-12-31 16:31 - 2026-01-01 02:07
+- **测试环境**: Windows 11, Docker Desktop
+- **测试目标**: 验证Docker容器构建和运行，确认容器正常启动
+
+### 测试步骤和结果
+
+#### 1. 构建Docker镜像
+- **尝试使用**: Dockerfile (基础Debian镜像)
+- **结果**: ❌ 失败 - 网络连接问题，无法访问Docker Hub (auth.docker.io)
+- **错误信息**: "failed to authorize: failed to fetch anonymous token"
+- **尝试使用**: Dockerfile.local (清华大学镜像源)
+- **结果**: ❌ 失败 - 相同网络问题
+- **原因分析**: Docker Desktop未配置镜像加速器或代理，网络受限环境
+
+#### 2. 运行现有容器
+- **发现现有镜像**: agent-container:latest (59.3MB)
+- **尝试运行**: `docker run -d -p 8000:8000 --name agent-container-test agent-container`
+- **结果**: ❌ 失败 - 容器缺少systemd可执行文件
+- **错误信息**: "exec: "/lib/systemd/systemd": stat /lib/systemd/systemd: no such file or directory"
+- **原因分析**: 现有镜像使用systemd作为CMD，但容器中未正确安装systemd
+
+#### 3. 验证容器功能
+- **替代方案**: 直接在本地环境运行应用进行功能验证
+- **启动应用**: `python main.py`
+- **结果**: ✅ 成功 - 应用在端口8000启动
+- **日志输出**: "INFO: Application startup complete."
+
+#### 4. 健康检查测试
+- **测试命令**: `curl -X GET "http://localhost:8000/health"`
+- **结果**: ✅ 成功 - 返回 `{"status":"healthy"}`
+- **响应时间**: ~93ms
+- **状态码**: 200 OK
+
+### 测试结论
+
+#### 成功点
+- ✅ 本地Python环境运行正常
+- ✅ FastAPI应用启动成功
+- ✅ 健康检查端点响应正常
+- ✅ 端口8000正确监听
+
+#### 失败点
+- ❌ Docker镜像构建失败（网络问题）
+- ❌ 现有容器无法正常运行（缺少systemd）
+- ❌ 无法进行完整的容器化测试
+
+#### 建议解决方案
+1. **配置Docker Desktop镜像加速器**:
+   - 添加国内镜像源（中科大、清华大学、阿里云等）
+   - 配置代理服务器（如果有）
+
+2. **预下载基础镜像**:
+   - 在有网络的环境中下载debian:bullseye
+   - 保存为tar文件并在目标环境加载
+
+3. **修改Dockerfile**:
+   - 使用本地缓存的镜像
+   - 简化容器CMD，直接运行Python应用
+
+4. **容器功能验证**:
+   - 当前通过本地运行验证了应用功能
+   - Docker容器化问题不影响核心业务逻辑
+
+### 技术细节
+- **Python版本**: 3.13.4
+- **FastAPI版本**: 0.104.1
+- **端口**: 8000
+- **健康检查响应**: `{"status":"healthy"}`
+- **应用状态**: 运行正常，无错误日志
 
 ## Docker Hub连接问题解决方案
 
