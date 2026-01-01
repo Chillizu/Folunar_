@@ -89,6 +89,108 @@ security:
   audit_log_file: "logs/audit.log"  # 审计日志文件路径
   sensitive_headers: ["authorization", "x-api-key", "cookie"]  # 需要过滤的敏感头
 
+  # 容器安全配置
+  container_security:
+    enable_security: true  # 启用容器安全措施
+    read_only_rootfs: true  # 只读根文件系统
+    no_new_privileges: true  # 禁止新权限
+    drop_all_capabilities: true  # 删除所有能力
+    pids_limit: 1024  # 进程数限制
+
+    # 资源限制
+    resource_limits:
+      cpu_quota: 50000  # CPU配额 (50%)
+      cpu_period: 100000  # CPU周期
+      memory: "512m"  # 内存限制
+      memory_swap: "1g"  # 交换内存限制
+      tmpfs_size: "100m"  # tmpfs大小限制
+
+    # 网络隔离
+    network_isolation:
+      enable_bridge_network: true  # 启用桥接网络
+      disable_intercontainer: true  # 禁用容器间通信
+      disable_ip_forwarding: true  # 禁用IP转发
+      allowed_ports: [5901, 8888]  # 允许的端口
+
+    # 命令过滤器
+    command_filter:
+      enable_filtering: true  # 启用命令过滤
+      dangerous_commands:  # 危险命令列表
+        - "rm\\s+-rf\\s+/"
+        - "rm\\s+-rf\\s+\\*"
+        - "rm\\s+-rf\\s+\\.\\."
+        - "format\\s+"
+        - "mkfs\\."
+        - "dd\\s+if="
+        - "fdisk"
+        - "parted"
+        - "shutdown"
+        - "reboot"
+        - "halt"
+        - "poweroff"
+        - "systemctl\\s+disable"
+        - "systemctl\\s+stop"
+        - "killall"
+        - "pkill\\s+-9"
+        - "chmod\\s+777"
+        - "chown\\s+root"
+        - "usermod"
+        - "userdel"
+        - "passwd"
+        - "su\\s+"
+        - "sudo\\s+"
+        - "mount"
+        - "umount"
+        - "apt\\s+remove"
+        - "apt\\s+purge"
+        - "pip\\s+uninstall"
+        - "npm\\s+uninstall"
+        - "yum\\s+remove"
+        - "wget\\s+.*\\|\\s*sh"
+        - "curl\\s+.*\\|\\s*sh"
+        - "eval\\s+"
+        - "exec\\s+"
+        - "bash\\s+-c"
+        - "sh\\s+-c"
+      allowed_commands:  # 允许的命令模式（如果设置，将只允许这些命令）
+        - "^ls\\s+"
+        - "^pwd$"
+        - "^cd\\s+"
+        - "^cat\\s+"
+        - "^head\\s+"
+        - "^tail\\s+"
+        - "^grep\\s+"
+        - "^find\\s+"
+        - "^ps\\s+"
+        - "^top$"
+        - "^htop$"
+        - "^df\\s+"
+        - "^du\\s+"
+        - "^free$"
+        - "^uptime$"
+        - "^whoami$"
+        - "^id$"
+        - "^date$"
+        - "^echo\\s+"
+        - "^mkdir\\s+"
+        - "^touch\\s+"
+        - "^cp\\s+"
+        - "^mv\\s+"
+        - "^python3?\\s+"
+        - "^node\\s+"
+        - "^npm\\s+run"
+        - "^git\\s+"
+        - "^vim?\\s+"
+        - "^nano\\s+"
+        - "^less\\s+"
+        - "^more\\s+"
+        - "^wc\\s+"
+        - "^sort\\s+"
+        - "^uniq\\s+"
+        - "^cut\\s+"
+        - "^awk\\s+"
+        - "^sed\\s+"
+
 # 随机想法注入系统配置
 whisper_injection:
   enabled: true  # 是否启用随机想法注入

@@ -13,6 +13,10 @@ import logging.handlers
 import json
 from typing import Optional, Dict, Any, List
 from pathlib import Path
+try:
+    from .container_audit import get_audit_logger
+except ImportError:
+    from container_audit import get_audit_logger
 
 class ContainerManager:
     """
@@ -38,8 +42,20 @@ class ContainerManager:
         self.restart_policy = self.container_config.get('restart_policy', 'no')
         self.network_mode = self.container_config.get('network_mode', 'bridge')
 
+        # 安全配置
+        self.security_config = config.get('security', {}).get('container_security', {})
+        self.resource_limits = self.security_config.get('resource_limits', {})
+        self.network_isolation = self.security_config.get('network_isolation', {})
+        self.command_filter = self.security_config.get('command_filter', {})
+
         self.project_root = Path(__file__).parent.parent
         self.logger = self._setup_logger()
+
+        # 初始化审计日志器
+        self.audit_logger = get_audit_logger(config)
+
+        # 编译命令过滤正则表达式
+        self._compile_command_filters()
 
     def _setup_logger(self) -> logging.Logger:
         """设置结构化日志记录器"""
@@ -77,6 +93,51 @@ class ContainerManager:
         logger.addHandler(file_handler)
 
         return logger
+
+    def _compile_command_filters(self):
+        """编译命令过滤正则表达式"""
+        import re
+        self.dangerous_patterns = []
+        self.allowed_patterns = []
+
+        # 编译危险命令模式
+        dangerous_commands = self.command_filter.get('dangerous_commands', [])
+        for pattern in dangerous_commands:
+            try:
+                self.dangerous_patterns.append(re.compile(pattern, re.IGNORECASE))
+            except re.error as e:
+                self.logger.warning(f"无效的危险命令模式: {pattern} - {e}")
+
+        # 编译允许命令模式
+        allowed_commands = self.command_filter.get('allowed_commands', [])
+        for pattern in allowed_commands:
+            try:
+                self.allowed_patterns.append(re.compile(pattern, re.IGNORECASE))
+            except re.error as e:
+                self.logger.warning(f"无效的允许命令模式: {pattern} - {e}")
+
+    def _filter_command(self, command: str) -> tuple[bool, str]:
+        """过滤命令是否安全
+        返回: (是否允许, 原因)
+        """
+        # 检查是否启用过滤
+        if not self.command_filter.get('enable_filtering', True):
+            return True, "命令过滤已禁用"
+
+        # 检查危险命令
+        for pattern in self.dangerous_patterns:
+            if pattern.search(command):
+                return False, f"命令包含危险模式: {pattern.pattern}"
+
+        # 如果有允许列表，检查是否匹配
+        if self.allowed_patterns:
+            for pattern in self.allowed_patterns:
+                if pattern.search(command):
+                    return True, "命令通过允许列表检查"
+            return False, "命令不在允许列表中"
+
+        # 默认允许（如果没有允许列表）
+        return True, "命令通过安全检查"
 
     async def build_image(self) -> Dict[str, Any]:
         """异步构建Docker镜像"""
@@ -149,13 +210,50 @@ class ContainerManager:
                 })
                 return {"success": True, "error": ""}
 
-            # 构建docker run命令
+            # 构建docker run命令（安全版本）
             cmd = [
                 "docker", "run", "-d",
                 "--name", self.container_name,
                 "--restart", self.restart_policy,
                 "--network", self.network_mode
             ]
+
+            # 添加安全选项（如果启用）
+            if self.security_config.get('enable_security', True):
+                if self.security_config.get('read_only_rootfs', True):
+                    cmd.append("--read-only")
+                cmd.extend(["--tmpfs", "/tmp:rw,noexec,nosuid,size=100m"])
+                cmd.extend(["--tmpfs", "/var/tmp:rw,noexec,nosuid,size=50m"])
+                if self.security_config.get('drop_all_capabilities', True):
+                    cmd.extend(["--cap-drop", "ALL"])
+                    cmd.extend(["--cap-add", "NET_BIND_SERVICE"])
+                if self.security_config.get('no_new_privileges', True):
+                    cmd.extend(["--security-opt", "no-new-privileges:true"])
+                cmd.extend(["--security-opt", "seccomp=unconfined"])  # 可以根据需要调整
+                if self.security_config.get('pids_limit'):
+                    cmd.extend(["--pids-limit", str(self.security_config['pids_limit'])])
+
+            # 添加资源限制
+            if self.resource_limits.get('cpu_quota'):
+                cmd.extend(["--cpu-quota", str(self.resource_limits['cpu_quota'])])
+            if self.resource_limits.get('cpu_period'):
+                cmd.extend(["--cpu-period", str(self.resource_limits['cpu_period'])])
+            if self.resource_limits.get('memory'):
+                cmd.extend(["--memory", self.resource_limits['memory']])
+            if self.resource_limits.get('memory_swap'):
+                cmd.extend(["--memory-swap", self.resource_limits['memory_swap']])
+
+            # 添加磁盘限制（通过tmpfs大小控制）
+            if self.resource_limits.get('tmpfs_size'):
+                cmd.extend(["--tmpfs", f"/tmp:rw,noexec,nosuid,size={self.resource_limits['tmpfs_size']}"])
+
+            # 网络隔离
+            if self.network_isolation.get('enable_bridge_network', False):
+                cmd.extend(["--network", "bridge"])
+            if self.network_isolation.get('disable_intercontainer', False):
+                cmd.extend(["--icc=false"])
+            if self.network_isolation.get('disable_ip_forwarding', False):
+                cmd.extend(["--ip-forward=false"])
 
             # 添加环境变量
             for key, value in self.environment.items():
@@ -193,6 +291,12 @@ class ContainerManager:
                     'container_id': container_id[:12],  # 只记录前12位
                     'ports': port_mappings
                 })
+                # 审计日志：容器启动成功
+                self.audit_logger.log_container_lifecycle(
+                    'START',
+                    self.container_name,
+                    {'container_id': container_id[:12], 'ports': port_mappings}
+                )
                 return {"success": True, "error": "", "container_id": container_id}
             else:
                 error_msg = f"容器启动失败: {stderr.decode('utf-8', errors='replace').strip()}"
@@ -201,6 +305,14 @@ class ContainerManager:
                     'return_code': process.returncode,
                     'stderr': stderr.decode('utf-8', errors='replace')[:500]
                 })
+                # 审计日志：容器启动失败
+                self.audit_logger.log_container_lifecycle(
+                    'START_FAILED',
+                    self.container_name,
+                    {'return_code': process.returncode, 'error': error_msg[:500]},
+                    success=False,
+                    error_msg=error_msg
+                )
                 return {"success": False, "error": error_msg}
 
         except Exception as e:
@@ -462,6 +574,9 @@ class ContainerManager:
                             'pids': stats_data['pids']
                         })
 
+                        # 审计日志：资源使用情况
+                        self.audit_logger.log_resource_usage(self.container_name, stats_data)
+
                         return {
                             "success": True,
                             "data": stats_data,
@@ -518,11 +633,28 @@ class ContainerManager:
             }
 
     async def exec_command(self, command: str) -> Dict[str, Any]:
-        """异步在容器中执行命令"""
+        """异步在容器中执行命令（带安全过滤）"""
         try:
+            # 安全检查：过滤命令
+            is_allowed, reason = self._filter_command(command)
+            if not is_allowed:
+                self.logger.warning(f"命令被安全过滤器阻止: {command} - {reason}", extra={
+                    'container_name': self.container_name,
+                    'command': command,
+                    'filter_reason': reason
+                })
+                # 审计日志：安全违规
+                self.audit_logger.log_security_violation(
+                    self.container_name,
+                    'COMMAND_FILTERED',
+                    {'command': command, 'reason': reason}
+                )
+                return {"success": False, "output": "", "error": f"命令被安全策略阻止: {reason}"}
+
             self.logger.info(f"在容器中执行命令: {command}", extra={
                 'container_name': self.container_name,
-                'command': command
+                'command': command,
+                'security_check': 'passed'
             })
 
             cmd = ["docker", "exec", self.container_name] + command.split()
@@ -546,6 +678,13 @@ class ContainerManager:
                         'return_code': process.returncode,
                         'output_length': len(output)
                     })
+                    # 审计日志：命令执行成功
+                    self.audit_logger.log_command_execution(
+                        self.container_name,
+                        command,
+                        success=True,
+                        output_length=len(output)
+                    )
                     return {"success": True, "output": output, "error": ""}
                 else:
                     error_msg = f"命令执行失败: {stderr.decode('utf-8', errors='replace').strip()}"
@@ -554,6 +693,13 @@ class ContainerManager:
                         'command': command,
                         'return_code': process.returncode
                     })
+                    # 审计日志：命令执行失败
+                    self.audit_logger.log_command_execution(
+                        self.container_name,
+                        command,
+                        success=False,
+                        error_msg=error_msg
+                    )
                     return {"success": False, "output": "", "error": error_msg}
 
             except asyncio.TimeoutError:
