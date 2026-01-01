@@ -4,3 +4,43 @@
 2026-01-01 18:18:47,007 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
 2026-01-01 18:19:44,936 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
 2026-01-01 18:19:45,002 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:03:10,666 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:03:10,667 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:03:10,670 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:03:10,670 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:03:10,674 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:03:10,675 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:03:10,700 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:03:10,701 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:03:10,704 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:03:10,705 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:03:10,708 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:03:10,708 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:03:10,711 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:03:10,711 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:03:10,720 - src.container_manager.test-container - ERROR - get_container_status:514 - 解析容器状态JSON时发生错误: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "d:\Code\Tools\AgentContainer\src\container_manager.py", line 465, in get_container_status
+    containers = [json.loads(line) for line in stdout_text.split('\n') if line.strip()]
+                  ~~~~~~~~~~^^^^^^
+  File "C:\Python313\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Python313\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\json\decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-01-01 22:03:10,759 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:03:10,760 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:03:10,763 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:03:10,763 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:03:10,780 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:03:10,780 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:03:10,790 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:03:10,790 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:03:10,792 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:03:17,161 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:03:17,211 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
