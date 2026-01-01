@@ -31,3 +31,10 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-01-01 12:27:29,235 - src.security_middleware - INFO - 安全中间件已配置完成
 2026-01-01 12:27:29,263 - src.security_middleware - INFO - 安全中间件已配置完成
 2026-01-01 12:35:58,151 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:40:25,284 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:40:25,467 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:40:25,536 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:40:28,141 - src.whisper_injection - INFO - 词汇库已保存，共 0 个词汇
+2026-01-01 12:40:28,142 - src.whisper_injection - INFO - 使用默认词汇库，已创建 0 个词汇
+2026-01-01 12:40:28,648 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:40:28,667 - src.whisper_injection - INFO - 已加载 0 个词汇

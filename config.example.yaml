@@ -88,3 +88,22 @@ security:
   enable_audit_log: true  # 是否启用审计日志
   audit_log_file: "logs/audit.log"  # 审计日志文件路径
   sensitive_headers: ["authorization", "x-api-key", "cookie"]  # 需要过滤的敏感头
+
+# 随机想法注入系统配置
+whisper_injection:
+  enabled: true  # 是否启用随机想法注入
+  vocabulary_file: "data/vocabulary.json"  # 词汇库文件路径
+  injection_interval_minutes: 30  # 注入间隔（分钟）
+  log_file: "logs/whisper_injection.log"  # 注入日志文件路径
+  max_log_entries: 1000  # 最大日志条目数
+  default_vocabulary:  # 默认词汇库
+    - "创新思维"
+    - "突破常规"
+    - "跨界融合"
+    - "系统优化"
+    - "用户体验"
+    - "技术前沿"
+    - "可持续发展"
+    - "智能自动化"
+    - "数据驱动"
+    - "敏捷开发"
