@@ -38,3 +38,33 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-01-01 12:40:28,142 - src.whisper_injection - INFO - 使用默认词汇库，已创建 0 个词汇
 2026-01-01 12:40:28,648 - src.whisper_injection - INFO - 已加载 0 个词汇
 2026-01-01 12:40:28,667 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:04,914 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:05,270 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:05,475 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:07,490 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:08,024 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:08,208 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:15,420 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:15,506 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:15,635 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:18,250 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:18,386 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:18,599 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:22,019 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:22,070 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:22,185 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:24,766 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:24,956 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:25,003 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:28,107 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:28,283 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:28,316 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:30,411 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:30,777 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:30,826 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:40,103 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:40,106 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:40,366 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 12:43:42,678 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:42,714 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 12:43:43,000 - src.whisper_injection - INFO - 已加载 0 个词汇
