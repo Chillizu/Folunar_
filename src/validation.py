@@ -133,10 +133,4 @@ def validate_request_data(model_class: Any, data: Dict[str, Any]) -> Any:
         return model_class(**data)
     except Exception as e:
         logger.warning(f"输入验证失败: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"输入验证失败: {str(e)}")</content>
-</xai:function_call">### 3. 配置HTTPS支持
-
-现在我需要创建安全中间件模块，包括HTTPS支持、安全头等。让我创建一个 `src/security_middleware.py` 文件。 
-
-<xai:function_call name="write_to_file">
-<parameter name="path">src/security_middleware.py
+        raise HTTPException(status_code=400, detail=f"输入验证失败: {str(e)}")

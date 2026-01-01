@@ -8,7 +8,6 @@ import logging
 import json
 from typing import Dict, Any, Optional, Callable
 from fastapi import Request, Response
-from fastapi.middleware.base import BaseHTTPMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware as StarletteBaseHTTPMiddleware
@@ -193,10 +192,4 @@ def setup_security_middleware(app, config: Dict[str, Any]):
     # 敏感信息过滤中间件
     app.add_middleware(SensitiveDataFilterMiddleware, config=config)
 
-    logger.info("安全中间件已配置完成")</content>
-</xai:function_call">### 4. 更新main.py集成安全功能
-
-现在我需要更新main.py来集成所有安全功能。让我逐步修改main.py。 
-
-<xai:function_call name="apply_diff">
-<parameter name="path">main.py
+    logger.info("安全中间件已配置完成")

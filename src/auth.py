@@ -5,18 +5,15 @@
 """
 
 import logging
+import hashlib
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi import HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 
 logger = logging.getLogger(__name__)
-
-# 密码上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT安全方案
 security = HTTPBearer(auto_error=False)
@@ -46,11 +43,12 @@ class AuthManager:
 
     def _hash_password(self, password: str) -> str:
         """哈希密码"""
-        return pwd_context.hash(password)
+        # 使用SHA-256哈希密码
+        return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """验证密码"""
-        return pwd_context.verify(plain_password, hashed_password)
+        return hashlib.sha256(plain_password.encode('utf-8')).hexdigest() == hashed_password
 
     def authenticate_user(self, username: str, password: str) -> bool:
         """认证用户"""
@@ -105,10 +103,4 @@ def require_auth(current_user: Optional[str] = Depends(get_current_user)) -> str
             detail="需要认证",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return current_user</content>
-</xai:function_call">### 2. 实现输入验证
-
-现在我需要创建输入验证模块。让我创建一个 `src/validation.py` 文件来处理输入验证。 
-
-<xai:function_call name="write_to_file">
-<parameter name="path">src/validation.py
+    return current_user
