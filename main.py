@@ -23,6 +23,9 @@ from src.container_manager import ContainerManager
 from src.core.cache_manager import CacheManager
 from src.core.connection_pool import ConnectionPoolManager
 from src.core.performance_monitor import PerformanceMonitor
+from src.auth import AuthManager, require_auth, UserCredentials
+from src.validation import ValidationManager, validate_request_data, ChatCompletionRequest, ContainerExecRequest
+from src.security_middleware import setup_security_middleware, AuditLogger
 
 # 配置日志
 logging.basicConfig(
@@ -57,12 +60,20 @@ connection_pool = ConnectionPoolManager(config)
 # 初始化性能监控器
 performance_monitor = PerformanceMonitor(config)
 
+# 初始化安全组件
+auth_manager = AuthManager(config)
+validation_manager = ValidationManager(config)
+audit_logger = AuditLogger(config)
+
 # 创建FastAPI应用实例
 app = FastAPI(
     title=config['app']['name'],
     version=config['app']['version'],
     description=config['app']['description']
 )
+
+# 设置安全中间件
+setup_security_middleware(app, config)
 
 # 添加限流中间件
 limiter = Limiter(key_func=get_remote_address)
@@ -78,6 +89,29 @@ agent_manager = AgentManager(config)
 
 # 初始化容器管理器（使用连接池）
 container_manager = ContainerManager(config, connection_pool)
+
+# 认证端点
+@app.post("/api/auth/login")
+async def login(credentials: UserCredentials):
+    """用户登录"""
+    if auth_manager.authenticate_user(credentials.username, credentials.password):
+        access_token = auth_manager.create_access_token({"sub": credentials.username})
+        audit_logger.log_event("LOGIN_SUCCESS", {"username": credentials.username})
+        return {"access_token": access_token, "token_type": "bearer"}
+    else:
+        audit_logger.log_event("LOGIN_FAILED", {"username": credentials.username})
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+
+@app.post("/api/auth/logout")
+async def logout(current_user: str = require_auth):
+    """用户登出"""
+    audit_logger.log_event("LOGOUT", {"username": current_user})
+    return {"message": "登出成功"}
+
+@app.get("/api/auth/me")
+async def get_current_user_info(current_user: str = require_auth):
+    """获取当前用户信息"""
+    return {"username": current_user}
 
 @app.get("/")
 async def root():
@@ -269,12 +303,26 @@ async def monitor_container():
     )
 
 @app.post("/api/container/exec")
-async def exec_in_container(command: str):
-    """在容器中执行命令"""
-    result = await container_manager.exec_command(command)
+async def exec_in_container(exec_request: ContainerExecRequest, current_user: str = require_auth):
+    """在容器中执行命令（需要认证和输入验证）"""
+    audit_logger.log_event("CONTAINER_EXEC_REQUEST", {
+        "user": current_user,
+        "command": exec_request.command[:100] + "..." if len(exec_request.command) > 100 else exec_request.command
+    }, current_user)
+
+    result = await container_manager.exec_command(exec_request.command)
     if result["success"]:
+        audit_logger.log_event("CONTAINER_EXEC_SUCCESS", {
+            "user": current_user,
+            "command": exec_request.command[:100] + "..." if len(exec_request.command) > 100 else exec_request.command
+        }, current_user)
         return {"status": "success", "output": result["output"]}
     else:
+        audit_logger.log_event("CONTAINER_EXEC_FAILED", {
+            "user": current_user,
+            "command": exec_request.command[:100] + "..." if len(exec_request.command) > 100 else exec_request.command,
+            "error": result["error"]
+        }, current_user)
         raise HTTPException(status_code=500, detail=result["error"])
 
 @app.get("/test/streaming")
@@ -334,16 +382,27 @@ async def test_streaming():
 @app.post("/v1/chat/completions")
 @limiter.limit("100/minute")
 @performance_monitor.api_performance_decorator("POST", "/v1/chat/completions")
-async def chat_completions(request: Request):
-    """处理chat completions请求，支持流式和非流式响应（带性能优化）"""
+async def chat_completions(request: Request, current_user: str = require_auth):
+    """处理chat completions请求，支持流式和非流式响应（带性能优化和安全验证）"""
     try:
         data = await request.json()
-        messages = data.get("messages", [])
-        model = data.get("model", "gpt-3.5-turbo")
-        stream = data.get("stream", False)
-        tools = data.get("tools")
 
-        logger.info(f"Chat completions request: model={model}, stream={stream}, messages_count={len(messages)}")
+        # 输入验证
+        validated_data = validate_request_data(ChatCompletionRequest, data)
+        messages = validated_data.messages
+        model = validated_data.model
+        stream = validated_data.stream
+        tools = validated_data.tools
+
+        # 记录审计日志
+        audit_logger.log_event("CHAT_COMPLETION_REQUEST", {
+            "user": current_user,
+            "model": model,
+            "stream": stream,
+            "messages_count": len(messages)
+        }, current_user)
+
+        logger.info(f"Chat completions request: user={current_user}, model={model}, stream={stream}, messages_count={len(messages)}")
 
         # 生成缓存键（用于非流式响应）
         if not stream and messages:
@@ -351,6 +410,10 @@ async def chat_completions(request: Request):
             cached_result = await cache_manager.get(cache_key)
             if cached_result:
                 logger.info("Returning cached chat completion response")
+                audit_logger.log_event("CHAT_COMPLETION_CACHE_HIT", {
+                    "user": current_user,
+                    "model": model
+                }, current_user)
                 return cached_result
 
         if stream:
@@ -368,6 +431,11 @@ async def chat_completions(request: Request):
                 except Exception as e:
                     logger.error(f"Streaming error: {str(e)}")
                     performance_monitor.record_error("streaming_error", "/v1/chat/completions")
+                    audit_logger.log_event("CHAT_COMPLETION_ERROR", {
+                        "user": current_user,
+                        "error": str(e),
+                        "type": "streaming_error"
+                    }, current_user)
                     yield f"data: {json.dumps({'error': {'message': str(e), 'type': 'internal_error'}})}\n\n"
 
             return StreamingResponse(
@@ -388,10 +456,20 @@ async def chat_completions(request: Request):
                     await cache_manager.set(cache_key, result, ttl=300)
 
                 logger.info("Chat completions response sent")
+                audit_logger.log_event("CHAT_COMPLETION_SUCCESS", {
+                    "user": current_user,
+                    "model": model,
+                    "response_tokens": result.get("usage", {}).get("completion_tokens", 0)
+                }, current_user)
                 return result
     except Exception as e:
         logger.error(f"Chat completions request failed: {str(e)}")
         performance_monitor.record_error("chat_completion_error", "/v1/chat/completions")
+        audit_logger.log_event("CHAT_COMPLETION_ERROR", {
+            "user": current_user,
+            "error": str(e),
+            "type": "general_error"
+        }, current_user)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.on_event("startup")
@@ -435,36 +513,49 @@ if __name__ == "__main__":
 
     # 性能优化配置
     server_config = config.get('server', {})
+    security_config = config.get('security', {})
+
     workers = server_config.get('workers', 1)
     max_requests = server_config.get('max_requests', 1000)
     max_requests_jitter = server_config.get('max_requests_jitter', 50)
+
+    # HTTPS配置
+    ssl_enabled = security_config.get('enable_https', False)
+    ssl_cert_path = security_config.get('ssl_cert_path', 'certs/server.crt')
+    ssl_key_path = security_config.get('ssl_key_path', 'certs/server.key')
+
+    server_kwargs = {
+        "host": server_config.get('host', '0.0.0.0'),
+        "port": server_config.get('port', 8000),
+        "loop": "uvloop",  # 使用uvloop提升性能
+        "http": "httptools",  # 使用httptools提升HTTP性能
+        "log_level": "info"
+    }
+
+    # 添加HTTPS配置
+    if ssl_enabled:
+        import ssl
+        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        ssl_context.load_cert_chain(ssl_cert_path, ssl_key_path)
+        server_kwargs["ssl"] = ssl_context
+        logger.info(f"HTTPS已启用，证书路径: {ssl_cert_path}")
 
     if workers > 1:
         # 多进程模式使用Gunicorn
         import multiprocessing
         workers = min(workers, multiprocessing.cpu_count())
 
-        uvicorn.run(
-            "main:create_app",
-            factory=True,
-            host=server_config.get('host', '0.0.0.0'),
-            port=server_config.get('port', 8000),
-            workers=workers,
-            loop="uvloop",  # 使用uvloop提升性能
-            http="httptools",  # 使用httptools提升HTTP性能
-            access_log=False,  # 生产环境关闭访问日志
-            log_level="info"
-        )
+        server_kwargs.update({
+            "workers": workers,
+            "access_log": False,  # 生产环境关闭访问日志
+        })
+
+        uvicorn.run("main:create_app", factory=True, **server_kwargs)
     else:
         # 单进程模式
-        uvicorn.run(
-            "main:create_app",
-            factory=True,
-            host=server_config.get('host', '0.0.0.0'),
-            port=server_config.get('port', 8000),
-            reload=server_config.get('debug', True),
-            loop="uvloop",  # 使用uvloop提升性能
-            http="httptools",  # 使用httptools提升HTTP性能
-            access_log=server_config.get('debug', True),
-            log_level="info"
-        )
+        server_kwargs.update({
+            "reload": server_config.get('debug', True),
+            "access_log": server_config.get('debug', True),
+        })
+
+        uvicorn.run("main:create_app", factory=True, **server_kwargs)

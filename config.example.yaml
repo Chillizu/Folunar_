@@ -73,3 +73,18 @@ concurrency:
   max_concurrent_requests: 100  # 最大并发请求数
   rate_limit_requests: 1000  # 每分钟请求限制
   rate_limit_window: 60  # 速率限制窗口（秒）
+
+# 安全配置
+security:
+  jwt_secret_key: "your-jwt-secret-key-here"  # JWT密钥，请替换为强随机字符串
+  jwt_algorithm: "HS256"  # JWT算法
+  jwt_expiration_hours: 24  # JWT过期时间（小时）
+  admin_username: "admin"  # 默认管理员用户名
+  admin_password: "change-this-password"  # 默认管理员密码，请立即更改
+  enable_https: false  # 是否启用HTTPS
+  ssl_cert_path: "certs/server.crt"  # SSL证书路径
+  ssl_key_path: "certs/server.key"  # SSL私钥路径
+  cors_origins: ["*"]  # CORS允许的源
+  enable_audit_log: true  # 是否启用审计日志
+  audit_log_file: "logs/audit.log"  # 审计日志文件路径
+  sensitive_headers: ["authorization", "x-api-key", "cookie"]  # 需要过滤的敏感头
