@@ -7,6 +7,10 @@ server:
   host: "0.0.0.0"
   port: 8000
   debug: true
+  workers: 4  # Gunicorn workers
+  worker_class: "uvicorn.workers.UvicornWorker"
+  max_requests: 1000
+  max_requests_jitter: 50
 
 agents:
   max_concurrent: 10
@@ -24,6 +28,9 @@ api:
   base_url: "https://openrouter.ai/api/v1"
   default_model: "nvidia/nemotron-nano-12b-v2-vl:free"
   key: "your-api-key-here"  # 请替换为你的实际API key
+  timeout: 30
+  max_retries: 3
+  retry_delay: 1
 
 container:
   image_name: "debian-container"
@@ -37,3 +44,32 @@ container:
   volumes: {}
   restart_policy: "no"
   network_mode: "bridge"
+
+# 缓存配置
+cache:
+  redis_enabled: false  # 是否启用Redis缓存
+  redis_url: "redis://localhost:6379"
+  default_ttl: 300  # 默认缓存时间（秒）
+  max_memory_cache: 1000  # 内存缓存最大条目数
+
+# 连接池配置
+connection_pool:
+  docker_pool_size: 5  # Docker连接池大小
+  http_pool_size: 20  # HTTP连接池大小
+  executor_pool_size: 10  # 线程池大小
+
+# 性能监控配置
+performance:
+  metrics_window: 1000  # 保留最近的指标数量
+  monitor_interval: 10  # 监控间隔（秒）
+  health_thresholds:
+    max_response_time: 5.0  # 最大响应时间（秒）
+    max_cpu_percent: 90.0  # 最大CPU使用率
+    max_memory_percent: 90.0  # 最大内存使用率
+    max_error_rate: 0.1  # 最大错误率
+
+# 并发控制
+concurrency:
+  max_concurrent_requests: 100  # 最大并发请求数
+  rate_limit_requests: 1000  # 每分钟请求限制
+  rate_limit_window: 60  # 速率限制窗口（秒）

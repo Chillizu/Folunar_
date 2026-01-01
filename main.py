@@ -11,11 +11,18 @@ import asyncio
 import time
 import psutil
 from typing import Optional, Dict
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from src.core.agent_manager import AgentManager
 from src.container_manager import ContainerManager
+from src.core.cache_manager import CacheManager
+from src.core.connection_pool import ConnectionPoolManager
+from src.core.performance_monitor import PerformanceMonitor
 
 # 配置日志
 logging.basicConfig(
@@ -41,6 +48,15 @@ def load_config():
 # 加载配置
 config = load_config()
 
+# 初始化缓存管理器
+cache_manager = CacheManager(config)
+
+# 初始化连接池管理器
+connection_pool = ConnectionPoolManager(config)
+
+# 初始化性能监控器
+performance_monitor = PerformanceMonitor(config)
+
 # 创建FastAPI应用实例
 app = FastAPI(
     title=config['app']['name'],
@@ -48,14 +64,20 @@ app = FastAPI(
     description=config['app']['description']
 )
 
+# 添加限流中间件
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
 # 挂载静态文件
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 初始化代理管理器
 agent_manager = AgentManager(config)
 
-# 初始化容器管理器
-container_manager = ContainerManager(config)
+# 初始化容器管理器（使用连接池）
+container_manager = ContainerManager(config, connection_pool)
 
 @app.get("/")
 async def root():
@@ -72,19 +94,60 @@ async def list_agents():
     return {"agents": agent_manager.list_agents()}
 
 @app.get("/health")
+@limiter.limit("60/minute")
+@performance_monitor.api_performance_decorator("GET", "/health")
 async def health_check():
-    return {"status": "healthy"}
+    """健康检查端点"""
+    health_status = await performance_monitor.get_health_status()
+    status_code = 200 if health_status['healthy'] else 503
+    return health_status
+
+@app.get("/api/performance/metrics")
+@limiter.limit("10/minute")
+@performance_monitor.api_performance_decorator("GET", "/api/performance/metrics")
+async def get_performance_metrics():
+    """获取性能指标"""
+    try:
+        metrics = await performance_monitor.get_metrics_summary()
+        return {"status": "success", "data": metrics}
+    except Exception as e:
+        logger.error(f"Failed to get performance metrics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get performance metrics: {str(e)}")
+
+@app.post("/api/performance/gc")
+@limiter.limit("5/minute")
+@performance_monitor.api_performance_decorator("POST", "/api/performance/gc")
+async def trigger_garbage_collection():
+    """触发垃圾回收"""
+    try:
+        collected = await performance_monitor.force_gc()
+        return {"status": "success", "collected_objects": collected}
+    except Exception as e:
+        logger.error(f"Failed to trigger garbage collection: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to trigger garbage collection: {str(e)}")
 
 @app.get("/api/system/status")
-async def system_status():
-    """获取系统状态信息"""
+@limiter.limit("30/minute")
+@performance_monitor.api_performance_decorator("GET", "/api/system/status")
+async def system_status(request: Request):
+    """获取系统状态信息（带缓存优化）"""
     try:
-        # 获取系统信息
+        # 尝试从缓存获取
+        cache_key = "system_status"
+        cached_status = await cache_manager.get(cache_key)
+        if cached_status:
+            return cached_status
+
+        # 获取系统信息（优化：减少CPU采样时间）
         memory = psutil.virtual_memory()
-        cpu_percent = psutil.cpu_percent(interval=1)
+        cpu_percent = psutil.cpu_percent(interval=0.1)  # 从1秒减少到0.1秒
 
         # 计算运行时间（从应用启动开始）
         uptime = time.time() - psutil.boot_time()
+
+        # 获取连接池和缓存统计
+        pool_stats = await connection_pool.get_stats()
+        cache_stats = await cache_manager.get_stats()
 
         status = {
             "version": config['app']['version'],
@@ -96,13 +159,21 @@ async def system_status():
                 "memory_total": memory.total,
                 "memory_percent": memory.percent
             },
+            "performance": {
+                "connection_pool": pool_stats,
+                "cache": cache_stats
+            },
             "timestamp": int(time.time())
         }
 
-        logger.info(f"System status requested: {status}")
+        # 缓存结果30秒
+        await cache_manager.set(cache_key, status, ttl=30)
+
+        logger.info(f"System status requested: CPU={cpu_percent:.1f}%, Memory={memory.percent:.1f}%")
         return status
     except Exception as e:
         logger.error(f"Failed to get system status: {str(e)}")
+        performance_monitor.record_error("system_status_error", "/api/system/status")
         raise HTTPException(status_code=500, detail=f"Failed to get system status: {str(e)}")
 
 # 容器管理端点
@@ -261,8 +332,10 @@ async def test_streaming():
     )
 
 @app.post("/v1/chat/completions")
+@limiter.limit("100/minute")
+@performance_monitor.api_performance_decorator("POST", "/v1/chat/completions")
 async def chat_completions(request: Request):
-    """处理chat completions请求，支持流式和非流式响应"""
+    """处理chat completions请求，支持流式和非流式响应（带性能优化）"""
     try:
         data = await request.json()
         messages = data.get("messages", [])
@@ -271,6 +344,14 @@ async def chat_completions(request: Request):
         tools = data.get("tools")
 
         logger.info(f"Chat completions request: model={model}, stream={stream}, messages_count={len(messages)}")
+
+        # 生成缓存键（用于非流式响应）
+        if not stream and messages:
+            cache_key = f"chat_completion:{model}:{hash(str(messages))}"
+            cached_result = await cache_manager.get(cache_key)
+            if cached_result:
+                logger.info("Returning cached chat completion response")
+                return cached_result
 
         if stream:
             # 流式响应
@@ -286,6 +367,7 @@ async def chat_completions(request: Request):
                     yield "data: [DONE]\n\n"
                 except Exception as e:
                     logger.error(f"Streaming error: {str(e)}")
+                    performance_monitor.record_error("streaming_error", "/v1/chat/completions")
                     yield f"data: {json.dumps({'error': {'message': str(e), 'type': 'internal_error'}})}\n\n"
 
             return StreamingResponse(
@@ -301,11 +383,48 @@ async def chat_completions(request: Request):
                 stream=False,
                 tools=tools
             ):
+                # 缓存结果（5分钟）
+                if messages:
+                    await cache_manager.set(cache_key, result, ttl=300)
+
                 logger.info("Chat completions response sent")
                 return result
     except Exception as e:
         logger.error(f"Chat completions request failed: {str(e)}")
+        performance_monitor.record_error("chat_completion_error", "/v1/chat/completions")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.on_event("startup")
+async def startup_event():
+    """应用启动事件"""
+    logger.info("正在启动AgentContainer...")
+
+    # 初始化缓存管理器
+    await cache_manager.initialize()
+
+    # 初始化连接池
+    await connection_pool.initialize()
+
+    # 启动性能监控
+    await performance_monitor.start_monitoring()
+
+    logger.info("AgentContainer启动完成！")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """应用关闭事件"""
+    logger.info("正在关闭AgentContainer...")
+
+    # 停止性能监控
+    await performance_monitor.stop_monitoring()
+
+    # 关闭连接池
+    await connection_pool.close()
+
+    # 关闭缓存管理器
+    await cache_manager.close()
+
+    logger.info("AgentContainer已关闭")
 
 def create_app():
     """返回FastAPI应用实例（用于工厂模式）"""
@@ -314,10 +433,38 @@ def create_app():
 if __name__ == "__main__":
     config = load_config()
 
-    uvicorn.run(
-        "main:create_app",
-        factory=True,
-        host=config['server']['host'],
-        port=config['server']['port'],
-        reload=config['server']['debug']
-    )
+    # 性能优化配置
+    server_config = config.get('server', {})
+    workers = server_config.get('workers', 1)
+    max_requests = server_config.get('max_requests', 1000)
+    max_requests_jitter = server_config.get('max_requests_jitter', 50)
+
+    if workers > 1:
+        # 多进程模式使用Gunicorn
+        import multiprocessing
+        workers = min(workers, multiprocessing.cpu_count())
+
+        uvicorn.run(
+            "main:create_app",
+            factory=True,
+            host=server_config.get('host', '0.0.0.0'),
+            port=server_config.get('port', 8000),
+            workers=workers,
+            loop="uvloop",  # 使用uvloop提升性能
+            http="httptools",  # 使用httptools提升HTTP性能
+            access_log=False,  # 生产环境关闭访问日志
+            log_level="info"
+        )
+    else:
+        # 单进程模式
+        uvicorn.run(
+            "main:create_app",
+            factory=True,
+            host=server_config.get('host', '0.0.0.0'),
+            port=server_config.get('port', 8000),
+            reload=server_config.get('debug', True),
+            loop="uvloop",  # 使用uvloop提升性能
+            http="httptools",  # 使用httptools提升HTTP性能
+            access_log=server_config.get('debug', True),
+            log_level="info"
+        )

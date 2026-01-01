@@ -20,9 +20,10 @@ class ContainerManager:
     支持Docker容器的完整生命周期管理
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any], connection_pool=None):
         self.config = config
         self.container_config = config.get('container', {})
+        self.connection_pool = connection_pool
 
         # 从配置中读取参数
         self.image_name = self.container_config.get('image_name', 'debian-container')
@@ -288,23 +289,38 @@ class ContainerManager:
             return {"success": False, "error": error_msg}
 
     async def is_container_running(self) -> bool:
-        """异步检查容器是否正在运行"""
+        """异步检查容器是否正在运行（优化版本）"""
         try:
-            cmd = ["docker", "ps", "--filter", f"name={self.container_name}", "--format", "{{.Names}}"]
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
+            if self.connection_pool:
+                # 使用连接池
+                async with self.connection_pool.get_docker_client() as client:
+                    try:
+                        container = client.containers.get(self.container_name)
+                        is_running = container.status == 'running'
+                        self.logger.debug(f"容器运行状态检查: {self.container_name} -> {is_running}", extra={
+                            'container_name': self.container_name,
+                            'is_running': is_running
+                        })
+                        return is_running
+                    except docker.errors.NotFound:
+                        return False
+            else:
+                # 回退到命令行方式
+                cmd = ["docker", "ps", "--filter", f"name={self.container_name}", "--format", "{{.Names}}"]
+                process = await asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
 
-            stdout, stderr = await process.communicate()
+                stdout, stderr = await process.communicate()
 
-            is_running = self.container_name in stdout.decode('utf-8', errors='replace')
-            self.logger.debug(f"容器运行状态检查: {self.container_name} -> {is_running}", extra={
-                'container_name': self.container_name,
-                'is_running': is_running
-            })
-            return is_running
+                is_running = self.container_name in stdout.decode('utf-8', errors='replace')
+                self.logger.debug(f"容器运行状态检查: {self.container_name} -> {is_running}", extra={
+                    'container_name': self.container_name,
+                    'is_running': is_running
+                })
+                return is_running
 
         except Exception as e:
             self.logger.error(f"检查容器状态时发生错误: {str(e)}", extra={
