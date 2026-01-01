@@ -17,7 +17,7 @@ class ContainerManager:
         self.container_name = container_name
         self.project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    def build_image(self) -> bool:
+    def build_image(self) -> Dict[str, Any]:
         """构建Docker镜像"""
         try:
             logger.info(f"开始构建镜像: {self.image_name}")
@@ -25,15 +25,17 @@ class ContainerManager:
             result = subprocess.run(cmd, cwd=self.project_root, capture_output=True, text=True)
             if result.returncode == 0:
                 logger.info("镜像构建成功")
-                return True
+                return {"success": True, "error": ""}
             else:
-                logger.error(f"镜像构建失败: {result.stderr}")
-                return False
+                error_msg = f"镜像构建失败: {result.stderr.strip()}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
         except Exception as e:
-            logger.error(f"构建镜像时发生错误: {e}")
-            return False
+            error_msg = f"构建镜像时发生错误: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
 
-    def start_container(self, ports: Optional[Dict[str, str]] = None) -> bool:
+    def start_container(self, ports: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """启动容器"""
         try:
             logger.info(f"开始启动容器: {self.container_name}")
@@ -41,7 +43,7 @@ class ContainerManager:
             # 检查容器是否已存在
             if self.is_container_running():
                 logger.info("容器已在运行")
-                return True
+                return {"success": True, "error": ""}
 
             cmd = ["docker", "run", "-d", "--name", self.container_name]
 
@@ -55,15 +57,17 @@ class ContainerManager:
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode == 0:
                 logger.info("容器启动成功")
-                return True
+                return {"success": True, "error": ""}
             else:
-                logger.error(f"容器启动失败: {result.stderr}")
-                return False
+                error_msg = f"容器启动失败: {result.stderr.strip()}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
         except Exception as e:
-            logger.error(f"启动容器时发生错误: {e}")
-            return False
+            error_msg = f"启动容器时发生错误: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
 
-    def stop_container(self) -> bool:
+    def stop_container(self) -> Dict[str, Any]:
         """停止容器"""
         try:
             logger.info(f"开始停止容器: {self.container_name}")
@@ -71,15 +75,17 @@ class ContainerManager:
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode == 0:
                 logger.info("容器停止成功")
-                return True
+                return {"success": True, "error": ""}
             else:
-                logger.warning(f"容器停止失败或容器不存在: {result.stderr}")
-                return False
+                error_msg = f"容器停止失败或容器不存在: {result.stderr.strip()}"
+                logger.warning(error_msg)
+                return {"success": False, "error": error_msg}
         except Exception as e:
-            logger.error(f"停止容器时发生错误: {e}")
-            return False
+            error_msg = f"停止容器时发生错误: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
 
-    def remove_container(self) -> bool:
+    def remove_container(self) -> Dict[str, Any]:
         """删除容器"""
         try:
             logger.info(f"开始删除容器: {self.container_name}")
@@ -87,13 +93,15 @@ class ContainerManager:
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode == 0:
                 logger.info("容器删除成功")
-                return True
+                return {"success": True, "error": ""}
             else:
-                logger.warning(f"容器删除失败或容器不存在: {result.stderr}")
-                return False
+                error_msg = f"容器删除失败或容器不存在: {result.stderr.strip()}"
+                logger.warning(error_msg)
+                return {"success": False, "error": error_msg}
         except Exception as e:
-            logger.error(f"删除容器时发生错误: {e}")
-            return False
+            error_msg = f"删除容器时发生错误: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
 
     def is_container_running(self) -> bool:
         """检查容器是否正在运行"""
@@ -117,27 +125,44 @@ class ContainerManager:
                 if containers:
                     container = containers[0]
                     return {
-                        "name": container.get("Names", ""),
-                        "status": container.get("Status", ""),
-                        "ports": container.get("Ports", ""),
-                        "running": "Up" in container.get("Status", "")
+                        "success": True,
+                        "data": {
+                            "name": container.get("Names", ""),
+                            "status": container.get("Status", ""),
+                            "ports": container.get("Ports", ""),
+                            "running": "Up" in container.get("Status", "")
+                        },
+                        "error": ""
                     }
-            return {"name": self.container_name, "status": "Not found", "running": False}
+            return {
+                "success": True,
+                "data": {"name": self.container_name, "status": "Not found", "running": False},
+                "error": ""
+            }
         except Exception as e:
-            logger.error(f"获取容器状态时发生错误: {e}")
-            return {"name": self.container_name, "status": "Error", "running": False}
+            error_msg = f"获取容器状态时发生错误: {str(e)}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "data": {"name": self.container_name, "status": "Error", "running": False},
+                "error": error_msg
+            }
 
-    def exec_command(self, command: str) -> str:
+    def exec_command(self, command: str) -> Dict[str, Any]:
         """在容器中执行命令"""
         try:
             cmd = ["docker", "exec", self.container_name] + command.split()
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode == 0:
-                return result.stdout
+                return {"success": True, "output": result.stdout.strip(), "error": ""}
             else:
-                return f"Error: {result.stderr}"
+                error_msg = f"命令执行失败: {result.stderr.strip()}"
+                logger.error(error_msg)
+                return {"success": False, "output": "", "error": error_msg}
         except Exception as e:
-            return f"Exception: {e}"
+            error_msg = f"执行命令时发生异常: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "output": "", "error": error_msg}
 
 # 命令行接口
 if __name__ == "__main__":
@@ -154,8 +179,11 @@ if __name__ == "__main__":
     manager = ContainerManager()
 
     if args.action == "build":
-        success = manager.build_image()
-        print("构建成功" if success else "构建失败")
+        result = manager.build_image()
+        if result["success"]:
+            print("构建成功")
+        else:
+            print(f"构建失败: {result['error']}")
     elif args.action == "start":
         ports = None
         if args.ports:
@@ -165,20 +193,35 @@ if __name__ == "__main__":
                 if ":" in mapping:
                     host, container = mapping.split(":", 1)
                     ports[host] = container
-        success = manager.start_container(ports)
-        print("启动成功" if success else "启动失败")
+        result = manager.start_container(ports)
+        if result["success"]:
+            print("启动成功")
+        else:
+            print(f"启动失败: {result['error']}")
     elif args.action == "stop":
-        success = manager.stop_container()
-        print("停止成功" if success else "停止失败")
+        result = manager.stop_container()
+        if result["success"]:
+            print("停止成功")
+        else:
+            print(f"停止失败: {result['error']}")
     elif args.action == "remove":
-        success = manager.remove_container()
-        print("删除成功" if success else "删除失败")
+        result = manager.remove_container()
+        if result["success"]:
+            print("删除成功")
+        else:
+            print(f"删除失败: {result['error']}")
     elif args.action == "status":
-        status = manager.get_container_status()
-        print(f"容器状态: {status}")
+        result = manager.get_container_status()
+        if result["success"]:
+            print(f"容器状态: {result['data']}")
+        else:
+            print(f"获取状态失败: {result['error']}")
     elif args.action == "exec":
         if args.command:
-            output = manager.exec_command(args.command)
-            print(output)
+            result = manager.exec_command(args.command)
+            if result["success"]:
+                print(result["output"])
+            else:
+                print(f"执行失败: {result['error']}")
         else:
             print("请提供要执行的命令")

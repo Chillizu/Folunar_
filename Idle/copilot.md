@@ -60,6 +60,7 @@
 - ✅ 修复markdown格式问题：检查并确认所有URL正确格式化，无裸URL、多标题或空格问题
 - ✅ 创建了新Git分支'container-optimization'用于容器优化任务
 - ✅ 推送了新分支到远程仓库
+- ✅ 改进了容器错误处理：在container_manager.py中添加详细的错误信息记录和返回，修复API响应中的空错误消息
 
 # 计划
 

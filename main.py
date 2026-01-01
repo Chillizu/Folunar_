@@ -98,11 +98,11 @@ async def system_status():
 async def build_container():
     """构建Debian容器镜像"""
     try:
-        success = container_manager.build_image()
-        if success:
+        result = container_manager.build_image()
+        if result["success"]:
             return {"status": "success", "message": "容器镜像构建成功"}
         else:
-            raise HTTPException(status_code=500, detail="容器镜像构建失败")
+            raise HTTPException(status_code=500, detail=result["error"])
     except Exception as e:
         logger.error(f"构建容器镜像失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"构建容器镜像失败: {str(e)}")
@@ -111,11 +111,11 @@ async def build_container():
 async def start_container(ports: Optional[Dict[str, str]] = None):
     """启动Debian容器"""
     try:
-        success = container_manager.start_container(ports)
-        if success:
+        result = container_manager.start_container(ports)
+        if result["success"]:
             return {"status": "success", "message": "容器启动成功"}
         else:
-            raise HTTPException(status_code=500, detail="容器启动失败")
+            raise HTTPException(status_code=500, detail=result["error"])
     except Exception as e:
         logger.error(f"启动容器失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"启动容器失败: {str(e)}")
@@ -124,11 +124,11 @@ async def start_container(ports: Optional[Dict[str, str]] = None):
 async def stop_container():
     """停止Debian容器"""
     try:
-        success = container_manager.stop_container()
-        if success:
+        result = container_manager.stop_container()
+        if result["success"]:
             return {"status": "success", "message": "容器停止成功"}
         else:
-            return {"status": "warning", "message": "容器停止失败或容器不存在"}
+            return {"status": "warning", "message": result["error"]}
     except Exception as e:
         logger.error(f"停止容器失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"停止容器失败: {str(e)}")
@@ -137,11 +137,11 @@ async def stop_container():
 async def remove_container():
     """删除Debian容器"""
     try:
-        success = container_manager.remove_container()
-        if success:
+        result = container_manager.remove_container()
+        if result["success"]:
             return {"status": "success", "message": "容器删除成功"}
         else:
-            return {"status": "warning", "message": "容器删除失败或容器不存在"}
+            return {"status": "warning", "message": result["error"]}
     except Exception as e:
         logger.error(f"删除容器失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"删除容器失败: {str(e)}")
@@ -150,8 +150,11 @@ async def remove_container():
 async def get_container_status():
     """获取容器状态"""
     try:
-        status = container_manager.get_container_status()
-        return {"status": "success", "data": status}
+        result = container_manager.get_container_status()
+        if result["success"]:
+            return {"status": "success", "data": result["data"]}
+        else:
+            raise HTTPException(status_code=500, detail=result["error"])
     except Exception as e:
         logger.error(f"获取容器状态失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"获取容器状态失败: {str(e)}")
@@ -159,12 +162,11 @@ async def get_container_status():
 @app.post("/api/container/exec")
 async def exec_in_container(command: str):
     """在容器中执行命令"""
-    try:
-        output = container_manager.exec_command(command)
-        return {"status": "success", "output": output}
-    except Exception as e:
-        logger.error(f"在容器中执行命令失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"在容器中执行命令失败: {str(e)}")
+    result = container_manager.exec_command(command)
+    if result["success"]:
+        return {"status": "success", "output": result["output"]}
+    else:
+        raise HTTPException(status_code=500, detail=result["error"])
 
 @app.get("/test/streaming")
 async def test_streaming():
