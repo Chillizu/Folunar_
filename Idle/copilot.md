@@ -61,6 +61,13 @@
 - ✅ 创建了新Git分支'container-optimization'用于容器优化任务
 - ✅ 推送了新分支到远程仓库
 - ✅ 改进了容器错误处理：在container_manager.py中添加详细的错误信息记录和返回，修复API响应中的空错误消息
+- ✅ 添加了容器状态监控功能：扩展status方法提供详细的容器统计信息（CPU、内存、网络等），添加新的API端点获取实时监控数据
+- ✅ 扩展了get_container_status方法：当容器运行时自动获取并返回CPU使用率、内存使用率、网络IO、块IO、进程数等统计信息
+- ✅ 添加了get_container_stats方法：使用docker stats命令获取容器实时统计数据，支持超时处理和错误处理
+- ✅ 创建了新的监控API端点：/api/container/monitor提供流式统计数据，每2秒更新一次，支持实时监控
+- ✅ 修复了编码问题：在所有subprocess调用中添加encoding='utf-8'参数，解决Windows环境下的中文编码问题
+- ✅ 测试了监控功能：验证了status端点正确返回统计信息，monitor端点正确提供流式数据，即使容器不存在时也返回适当的错误信息
+- ✅ 提交了更改：使用描述性提交消息"feat: 添加容器状态监控功能 - 扩展status方法提供详细统计信息，添加实时监控API端点"，并推送到了远程仓库
 
 # 计划
 
@@ -581,6 +588,56 @@ data: [DONE]
 - 测试容器管理API端点
 - 验证容器内systemd功能
 - 添加更多容器配置选项（如环境变量、卷挂载）
+
+## 新任务：优化容器管理代码
+
+### 当前进度
+- ✅ 已完成容器管理代码优化任务！
+- [x] 添加异步处理：将同步的subprocess调用改为异步，提高并发性能
+- [x] 改进日志记录：添加结构化日志、日志轮转、不同级别日志配置
+- [x] 添加配置选项：从配置文件读取容器参数，支持环境变量和卷挂载
+- [x] 代码重构：改进错误处理、类型注解、代码模块化
+
+### 实施计划
+1. **添加异步处理**：使用asyncio.subprocess替换subprocess.run
+2. **改进日志记录**：配置logging模块，支持文件轮转和结构化输出
+3. **添加配置选项**：扩展config.yaml支持容器相关配置
+4. **代码重构**：重构ContainerManager类，提高可维护性
+
+### 实施详情
+
+#### 1. 添加异步处理
+- **ContainerManager类**：所有方法改为异步，使用`async def`和`await`
+- **子进程调用**：使用`asyncio.create_subprocess_exec`替换`subprocess.run`
+- **超时处理**：添加`asyncio.wait_for`实现超时控制
+- **并发性能**：异步操作允许更好的并发处理，提高响应性
+
+#### 2. 改进日志记录
+- **结构化日志**：使用`extra`参数添加上下文信息到日志
+- **日志轮转**：配置`RotatingFileHandler`，文件大小限制和备份数量
+- **多处理器**：同时输出到控制台和文件，级别不同
+- **详细记录**：记录操作参数、返回值、错误详情和性能指标
+
+#### 3. 添加配置选项
+- **config.example.yaml**：添加container配置节
+- **参数支持**：
+  - `image_name`: 镜像名称
+  - `container_name`: 容器名称
+  - `build_timeout`: 构建超时时间
+  - `exec_timeout`: 执行超时时间
+  - `stats_timeout`: 统计超时时间
+  - `ports`: 端口映射
+  - `environment`: 环境变量
+  - `volumes`: 卷挂载
+  - `restart_policy`: 重启策略
+  - `network_mode`: 网络模式
+
+#### 4. 代码重构
+- **类型注解**：添加完整的类型提示
+- **错误处理**：改进异常捕获和错误信息
+- **模块化**：分离日志配置、参数验证等功能
+- **配置注入**：通过构造函数注入配置，提高可测试性
+- **异步命令行接口**：更新CLI为异步版本
 
 ## 上下文
 - 由于Windows环境限制，使用Docker替代原计划的debootstrap+systemd-nspawn

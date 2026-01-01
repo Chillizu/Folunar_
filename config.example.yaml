@@ -24,3 +24,16 @@ api:
   base_url: "https://openrouter.ai/api/v1"
   default_model: "nvidia/nemotron-nano-12b-v2-vl:free"
   key: "your-api-key-here"  # 请替换为你的实际API key
+
+container:
+  image_name: "debian-container"
+  container_name: "agent-debian"
+  dockerfile_path: "Dockerfile"
+  build_timeout: 300
+  exec_timeout: 30
+  stats_timeout: 10
+  ports: {}
+  environment: {}
+  volumes: {}
+  restart_policy: "no"
+  network_mode: "bridge"

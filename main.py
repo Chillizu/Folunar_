@@ -18,7 +18,19 @@ from src.core.agent_manager import AgentManager
 from src.container_manager import ContainerManager
 
 # 配置日志
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.handlers.RotatingFileHandler(
+            'logs/main.log',
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5,
+            encoding='utf-8'
+        )
+    ]
+)
 logger = logging.getLogger(__name__)
 
 def load_config():
@@ -43,7 +55,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 agent_manager = AgentManager(config)
 
 # 初始化容器管理器
-container_manager = ContainerManager()
+container_manager = ContainerManager(config)
 
 @app.get("/")
 async def root():
@@ -98,7 +110,7 @@ async def system_status():
 async def build_container():
     """构建Debian容器镜像"""
     try:
-        result = container_manager.build_image()
+        result = await container_manager.build_image()
         if result["success"]:
             return {"status": "success", "message": "容器镜像构建成功"}
         else:
@@ -111,7 +123,7 @@ async def build_container():
 async def start_container(ports: Optional[Dict[str, str]] = None):
     """启动Debian容器"""
     try:
-        result = container_manager.start_container(ports)
+        result = await container_manager.start_container(ports)
         if result["success"]:
             return {"status": "success", "message": "容器启动成功"}
         else:
@@ -124,7 +136,7 @@ async def start_container(ports: Optional[Dict[str, str]] = None):
 async def stop_container():
     """停止Debian容器"""
     try:
-        result = container_manager.stop_container()
+        result = await container_manager.stop_container()
         if result["success"]:
             return {"status": "success", "message": "容器停止成功"}
         else:
@@ -137,7 +149,7 @@ async def stop_container():
 async def remove_container():
     """删除Debian容器"""
     try:
-        result = container_manager.remove_container()
+        result = await container_manager.remove_container()
         if result["success"]:
             return {"status": "success", "message": "容器删除成功"}
         else:
@@ -150,7 +162,7 @@ async def remove_container():
 async def get_container_status():
     """获取容器状态"""
     try:
-        result = container_manager.get_container_status()
+        result = await container_manager.get_container_status()
         if result["success"]:
             return {"status": "success", "data": result["data"]}
         else:
@@ -165,7 +177,7 @@ async def monitor_container():
     async def generate_stats():
         try:
             while True:
-                stats = container_manager.get_container_stats()
+                stats = await container_manager.get_container_stats()
                 if stats["success"]:
                     data = {
                         "timestamp": int(time.time()),
@@ -188,7 +200,7 @@ async def monitor_container():
 @app.post("/api/container/exec")
 async def exec_in_container(command: str):
     """在容器中执行命令"""
-    result = container_manager.exec_command(command)
+    result = await container_manager.exec_command(command)
     if result["success"]:
         return {"status": "success", "output": result["output"]}
     else:
