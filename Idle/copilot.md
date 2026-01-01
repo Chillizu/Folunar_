@@ -644,4 +644,15 @@ data: [DONE]
 ## ä¸Šä¸‹æ–‡
 - ç”±äºWindowsç¯å¢ƒé™åˆ¶ï¼Œä½¿ç”¨Dockeræ›¿ä»£åŸè®¡åˆ’çš„debootstrap+systemd-nspawn
 - å®¹å™¨è®¾è®¡ä¸ºè½»é‡çº§Debianç¯å¢ƒï¼Œæ”¯æŒsystemdæœåŠ¡ç®¡ç†
-- APIç«¯ç‚¹å…è®¸é€šè¿‡Webç•Œé¢ç®¡ç†å®¹å™¨
+- APIç«¯ç‚¹å…è®¸é€šè¿‡Webç•Œé¢ç®¡ç†å®¹å™¨  
+# ĞÂÈÎÎñ£ºÌí¼Óµ¥Ôª²âÊÔ  
+  
+## µ±Ç°½ø¶È  
+- ? ´´½¨ÁËtestsÄ¿Â¼ºÍ__init__.pyÎÄ¼ş  
+- ? Ìí¼ÓÁËpytest¡¢pytest-asyncio¡¢pytest-mockµ½pyproject.tomlÒÀÀµ  
+- ? ÅäÖÃÁËpytestÑ¡Ïî£¨²âÊÔÂ·¾¶¡¢Òì²½Ä£Ê½µÈ£©  
+- ? ´´½¨ÁËtest_container_manager.py²âÊÔÎÄ¼ş£¬°üº¬ÍêÕûµÄµ¥Ôª²âÊÔ  
+- ? ´´½¨ÁËtest_agent_manager.py²âÊÔÎÄ¼ş£¬°üº¬ÍêÕûµÄµ¥Ôª²âÊÔ  
+- ? ´´½¨ÁËconftest.pyÅäÖÃ¹²Ïífixtures  
+- ? ÅäÖÃÁËGitHub Actions CI¹¤×÷Á÷  
+- ? Ìá½»²¢ÍÆËÍÁËËùÓĞ¸ü¸Äµ½container-optimization·ÖÖ§ 
