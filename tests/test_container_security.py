@@ -155,7 +155,7 @@ class TestContainerSecurity:
         """测试审计日志器初始化"""
         audit_logger = ContainerAuditLogger(security_config['security']['container_security'])
         assert audit_logger.enabled == True
-        assert audit_logger.log_file == 'logs/container_audit_test.log'
+        assert audit_logger.log_file == 'logs/container_audit.log'
 
     def test_audit_log_events(self, container_manager):
         """测试审计日志事件记录"""

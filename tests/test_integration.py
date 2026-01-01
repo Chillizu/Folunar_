@@ -74,7 +74,7 @@ def test_config():
             'jwt_algorithm': 'HS256',
             'jwt_expiration_hours': 24,
             'admin_username': 'admin',
-            'admin_password': 'admin',  # 使用默认密码
+            'admin_password': 'admin123',  # 使用默认密码
             'enable_audit_log': False,
             'cors_origins': ['*']
         },
@@ -183,7 +183,7 @@ class TestSystemIntegration:
         # 登录
         login_data = {
             "username": "admin",
-            "password": "admin"
+            "password": "admin123"
         }
         response = client.post("/api/auth/login", json=login_data)
         assert response.status_code == 200
@@ -211,7 +211,7 @@ class TestSystemIntegration:
         # 登录获取token
         login_response = client.post("/api/auth/login", json={
             "username": "admin",
-            "password": "admin"
+            "password": "admin123"
         })
         token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
@@ -236,7 +236,7 @@ class TestSystemIntegration:
         # 登录
         login_response = client.post("/api/auth/login", json={
             "username": "admin",
-            "password": "admin"
+            "password": "admin123"
         })
         token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
@@ -262,7 +262,7 @@ class TestSystemIntegration:
         # 登录
         login_response = client.post("/api/auth/login", json={
             "username": "admin",
-            "password": "admin"
+            "password": "admin123"
         })
         token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}

@@ -159,15 +159,7 @@ class TestContainerManager:
     @pytest.mark.asyncio
     async def test_get_container_status_running(self, manager, mocker):
         """测试获取运行中容器的状态"""
-        mock_json_output = '''{
-            "Command": "nginx",
-            "CreatedAt": "2023-01-01T00:00:00Z",
-            "ID": "abc123",
-            "Image": "nginx:latest",
-            "Names": "test-container",
-            "Ports": "0.0.0.0:8080->80/tcp",
-            "Status": "Up 2 hours"
-        }'''
+        mock_json_output = '{"Command": "nginx", "CreatedAt": "2023-01-01T00:00:00Z", "ID": "abc123", "Image": "nginx:latest", "Names": "test-container", "Ports": "0.0.0.0:8080->80/tcp", "Status": "Up 2 hours"}'
 
         mock_process = AsyncMock()
         mock_process.returncode = 0
@@ -258,7 +250,7 @@ class TestContainerManager:
     def test_logger_setup(self, manager):
         """测试日志记录器设置"""
         assert manager.logger is not None
-        assert manager.logger.name == f"src.container_manager.ContainerManager.test-container"
+        assert manager.logger.name == f"src.container_manager.test-container"
 
     def test_config_initialization(self, config):
         """测试配置初始化"""

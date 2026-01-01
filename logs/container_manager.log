@@ -44,3 +44,361 @@ json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes:
 2026-01-01 22:03:10,792 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
 2026-01-01 22:03:17,161 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
 2026-01-01 22:03:17,211 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:14:54,388 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:14:54,389 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:14:54,390 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:14:54,390 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:14:54,394 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:14:54,394 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:14:54,465 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:14:54,466 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:14:54,468 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:14:54,468 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:14:54,469 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:14:54,469 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:14:54,471 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:14:54,471 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:14:54,476 - src.container_manager.test-container - ERROR - get_container_status:514 - 解析容器状态JSON时发生错误: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "d:\Code\Tools\AgentContainer\src\container_manager.py", line 465, in get_container_status
+    containers = [json.loads(line) for line in stdout_text.split('\n') if line.strip()]
+                  ~~~~~~~~~~^^^^^^
+  File "C:\Python313\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Python313\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\json\decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-01-01 22:14:54,508 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:14:54,508 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:14:54,510 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:14:54,510 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:14:54,521 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:14:54,522 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:14:54,529 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:14:54,529 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:14:54,530 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:15:00,560 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:15:00,613 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:17:54,305 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:17:54,306 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:17:54,308 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:17:54,308 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:17:54,311 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:17:54,312 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:17:54,322 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:17:54,322 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:17:54,325 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:17:54,325 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:17:54,327 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:17:54,327 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:17:54,330 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:17:54,330 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:17:54,360 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:17:54,360 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:17:54,362 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:17:54,362 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:17:54,369 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:17:54,369 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:17:54,373 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:17:54,373 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:17:54,374 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:18:00,538 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:18:00,590 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:19:18,098 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:19:18,099 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:19:18,100 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:19:18,101 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:19:18,102 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:19:18,103 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:19:18,108 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:19:18,109 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:19:18,110 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:19:18,111 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:19:18,112 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:19:18,113 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:19:18,114 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:19:18,114 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:19:18,208 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:19:18,208 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:19:18,210 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:19:18,210 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:19:18,220 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:19:18,220 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:19:18,224 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:19:18,224 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:19:18,225 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:19:24,352 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:19:24,409 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:20:43,443 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:20:43,443 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:20:43,446 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:20:43,446 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:20:43,448 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:20:43,449 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:20:43,455 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:20:43,455 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:20:43,457 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:20:43,457 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:20:43,458 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:20:43,458 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:20:43,460 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:20:43,460 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:20:43,469 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:20:43,470 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:20:43,472 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:20:43,473 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:20:43,487 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:20:43,487 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:20:43,491 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:20:43,491 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:20:43,492 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:20:49,777 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:20:49,831 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:21:34,604 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:21:34,604 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:21:34,606 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:21:34,606 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:21:34,607 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:21:34,608 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:21:34,631 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:21:34,631 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:21:34,633 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:21:34,633 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:21:34,634 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:21:34,635 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:21:34,636 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:21:34,636 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:21:34,644 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:21:34,644 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:21:34,645 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:21:34,645 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:21:34,652 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:21:34,652 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:21:34,654 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:21:34,655 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:21:34,656 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:21:40,840 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:21:40,891 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:22:30,092 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:22:30,093 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:22:30,097 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:22:30,097 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:22:30,102 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:22:30,102 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:22:30,120 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:22:30,120 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:22:30,124 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:22:30,124 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:22:30,127 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:22:30,128 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:22:30,130 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:22:30,130 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:22:30,144 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:22:30,144 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:22:30,147 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:22:30,147 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:22:30,157 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:22:30,158 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:22:30,163 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:22:30,163 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:22:30,165 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:22:36,651 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:22:36,714 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:23:42,030 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:23:42,030 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:23:42,033 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:23:42,033 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:23:42,038 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:23:42,038 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:23:42,056 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:23:42,057 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:23:42,061 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:23:42,061 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:23:42,063 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:23:42,063 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:23:42,065 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:23:42,065 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:23:42,081 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:23:42,081 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:23:42,084 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:23:42,085 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:23:42,096 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:23:42,096 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:23:42,104 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:23:42,104 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:23:42,107 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:23:49,033 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:23:49,088 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:24:27,022 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:24:27,023 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:24:27,026 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:24:27,026 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:24:27,031 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:24:27,031 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:24:27,049 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:24:27,049 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:24:27,053 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:24:27,053 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:24:27,056 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:24:27,056 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:24:27,058 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:24:27,059 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:24:27,071 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:24:27,071 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:24:27,075 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:24:27,075 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:24:27,088 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:24:27,089 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:24:27,096 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:24:27,096 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:24:27,098 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:24:34,086 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:24:34,145 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:25:57,790 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:25:57,791 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:25:57,793 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:25:57,793 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:25:57,796 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:25:57,796 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:25:57,808 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:25:57,808 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:25:57,811 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:25:57,811 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:25:57,812 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:25:57,813 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:25:57,814 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:25:57,814 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:25:57,823 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:25:57,823 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:25:57,824 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:25:57,825 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:25:57,832 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:25:57,832 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:25:57,836 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:25:57,836 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:25:57,838 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:26:04,034 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:26:04,087 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:26:25,134 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:26:25,135 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:26:25,136 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:26:25,136 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:26:25,139 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:26:25,140 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:26:25,152 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:26:25,152 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:26:25,155 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:26:25,155 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:26:25,156 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:26:25,156 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:26:25,158 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:26:25,158 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:26:25,166 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:26:25,167 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:26:25,168 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:26:25,168 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:26:25,175 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:26:25,176 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:26:25,179 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:26:25,179 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:26:25,180 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:26:31,467 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:26:31,520 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:27:50,767 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:27:50,767 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:27:50,769 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:27:50,769 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:27:50,772 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:27:50,773 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:27:50,787 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:27:50,787 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:27:50,790 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:27:50,790 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:27:50,792 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:27:50,792 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:27:50,794 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:27:50,794 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:27:50,802 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:27:50,802 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:27:50,803 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:27:50,804 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:27:50,811 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:27:50,811 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:27:50,814 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:27:50,815 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:27:50,816 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:27:57,044 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:27:57,096 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:28:22,812 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:28:22,813 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:28:22,814 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:28:22,815 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:28:22,819 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:28:22,819 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:28:22,833 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:28:22,833 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:28:22,836 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:28:22,836 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:28:22,838 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:28:22,838 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:28:22,840 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:28:22,840 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:28:22,849 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:28:22,849 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:28:22,851 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:28:22,851 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:28:22,859 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:28:22,859 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:28:22,864 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:28:22,864 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:28:22,865 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:28:29,158 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:28:29,214 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:29:41,119 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:29:41,119 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:29:41,121 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:29:41,121 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:29:41,124 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:29:41,124 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:29:41,133 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:29:41,134 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:29:41,136 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:29:41,136 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:29:41,137 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:29:41,137 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:29:41,139 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:29:41,139 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:29:41,148 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:29:41,149 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:29:41,150 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:29:41,150 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:29:58,675 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:29:58,675 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-01 22:29:58,677 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:29:58,677 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-01 22:29:58,680 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-01 22:29:58,680 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-01 22:29:58,693 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:29:58,693 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:29:58,696 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-01 22:29:58,696 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-01 22:29:58,698 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-01 22:29:58,698 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-01 22:29:58,699 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-01 22:29:58,699 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-01 22:29:58,709 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-01 22:29:58,709 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:29:58,710 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-01 22:29:58,711 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-01 22:29:58,718 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-01 22:29:58,718 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-01 22:29:58,722 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-01 22:29:58,722 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-01 22:29:58,724 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-01 22:30:04,936 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 22:30:04,987 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian

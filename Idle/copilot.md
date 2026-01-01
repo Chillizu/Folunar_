@@ -176,6 +176,12 @@
 - ✅ 提交并推送了优化后的代码，提交消息详细描述了所有改进
 - ✅ 创建了完整的README.md文档，包含项目介绍、安装指南、使用说明、API文档和开发指南
 - ✅ 提交并推送了README.md文档，提交消息："docs: 创建完整的README.md文档，包含项目介绍、安装指南、使用说明、API文档和开发指南"
+- ✅ 完成了基础设施修复：统一依赖管理，合并pyproject.toml和requirements.txt，升级Pydantic到V2，修复废弃API，添加缺失依赖
+- ✅ 合并了pyproject.toml和requirements.txt到统一的pyproject.toml中，删除了requirements.txt
+- ✅ 升级Pydantic到最新V2版本（2.12.5），修复了validation.py中的@validator废弃API
+- ✅ 更新了所有依赖版本：aiohttp、Pillow等，确保兼容性和安全性
+- ✅ 测试了依赖安装成功，所有包正确安装
+- ✅ 提交并推送了基础设施修复更改，提交消息："feat: 基础设施修复 - 统一依赖管理，合并pyproject.toml和requirements.txt，升级Pydantic到V2，修复废弃API，添加缺失依赖"
 
 # 计划
 

@@ -126,10 +126,18 @@ class TestAgentManager:
             "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]
         }
 
-        mock_response = AsyncMock()
-        mock_response.__aiter__.return_value = [mock_chunk1, mock_chunk2, mock_chunk3]
+        async def mock_async_iter(self):
+            yield mock_chunk1
+            yield mock_chunk2
+            yield mock_chunk3
 
-        with patch.object(manager.client.chat.completions, 'create', return_value=mock_response):
+        mock_response = AsyncMock()
+        mock_response.__aiter__ = mock_async_iter
+
+        # Mock the async create method
+        mock_create = AsyncMock(return_value=mock_response)
+
+        with patch.object(manager.client.chat.completions, 'create', mock_create):
             chunks = []
             async for chunk in manager.chat_completion(messages, stream=True):
                 chunks.append(chunk)
@@ -164,14 +172,19 @@ class TestAgentManager:
             }
         }
 
-        with patch.object(manager.client.chat.completions, 'create', return_value=mock_response):
+        # Mock the async create method
+        mock_create = AsyncMock(return_value=mock_response)
+
+        with patch.object(manager.client.chat.completions, 'create', mock_create):
             responses = []
             async for response in manager.chat_completion(messages, stream=False):
                 responses.append(response)
 
             assert len(responses) == 1
-            assert responses[0]["choices"][0]["message"]["content"] == "Hello there!"
-            assert responses[0]["usage"]["total_tokens"] == 12
+            # Since it's an async generator yielding dicts, we need to check the content
+            response_data = responses[0]
+            assert response_data["choices"][0]["message"]["content"] == "Hello there!"
+            assert response_data["usage"]["total_tokens"] == 12
 
     @pytest.mark.asyncio
     async def test_chat_completion_with_tools(self, manager):
@@ -225,13 +238,17 @@ class TestAgentManager:
             }
         }
 
-        with patch.object(manager.client.chat.completions, 'create', return_value=mock_response):
+        # Mock the async create method
+        mock_create = AsyncMock(return_value=mock_response)
+
+        with patch.object(manager.client.chat.completions, 'create', mock_create):
             responses = []
             async for response in manager.chat_completion(messages, tools=tools, stream=False):
                 responses.append(response)
 
             assert len(responses) == 1
-            tool_calls = responses[0]["choices"][0]["message"]["tool_calls"]
+            response_data = responses[0]
+            tool_calls = response_data["choices"][0]["message"]["tool_calls"]
             assert len(tool_calls) == 1
             assert tool_calls[0]["function"]["name"] == "get_weather"
 
