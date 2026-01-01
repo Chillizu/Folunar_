@@ -7,7 +7,7 @@
 import re
 import logging
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,8 @@ class ChatCompletionRequest(BaseModel):
     max_tokens: Optional[int] = Field(None, gt=0, le=4096)
     tools: Optional[List[Dict[str, Any]]] = None
 
-    @validator('model')
+    @field_validator('model')
+    @classmethod
     def validate_model(cls, v):
         """验证模型名称"""
         allowed_models = [
@@ -32,7 +33,8 @@ class ChatCompletionRequest(BaseModel):
             raise ValueError(f'不支持的模型: {v}')
         return v
 
-    @validator('messages')
+    @field_validator('messages')
+    @classmethod
     def validate_messages(cls, v):
         """验证消息格式"""
         for msg in v:
@@ -50,7 +52,8 @@ class ContainerExecRequest(BaseModel):
     """容器执行请求验证模型"""
     command: str = Field(..., min_length=1, max_length=1000)
 
-    @validator('command')
+    @field_validator('command')
+    @classmethod
     def validate_command(cls, v):
         """验证命令安全性"""
         # 禁止危险命令
