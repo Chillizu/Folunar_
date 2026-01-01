@@ -159,6 +159,32 @@ async def get_container_status():
         logger.error(f"获取容器状态失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"获取容器状态失败: {str(e)}")
 
+@app.get("/api/container/monitor")
+async def monitor_container():
+    """实时监控容器统计信息"""
+    async def generate_stats():
+        try:
+            while True:
+                stats = container_manager.get_container_stats()
+                if stats["success"]:
+                    data = {
+                        "timestamp": int(time.time()),
+                        "stats": stats["data"]
+                    }
+                    yield f"data: {json.dumps(data)}\n\n"
+                else:
+                    yield f"data: {json.dumps({'error': stats['error'], 'timestamp': int(time.time())})}\n\n"
+                await asyncio.sleep(2)  # 每2秒更新一次
+        except Exception as e:
+            logger.error(f"监控容器时发生错误: {str(e)}")
+            yield f"data: {json.dumps({'error': str(e), 'timestamp': int(time.time())})}\n\n"
+
+    return StreamingResponse(
+        generate_stats(),
+        media_type="text/event-stream",
+        headers={"Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache"}
+    )
+
 @app.post("/api/container/exec")
 async def exec_in_container(command: str):
     """在容器中执行命令"""
