@@ -1,0 +1,6 @@
+2026-01-01 18:17:37,897 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 18:17:38,032 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 18:18:46,949 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 18:18:47,007 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 18:19:44,936 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-01 18:19:45,002 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian

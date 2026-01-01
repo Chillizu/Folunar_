@@ -79,12 +79,18 @@ class AuthManager:
             return None
 
 async def get_current_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    auth_manager: Optional[AuthManager] = None
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> Optional[str]:
     """获取当前用户"""
     if not credentials:
         return None
+
+    # 导入全局auth_manager
+    try:
+        import main
+        auth_manager = main.auth_manager
+    except ImportError:
+        auth_manager = None
 
     token_data = auth_manager.verify_token(credentials.credentials) if auth_manager else None
     if token_data is None:

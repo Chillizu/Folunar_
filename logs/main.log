@@ -648,3 +648,553 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-01-01 18:07:44,397 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
 2026-01-01 18:07:44,397 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
 2026-01-01 18:07:44,397 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:11:39,742 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:11:39,928 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:11:40,025 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:11:40,111 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:11:43,410 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:11:43,737 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:11:43,752 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:11:44,031 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:11:45,324 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:11:45,672 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:11:45,703 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:11:48,861 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:11:49,178 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:11:49,235 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:11:50,443 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:11:50,443 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,444 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,445 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,445 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,445 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,446 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:11:50,732 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:11:50,733 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,733 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,733 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,733 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,734 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,734 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:11:50,787 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:11:50,788 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,788 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,789 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,789 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,790 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:11:50,790 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:12:21,946 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:21,960 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:22,074 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:22,201 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:24,722 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:24,766 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:24,888 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:25,151 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:26,559 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:26,594 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:26,750 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:29,592 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:29,660 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:29,776 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:31,267 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:12:31,268 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,268 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,269 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,269 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,270 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,270 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:12:31,300 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:12:31,301 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,302 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,302 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,303 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,303 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,304 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:12:31,415 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:12:31,416 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,416 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,417 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,417 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,418 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:31,418 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:12:33,577 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:33,670 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:33,727 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:34,120 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:36,770 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:36,846 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:37,009 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:37,323 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:38,701 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:38,900 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:39,174 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:40,488 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:42,055 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:42,334 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:42,537 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:43,472 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:43,984 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:12:43,989 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:43,989 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:43,992 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:43,993 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:43,993 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:43,993 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:12:44,182 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:12:44,183 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,183 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,184 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,184 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,185 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,185 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:12:44,277 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:12:44,278 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,279 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,280 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,280 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,281 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:44,281 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:12:45,957 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:46,156 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:46,272 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:48,758 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:49,122 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:49,283 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:49,369 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:50,638 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:50,973 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:52,255 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:53,150 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:54,171 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:54,406 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:55,796 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:12:55,797 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:55,798 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:55,798 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:55,799 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:55,799 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:55,799 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:12:55,910 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:12:56,066 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:12:56,067 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:56,067 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:56,068 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:56,068 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:56,069 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:12:56,069 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:12:57,581 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:57,596 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:12:57,898 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:00,271 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:00,581 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:00,946 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:01,983 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:02,243 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:02,517 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:13:02,518 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:02,518 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:02,519 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:02,519 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:02,519 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:02,519 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:13:04,914 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:05,109 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:06,288 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:13:06,289 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,289 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,290 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,290 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,291 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,291 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:13:06,461 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:13:06,462 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,462 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,463 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,463 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,463 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:06,463 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:13:32,365 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:32,981 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:33,185 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:33,332 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:35,531 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:36,630 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:36,893 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:37,298 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:37,619 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:38,599 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:39,499 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:41,256 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:42,360 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:43,189 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:13:43,190 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:43,191 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:43,191 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:43,192 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:43,192 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:43,192 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:13:43,612 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:44,046 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:13:44,047 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,048 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,048 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,048 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,049 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,049 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:13:44,739 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:13:44,739 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,740 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,740 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,740 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,741 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:13:44,741 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:13:53,497 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:53,641 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:53,714 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:53,767 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:56,843 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:56,932 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:56,936 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:57,381 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:13:58,775 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:59,229 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:13:59,427 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:14:02,122 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:02,777 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:02,982 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:03,702 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:14:03,702 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:03,703 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:03,703 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:03,704 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:03,704 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:03,704 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:14:04,371 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:14:04,372 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,372 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,373 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,373 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,374 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,374 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:14:04,569 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:14:04,570 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,570 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,571 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,571 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,572 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:04,572 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:14:23,476 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:14:24,007 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:14:24,010 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:14:24,265 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:14:26,652 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:27,573 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:28,256 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:28,451 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:28,743 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:14:29,635 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:14:31,185 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:14:32,755 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:33,597 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:34,683 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:14:34,684 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:34,685 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:34,685 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:34,685 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:34,686 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:34,686 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:14:35,274 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:14:35,341 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:14:35,342 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:35,342 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:35,343 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:35,343 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:35,344 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:35,344 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:14:36,901 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:14:36,902 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:36,903 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:36,904 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:36,905 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:36,907 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:14:36,908 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:15:01,810 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:01,939 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:02,002 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:02,181 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:05,312 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:05,887 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:06,705 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:06,969 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:07,478 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:08,029 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:09,419 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:11,442 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:11,871 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:13,118 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:13,165 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:15:13,166 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,166 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,167 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,167 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,168 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,168 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:15:13,528 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:15:13,529 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,529 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,529 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,530 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,530 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:13,530 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:15:14,601 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:15:14,602 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:14,602 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:14,603 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:14,603 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:14,604 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:14,604 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:15:36,286 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:36,315 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:36,721 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:36,756 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:39,110 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:39,263 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:39,809 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:40,041 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:41,081 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:41,687 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:41,959 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:15:44,308 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:44,955 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:45,288 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:15:45,989 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:15:45,990 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:45,990 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:45,991 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:45,991 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:45,992 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:45,992 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:15:46,576 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:15:46,577 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,578 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,578 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,579 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,579 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,579 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:15:46,947 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:15:46,948 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,948 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,949 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,949 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,950 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:15:46,950 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:16:02,577 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:16:02,598 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:16:03,216 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:16:03,220 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:16:05,089 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:16:05,146 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:16:05,987 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:16:06,007 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:16:06,901 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:16:07,734 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:16:07,765 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:16:10,183 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:16:11,055 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:16:11,109 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:16:11,886 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:16:11,887 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:11,887 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:11,888 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:11,888 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:11,889 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:11,889 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:16:12,686 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:16:12,687 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,687 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,687 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,688 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,688 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,688 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:16:12,746 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:16:12,747 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,747 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,748 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,748 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,749 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:16:12,749 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:17:06,843 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:06,905 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:07,087 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:07,278 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:10,440 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:10,536 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:11,520 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:11,683 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:12,405 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:12,434 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:13,386 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:15,886 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:15,910 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:16,216 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:17,248 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:17,652 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:17:17,654 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,655 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,655 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,656 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,656 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,656 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:17:17,766 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:17:17,766 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,768 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,768 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,769 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,770 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:17,770 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:17:19,221 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:17:19,221 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:19,222 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:19,222 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:19,224 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:19,224 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:19,224 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:17:19,682 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:20,827 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:21,178 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:22,350 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:24,291 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:24,952 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:26,382 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:26,431 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:27,452 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:28,906 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:30,370 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:32,434 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:17:32,435 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:32,436 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:32,437 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:32,437 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:32,440 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:32,440 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:17:32,567 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:33,876 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:34,823 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:17:34,824 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:34,827 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:34,828 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:34,831 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:34,832 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:34,832 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:17:35,496 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:17:35,496 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:35,497 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:35,497 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:35,497 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:35,498 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:17:35,498 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:17:55,595 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:55,857 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:56,009 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:56,829 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:17:59,572 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:17:59,974 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:00,824 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:01,830 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:01,992 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:02,479 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:04,098 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:05,861 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:06,297 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:07,648 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:18:07,649 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,650 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,650 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,651 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,651 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,651 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:18:07,658 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:07,965 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:18:07,966 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,966 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,966 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,967 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,967 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:07,967 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:18:08,838 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:18:08,839 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:08,840 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:08,840 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:08,841 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:08,841 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:08,841 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:18:23,045 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:23,389 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:23,413 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:23,707 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:25,523 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:26,213 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:26,228 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:26,571 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:27,305 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:28,045 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:28,068 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:30,068 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:30,636 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:31,372 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:31,379 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:32,363 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:18:32,364 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:32,365 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:32,365 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:32,366 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:32,366 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:32,366 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:18:32,711 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:33,027 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:18:33,028 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,028 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,029 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,029 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,029 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,030 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:18:33,052 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:18:33,052 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,053 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,054 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,054 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,055 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:33,055 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:18:34,289 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:35,029 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:36,247 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:37,865 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:37,875 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:38,234 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:39,706 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:39,716 - src.security_middleware - INFO - 安全中间件已配置完成
+2026-01-01 18:18:41,775 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:43,128 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:43,191 - src.whisper_injection - INFO - 已加载 0 个词汇
+2026-01-01 18:18:43,461 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:18:43,462 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:43,462 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:43,462 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:43,463 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:43,463 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:43,463 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:18:44,538 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:18:44,539 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,539 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,540 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,540 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,540 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,540 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
+2026-01-01 18:18:44,568 - main - INFO - 正在启动AgentContainer...
+2026-01-01 18:18:44,569 - src.core.connection_pool - WARNING - Docker客户端 1 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,570 - src.core.connection_pool - WARNING - Docker客户端 2 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,570 - src.core.connection_pool - WARNING - Docker客户端 3 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,570 - src.core.connection_pool - WARNING - Docker客户端 4 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,571 - src.core.connection_pool - WARNING - Docker客户端 5 初始化失败: Install pypiwin32 package to enable npipe:// support
+2026-01-01 18:18:44,571 - src.core.connection_pool - ERROR - 连接池初始化失败: 无法创建任何Docker客户端连接
