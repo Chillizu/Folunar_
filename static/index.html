@@ -8,9 +8,9 @@
 </head>
 <body>
     <div class="container">
-        <h1>AgentContainer 聊天</h1>
+        <h1>AgentContainer 沙盒监控</h1>
 
-        <!-- 系统状态面板 -->
+        <!-- AI沙盒状态面板 -->
         <div class="status-panel">
             <div class="status-item">
                 <span class="status-label">版本:</span>
@@ -19,6 +19,10 @@
             <div class="status-item">
                 <span class="status-label">活跃代理:</span>
                 <span class="status-value" id="active-agents">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">沙盒状态:</span>
+                <span class="status-value" id="sandbox-status">未运行</span>
             </div>
             <div class="status-item">
                 <span class="status-label">CPU使用:</span>
@@ -34,9 +38,38 @@
             </div>
         </div>
 
-        <div id="chat-container">
-            <div id="messages"></div>
+        <div class="main-content">
+            <!-- 左侧：聊天和观察者截图 -->
+            <div class="left-panel">
+                <div id="chat-container">
+                    <div id="messages"></div>
+                </div>
+                <div class="observer-panel">
+                    <h3>观察者截图</h3>
+                    <div id="screenshot-container">
+                        <img id="observer-screenshot" src="" alt="观察者截图" style="display: none;" />
+                        <p id="no-screenshot">暂无截图</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：监控面板 -->
+            <div class="right-panel">
+                <div class="decision-monitor">
+                    <h3>决策循环监控</h3>
+                    <div id="decision-log">
+                        <p>等待决策数据...</p>
+                    </div>
+                </div>
+                <div class="injection-log">
+                    <h3>随机想法注入日志</h3>
+                    <div id="injection-log-content">
+                        <p>等待注入日志...</p>
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div class="input-container">
             <input type="text" id="message-input" placeholder="输入消息..." />
             <button id="send-button">发送</button>

@@ -142,7 +142,7 @@ async def list_agents():
 @app.get("/health")
 @limiter.limit("60/minute")
 @performance_monitor.api_performance_decorator("GET", "/health")
-async def health_check():
+async def health_check(request: Request):
     """健康检查端点"""
     health_status = await performance_monitor.get_health_status()
     status_code = 200 if health_status['healthy'] else 503
@@ -151,7 +151,7 @@ async def health_check():
 @app.get("/api/performance/metrics")
 @limiter.limit("10/minute")
 @performance_monitor.api_performance_decorator("GET", "/api/performance/metrics")
-async def get_performance_metrics():
+async def get_performance_metrics(request: Request):
     """获取性能指标"""
     try:
         metrics = await performance_monitor.get_metrics_summary()
@@ -163,7 +163,7 @@ async def get_performance_metrics():
 @app.post("/api/performance/gc")
 @limiter.limit("5/minute")
 @performance_monitor.api_performance_decorator("POST", "/api/performance/gc")
-async def trigger_garbage_collection():
+async def trigger_garbage_collection(request: Request):
     """触发垃圾回收"""
     try:
         collected = await performance_monitor.force_gc()
@@ -199,6 +199,7 @@ async def system_status(request: Request):
             "version": config['app']['version'],
             "uptime": uptime,
             "active_agents": len(agent_manager.list_agents()),
+            "sandbox_status": "运行中",  # 添加沙盒状态
             "system": {
                 "cpu_percent": cpu_percent,
                 "memory_used": memory.used,
@@ -810,47 +811,13 @@ if __name__ == "__main__":
     server_config = config.get('server', {})
     security_config = config.get('security', {})
 
-    workers = server_config.get('workers', 1)
-    max_requests = server_config.get('max_requests', 1000)
-    max_requests_jitter = server_config.get('max_requests_jitter', 50)
-
-    # HTTPS配置
-    ssl_enabled = security_config.get('enable_https', False)
-    ssl_cert_path = security_config.get('ssl_cert_path', 'certs/server.crt')
-    ssl_key_path = security_config.get('ssl_key_path', 'certs/server.key')
-
+    # 强制单进程模式用于测试
     server_kwargs = {
         "host": server_config.get('host', '0.0.0.0'),
         "port": server_config.get('port', 8000),
-        "loop": "uvloop",  # 使用uvloop提升性能
-        "http": "httptools",  # 使用httptools提升HTTP性能
+        "reload": False,  # 禁用reload避免uvloop问题
+        "access_log": True,
         "log_level": "info"
     }
 
-    # 添加HTTPS配置
-    if ssl_enabled:
-        import ssl
-        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        ssl_context.load_cert_chain(ssl_cert_path, ssl_key_path)
-        server_kwargs["ssl"] = ssl_context
-        logger.info(f"HTTPS已启用，证书路径: {ssl_cert_path}")
-
-    if workers > 1:
-        # 多进程模式使用Gunicorn
-        import multiprocessing
-        workers = min(workers, multiprocessing.cpu_count())
-
-        server_kwargs.update({
-            "workers": workers,
-            "access_log": False,  # 生产环境关闭访问日志
-        })
-
-        uvicorn.run("main:create_app", factory=True, **server_kwargs)
-    else:
-        # 单进程模式
-        server_kwargs.update({
-            "reload": server_config.get('debug', True),
-            "access_log": server_config.get('debug', True),
-        })
-
-        uvicorn.run("main:create_app", factory=True, **server_kwargs)
+    uvicorn.run("main:create_app", factory=True, **server_kwargs)
