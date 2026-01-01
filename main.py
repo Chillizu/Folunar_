@@ -26,6 +26,7 @@ from src.core.performance_monitor import PerformanceMonitor
 from src.auth import AuthManager, require_auth, UserCredentials
 from src.validation import ValidationManager, validate_request_data, ChatCompletionRequest, ContainerExecRequest
 from src.security_middleware import setup_security_middleware, AuditLogger
+from src.observer import Observer
 
 # 配置日志
 logging.basicConfig(
@@ -89,6 +90,9 @@ agent_manager = AgentManager(config)
 
 # 初始化容器管理器（使用连接池）
 container_manager = ContainerManager(config, connection_pool)
+
+# 初始化观察者
+observer = Observer(config, agent_manager)
 
 # 认证端点
 @app.post("/api/auth/login")
@@ -443,6 +447,7 @@ async def chat_completions(request: Request, current_user: str = require_auth):
                 media_type="text/event-stream",
                 headers={"Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache"}
             )
+        
         else:
             # 非流式响应
             async for result in agent_manager.chat_completion(
@@ -471,6 +476,74 @@ async def chat_completions(request: Request, current_user: str = require_auth):
             "type": "general_error"
         }, current_user)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+# 观察者端点
+@app.post("/api/observer/start")
+async def start_observer(current_user: str = require_auth):
+    """启动AI观察者"""
+    audit_logger.log_event("OBSERVER_START_REQUEST", {"user": current_user}, current_user)
+    try:
+        success = await observer.start_monitoring()
+        if success:
+            audit_logger.log_event("OBSERVER_START_SUCCESS", {"user": current_user}, current_user)
+            return {"status": "success", "message": "观察者已启动"}
+        else:
+            audit_logger.log_event("OBSERVER_START_FAILED", {"user": current_user, "reason": "already_running"}, current_user)
+            return {"status": "warning", "message": "观察者已在运行中"}
+    except Exception as e:
+        logger.error(f"启动观察者失败: {str(e)}")
+        audit_logger.log_event("OBSERVER_START_ERROR", {"user": current_user, "error": str(e)}, current_user)
+        raise HTTPException(status_code=500, detail=f"启动观察者失败: {str(e)}")
+
+@app.post("/api/observer/stop")
+async def stop_observer(current_user: str = require_auth):
+    """停止AI观察者"""
+    audit_logger.log_event("OBSERVER_STOP_REQUEST", {"user": current_user}, current_user)
+    try:
+        success = await observer.stop_monitoring()
+        if success:
+            audit_logger.log_event("OBSERVER_STOP_SUCCESS", {"user": current_user}, current_user)
+            return {"status": "success", "message": "观察者已停止"}
+        else:
+            audit_logger.log_event("OBSERVER_STOP_FAILED", {"user": current_user, "reason": "not_running"}, current_user)
+            return {"status": "warning", "message": "观察者未在运行"}
+    except Exception as e:
+        logger.error(f"停止观察者失败: {str(e)}")
+        audit_logger.log_event("OBSERVER_STOP_ERROR", {"user": current_user, "error": str(e)}, current_user)
+        raise HTTPException(status_code=500, detail=f"停止观察者失败: {str(e)}")
+
+@app.get("/api/observer/status")
+async def get_observer_status(current_user: str = require_auth):
+    """获取观察者状态"""
+    try:
+        status = observer.get_status()
+        return {"status": "success", "data": status}
+    except Exception as e:
+        logger.error(f"获取观察者状态失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取观察者状态失败: {str(e)}")
+
+@app.get("/api/observer/observations")
+async def get_recent_observations(limit: int = 10, current_user: str = require_auth):
+    """获取最近的观察记录"""
+    try:
+        observations = observer.get_recent_observations(limit)
+        return {"status": "success", "data": observations}
+    except Exception as e:
+        logger.error(f"获取观察记录失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取观察记录失败: {str(e)}")
+
+@app.post("/api/observer/clear")
+async def clear_observations(current_user: str = require_auth):
+    """清空观察历史记录"""
+    audit_logger.log_event("OBSERVER_CLEAR_REQUEST", {"user": current_user}, current_user)
+    try:
+        observer.clear_observation_history()
+        audit_logger.log_event("OBSERVER_CLEAR_SUCCESS", {"user": current_user}, current_user)
+        return {"status": "success", "message": "观察历史记录已清空"}
+    except Exception as e:
+        logger.error(f"清空观察记录失败: {str(e)}")
+        audit_logger.log_event("OBSERVER_CLEAR_ERROR", {"user": current_user, "error": str(e)}, current_user)
+        raise HTTPException(status_code=500, detail=f"清空观察记录失败: {str(e)}")
 
 @app.on_event("startup")
 async def startup_event():
