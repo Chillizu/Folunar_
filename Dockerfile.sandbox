@@ -1,0 +1,131 @@
+# AI沙盒环境Dockerfile
+# 基于Ubuntu 22.04，包含XFCE桌面、VNC服务器、Python环境和AI工具
+
+FROM ubuntu:22.04
+
+# 设置环境变量
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    DISPLAY=:1 \
+    VNC_PORT=5901 \
+    JUPYTER_PORT=8888 \
+    USER=aiuser \
+    HOME=/home/aiuser
+
+# 更新包列表并安装基础工具
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    gnupg2 \
+    software-properties-common \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# 添加Ubuntu Universe仓库（包含XFCE）
+RUN add-apt-repository universe
+
+# 安装XFCE桌面环境和VNC服务器
+RUN apt-get update && apt-get install -y \
+    xfce4 \
+    xfce4-goodies \
+    tightvncserver \
+    xfonts-base \
+    xfonts-75dpi \
+    xfonts-100dpi \
+    xfonts-scalable \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装Python环境和开发工具
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
+    python3-venv \
+    git \
+    vim \
+    nano \
+    htop \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装supervisord用于进程管理
+RUN apt-get update && apt-get install -y \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+# 创建非root用户
+RUN useradd -m -s /bin/bash $USER && \
+    echo "$USER:aiuser123" | chpasswd && \
+    usermod -aG sudo $USER && \
+    mkdir -p $HOME/.vnc && \
+    chown -R $USER:$USER $HOME
+
+# 切换到用户环境安装Python包
+USER $USER
+WORKDIR $HOME
+
+# 安装Python科学计算和AI工具
+RUN python3 -m pip install --user --no-cache-dir \
+    jupyter \
+    jupyterlab \
+    numpy \
+    pandas \
+    matplotlib \
+    scikit-learn \
+    tensorflow \
+    torch \
+    torchvision \
+    transformers \
+    pillow \
+    opencv-python \
+    requests \
+    flask \
+    fastapi \
+    uvicorn
+
+# 创建工作目录
+RUN mkdir -p $HOME/workspace $HOME/.jupyter
+
+# 配置Jupyter Notebook
+RUN jupyter notebook --generate-config && \
+    echo "c.NotebookApp.ip = '0.0.0.0'" >> $HOME/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.port = $JUPYTER_PORT" >> $HOME/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.open_browser = False" >> $HOME/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.allow_root = False" >> $HOME/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.token = ''" >> $HOME/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.password = ''" >> $HOME/.jupyter/jupyter_notebook_config.py
+
+# 切换回root配置系统级设置
+USER root
+
+# 复制启动脚本
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# 配置supervisord
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# 创建VNC密码文件
+RUN mkdir -p /home/$USER/.vnc && \
+    echo "aiuser123" | vncpasswd -f > /home/$USER/.vnc/passwd && \
+    chmod 600 /home/$USER/.vnc/passwd && \
+    chown -R $USER:$USER /home/$USER/.vnc
+
+# 配置XFCE会话
+RUN mkdir -p /home/$USER/.vnc && \
+    echo "#!/bin/sh\nxrdb \$HOME/.Xresources\nxsetroot -solid grey\nx-terminal-emulator -geometry 80x24+10+10 -ls -title \"\$VNCDESKTOP Desktop\" &\nxfce4-session &" > /home/$USER/.vnc/xstartup && \
+    chmod +x /home/$USER/.vnc/xstartup && \
+    chown -R $USER:$USER /home/$USER/.vnc
+
+# 暴露端口
+EXPOSE $VNC_PORT $JUPYTER_PORT
+
+# 设置卷挂载点
+VOLUME ["/home/$USER/workspace"]
+
+# 设置默认用户
+USER $USER
+
+# 启动命令
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

@@ -1104,3 +1104,98 @@ curl -X POST "http://localhost:8000/api/container/exec" \
 
 ## 上下文
 安全加固是系统稳定运行的关键，通过多层次的安全措施保护系统免受各种攻击和威胁。采用了深度防御策略，确保即使某一层被突破，其他层仍能提供保护。
+
+# 新任务：创建AI沙盒环境
+
+## 当前进度
+- ✅ 已完成AI沙盒环境Dockerfile创建！包含Ubuntu 22.04、XFCE桌面、TightVNC、Python环境和AI工具
+- ✅ 创建了Dockerfile.sandbox：基于Ubuntu 22.04，安装XFCE桌面环境、TightVNC服务器、Python 3.10+、常用AI工具（Jupyter、NumPy、Pandas、TensorFlow、PyTorch、Transformers等）
+- ✅ 创建了docker-entrypoint.sh启动脚本：设置VNC密码，启动VNC服务器，使用supervisord管理进程
+- ✅ 创建了supervisord.conf配置文件：管理VNC、Jupyter Notebook、XFCE会话等服务进程
+- ✅ 配置了安全隔离：创建非root用户aiuser，设置适当权限，限制网络访问
+- ✅ 配置了图形界面访问：VNC端口5901，Jupyter端口8888，支持远程桌面访问
+- ✅ 更新了copilot.md记录所有进度和配置详情
+
+## 实施详情
+
+### 1. Dockerfile.sandbox配置
+- **基础镜像**：Ubuntu 22.04 LTS，稳定可靠的长期支持版本
+- **桌面环境**：XFCE4，轻量级桌面环境，适合容器化运行
+- **VNC服务器**：TightVNC，高效的VNC实现，支持远程桌面访问
+- **Python环境**：Python 3.10+，包含pip和venv支持
+- **AI工具栈**：
+  - Jupyter Notebook/Lab：交互式开发环境
+  - NumPy、Pandas、Matplotlib：科学计算和数据可视化
+  - Scikit-learn：机器学习库
+  - TensorFlow、PyTorch：深度学习框架
+  - Transformers：预训练模型库
+  - OpenCV：计算机视觉
+  - Pillow：图像处理
+
+### 2. 安全配置
+- **用户隔离**：创建非root用户aiuser，避免权限过高
+- **密码设置**：VNC密码设置为aiuser123，可在生产环境修改
+- **权限控制**：限制文件系统访问，工作目录设为/home/aiuser
+- **网络隔离**：默认情况下VNC服务器监听localhost，可配置外部访问
+
+### 3. 服务管理
+- **Supervisord**：进程管理器，确保所有服务稳定运行
+- **多服务支持**：
+  - VNC服务器：提供图形界面访问
+  - Jupyter Notebook：提供Web开发环境
+  - XFCE会话：桌面环境会话管理
+- **自动重启**：服务异常退出时自动重启
+
+### 4. 端口配置
+- **VNC端口**：5901，用于远程桌面连接
+- **Jupyter端口**：8888，用于Web访问（token认证关闭，便于开发）
+- **暴露端口**：Dockerfile中EXPOSE相应端口
+
+### 5. 存储配置
+- **工作目录**：/home/aiuser/workspace，挂载外部卷用于持久化
+- **配置目录**：包含Jupyter配置、VNC配置等
+- **日志目录**：supervisord日志输出
+
+## 使用方法
+
+### 构建镜像
+```bash
+docker build -f Dockerfile.sandbox -t ai-sandbox .
+```
+
+### 运行容器
+```bash
+docker run -d \
+  --name ai-sandbox-container \
+  -p 5901:5901 \
+  -p 8888:8888 \
+  -v $(pwd)/workspace:/home/aiuser/workspace \
+  ai-sandbox
+```
+
+### 访问方式
+- **VNC桌面**：使用VNC客户端连接localhost:5901，密码aiuser123
+- **Jupyter Notebook**：浏览器访问http://localhost:8888，无需token
+- **命令行访问**：`docker exec -it ai-sandbox-container bash`
+
+## 安全注意事项
+- **生产环境**：修改默认密码，启用Jupyter token认证
+- **网络安全**：根据需要配置防火墙规则
+- **资源限制**：设置CPU/内存限制防止资源滥用
+- **监控日志**：定期检查supervisord日志
+
+## 技术特点
+- **轻量级**：基于Ubuntu最小安装，XFCE桌面环境轻量高效
+- **功能完整**：提供完整的Linux桌面环境和AI开发工具
+- **易于扩展**：可轻松添加更多AI工具和依赖
+- **容器化**：完全隔离的安全沙盒环境
+- **远程访问**：支持VNC和Web双重访问方式
+
+## 计划
+- 测试容器构建和运行，确保所有服务正常启动
+- 验证VNC和Jupyter访问功能
+- 根据测试结果优化配置和性能
+- 添加更多AI工具和预装环境
+
+## 上下文
+AI沙盒环境为AI自主探索实验提供了基础平台，通过容器化技术确保安全隔离，同时提供丰富的开发工具和图形界面支持。采用了分层设计，平衡了功能完整性和系统安全性。

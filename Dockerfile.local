@@ -6,7 +6,21 @@
 
 # 如果有本地Debian镜像，使用它作为基础
 # 否则注释掉下面一行，使用系统包管理
-FROM debian:bullseye
+# FROM debian:bullseye
+
+# 方案1：使用本地缓存的镜像（如果已下载）
+# FROM debian:bullseye
+
+# 方案2：使用scratch + 本地文件（如果有本地Debian rootfs）
+# FROM scratch
+# ADD local-debian-rootfs.tar.gz /
+
+# 方案3：使用Ubuntu作为替代（如果网络允许）
+FROM ubuntu:20.04
+
+# 方案4：完全本地构建（注释掉FROM，使用主机系统）
+# 如果网络完全不可用，可以注释掉所有FROM行
+# 然后手动在容器目录中准备好运行环境
 
 # 设置环境变量
 ENV DEBIAN_FRONTEND=noninteractive

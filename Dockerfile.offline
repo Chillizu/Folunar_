@@ -1,0 +1,37 @@
+# 完全离线Dockerfile - 不需要网络连接
+# 使用方法：
+# 1. 准备本地Debian rootfs（可选）
+# 2. 构建命令：docker build -f Dockerfile.offline -t agent-container-offline .
+
+# 使用scratch作为基础（完全空镜像）
+FROM scratch
+
+# 如果你有本地Debian rootfs，取消注释下面一行
+# ADD local-debian-rootfs.tar.gz /
+
+# 或者使用一个最小的本地Python环境
+# 假设你已经在主机上准备好了Python环境
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制项目文件
+COPY requirements.txt .
+COPY pyproject.toml .
+COPY main.py .
+COPY src/ ./src/
+COPY static/ ./static/
+COPY config.example.yaml ./config.yaml
+
+# 如果有本地Python环境，安装依赖
+# 注意：这需要在构建时有Python可用
+# RUN python3 -m pip install --no-cache-dir -r requirements.txt
+
+# 如果没有本地Python，使用系统Python（需要rootfs）
+# RUN pip3 install --no-cache-dir -r requirements.txt
+
+# 暴露端口
+EXPOSE 8000
+
+# 默认命令
+CMD ["python3", "main.py"]
