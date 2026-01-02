@@ -109,6 +109,10 @@ class AppInitializer:
         if 'whisper_injection' in self.components:
             self.components['whisper_injection'].stop_injection()
 
+        # 关闭 AgentManager 的 HTTP 客户端（如果已创建）
+        if 'agent_manager' in self.components:
+            cleanup_tasks.append(self.components['agent_manager'].close())
+
         # 关闭缓存管理器
         if 'cache_manager' in self.components:
             cleanup_tasks.append(self.components['cache_manager'].close())

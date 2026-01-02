@@ -5,6 +5,7 @@
 
 import asyncio
 from typing import List, Dict, Any, Optional, AsyncGenerator, Union, cast
+import httpx
 import openai
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionToolParam
@@ -16,10 +17,16 @@ class AgentManager:
         self.agents: Dict[str, Any] = {}  # 存储活跃的代理实例
         self.tools: Dict[str, Any] = {}  # 预留工具调用框架
         self.default_model = config.get('api', {}).get('default_model', 'gpt-3.5-turbo')
-        self.client = AsyncOpenAI(
-            api_key=config.get('api', {}).get('key'),
-            base_url=config.get('api', {}).get('base_url', 'https://api.openai.com/v1')
-        )
+        client_kwargs = {
+            "api_key": config.get('api', {}).get('key'),
+            "base_url": config.get('api', {}).get('base_url', 'https://api.openai.com/v1'),
+        }
+        self._http_client = httpx.AsyncClient()
+        self.client = AsyncOpenAI(**client_kwargs, http_client=self._http_client)
+
+    async def close(self):
+        """关闭底层 HTTP 客户端"""
+        await self._http_client.aclose()
 
     def list_agents(self):
         """列出所有活跃的代理"""
