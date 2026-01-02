@@ -4,42 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentContainer 聊天界面</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>AgentContainer 沙盒监控</h1>
+        <h1>AgentContainer 聊天与观察控制台</h1>
 
-        <!-- AI沙盒状态面板 -->
         <div class="status-panel">
             <div class="status-item">
-                <span class="status-label">版本:</span>
-                <span class="status-value" id="version">加载中...</span>
+                <span class="status-label">版本：</span>
+                <span class="status-value" id="version">加载中…</span>
             </div>
             <div class="status-item">
-                <span class="status-label">活跃代理:</span>
+                <span class="status-label">活跃代理：</span>
                 <span class="status-value" id="active-agents">0</span>
             </div>
             <div class="status-item">
-                <span class="status-label">沙盒状态:</span>
-                <span class="status-value" id="sandbox-status">未运行</span>
+                <span class="status-label">沙盒状态：</span>
+                <span class="status-value" id="sandbox-status">未初始化</span>
             </div>
             <div class="status-item">
-                <span class="status-label">CPU使用:</span>
+                <span class="status-label">CPU：</span>
                 <span class="status-value" id="cpu-percent">0%</span>
             </div>
             <div class="status-item">
-                <span class="status-label">内存使用:</span>
+                <span class="status-label">内存：</span>
                 <span class="status-value" id="memory-percent">0%</span>
             </div>
             <div class="status-item">
-                <span class="status-label">运行时间:</span>
+                <span class="status-label">启动时长：</span>
                 <span class="status-value" id="uptime">00:00:00</span>
             </div>
         </div>
 
         <div class="main-content">
-            <!-- 左侧：聊天和观察者截图 -->
             <div class="left-panel">
                 <div id="chat-container">
                     <div id="messages"></div>
@@ -47,34 +45,33 @@
                 <div class="observer-panel">
                     <h3>观察者截图</h3>
                     <div id="screenshot-container">
-                        <img id="observer-screenshot" src="" alt="观察者截图" style="display: none;" />
-                        <p id="no-screenshot">暂无截图</p>
+                        <img id="observer-screenshot" src="" alt="观察截图" style="display: none;">
+                        <p id="no-screenshot">暂未捕获</p>
                     </div>
                 </div>
             </div>
 
-            <!-- 右侧：监控面板 -->
             <div class="right-panel">
                 <div class="decision-monitor">
-                    <h3>决策循环监控</h3>
+                    <h3>决策日志</h3>
                     <div id="decision-log">
-                        <p>等待决策数据...</p>
+                        <p>等待候选决策...</p>
                     </div>
                 </div>
                 <div class="injection-log">
-                    <h3>随机想法注入日志</h3>
+                    <h3>随机想法注入</h3>
                     <div id="injection-log-content">
-                        <p>等待注入日志...</p>
+                        <p>暂无注入</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="input-container">
-            <input type="text" id="message-input" placeholder="输入消息..." />
+            <input type="text" id="message-input" placeholder="请输入消息..." />
             <button id="send-button">发送</button>
         </div>
     </div>
-    <script src="chat.js"></script>
+    <script src="/static/chat.js"></script>
 </body>
 </html>

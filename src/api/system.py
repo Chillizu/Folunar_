@@ -9,6 +9,7 @@ import logging
 import time
 import uuid
 import psutil
+from pathlib import Path
 from typing import Optional, Dict
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse, JSONResponse
@@ -189,7 +190,8 @@ async def root(request: Request):
 @router.get("/chat")
 async def chat_page():
     """返回聊天页面"""
-    return FileResponse("static/index.html")
+    static_index = Path(__file__).resolve().parent.parent.parent / "static" / "index.html"
+    return FileResponse(static_index)
 
 @router.get("/agents")
 async def list_agents():
