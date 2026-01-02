@@ -57,7 +57,7 @@ async def root(request: Request):
     if 'application/json' in request.headers.get("accept", ""):
         return JSONResponse({"message": "Welcome to AgentContainer", "version": config['app']['version']})
 
-    html = f"""
+    html_template = """
 <!doctype html>
 <html lang="zh">
 <head>
@@ -130,7 +130,7 @@ async def root(request: Request):
   <header>
     <div>
       <h1>AgentContainer 控制台</h1>
-      <p>版本 {config['app']['version']} · {config['app']['name']}</p>
+      <p>版本 __VERSION__ · __APP_NAME__</p>
     </div>
     <a class="button" href="/chat">前往聊天界面</a>
   </header>
@@ -161,7 +161,7 @@ async def root(request: Request):
       </ul>
     </div>
   </main>
-  <footer>由 AgentContainer 提供 · <a href="/chat" style="color:#4dd0e1">前往沙盒</a></footer>
+  <footer>由 __APP_NAME__ 提供 · <a href="/chat" style="color:#4dd0e1">前往沙盒</a></footer>
   <script>
     async function refresh() {
       try {
@@ -183,6 +183,7 @@ async def root(request: Request):
 </body>
 </html>
 """
+    html = html_template.replace("__VERSION__", config['app']['version']).replace("__APP_NAME__", config['app']['name'])
     return HTMLResponse(html)
 
 @router.get("/chat")
