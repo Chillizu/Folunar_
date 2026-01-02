@@ -8,8 +8,7 @@ import logging
 from typing import Dict, Any
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIMiddleware
 from src.security_middleware import setup_security_middleware
 from src.core.error_handler import setup_error_handlers
@@ -17,12 +16,12 @@ from src.api import (
     auth_router, container_router, observer_router,
     whisper_router, decision_router, system_router
 )
+from src.api.system import init_system_routes, limiter as system_limiter
 from src.api.auth import init_auth_routes
 from src.api.container import init_container_routes
 from src.api.observer import init_observer_routes
 from src.api.whisper import init_whisper_routes
 from src.api.decision import init_decision_routes
-from src.api.system import init_system_routes
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ def create_application(config: Dict[str, Any], components: Dict[str, Any]) -> Fa
     setup_security_middleware(app, config)
 
     # 添加限流中间件
-    limiter = Limiter(key_func=get_remote_address)
+    limiter = system_limiter
     app.state.limiter = limiter
     app.add_exception_handler(Exception, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)
@@ -52,7 +51,7 @@ def create_application(config: Dict[str, Any], components: Dict[str, Any]) -> Fa
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
     # 初始化API路由
-    _init_api_routes(app, config, components, limiter)
+    _init_api_routes(app, config, components)
 
     # 设置启动和关闭事件
     _setup_lifecycle_events(app, config, components)
@@ -60,7 +59,7 @@ def create_application(config: Dict[str, Any], components: Dict[str, Any]) -> Fa
     logger.info("FastAPI应用实例创建完成")
     return app
 
-def _init_api_routes(app: FastAPI, config: Dict[str, Any], components: Dict[str, Any], limiter):
+def _init_api_routes(app: FastAPI, config: Dict[str, Any], components: Dict[str, Any]):
     """初始化API路由"""
 
     # 初始化各个路由模块的依赖
@@ -75,8 +74,7 @@ def _init_api_routes(app: FastAPI, config: Dict[str, Any], components: Dict[str,
         components['cache_manager'],
         components['connection_pool'],
         components['performance_monitor'],
-        components['audit_logger'],
-        limiter
+        components['audit_logger']
     )
 
     # 注册路由

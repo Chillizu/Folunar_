@@ -31,6 +31,7 @@ class ConnectionPoolManager:
         self.docker_clients: List[DockerClient] = []
         self.docker_pool_lock = asyncio.Lock()
         self.docker_available_clients: asyncio.Queue = asyncio.Queue()
+        self.docker_pool_enabled = False
 
         # HTTP客户端连接池
         self.http_sessions: List[ClientSession] = []
@@ -85,6 +86,7 @@ class ConnectionPoolManager:
 
     async def _init_docker_pool(self):
         """初始化Docker连接池"""
+        successful_clients = 0
         for i in range(self.docker_pool_size):
             try:
                 client = docker.from_env()
@@ -92,12 +94,14 @@ class ConnectionPoolManager:
                 client.ping()
                 self.docker_clients.append(client)
                 await self.docker_available_clients.put(client)
+                successful_clients += 1
                 self.logger.debug(f"Docker客户端 {i+1} 初始化成功")
             except Exception as e:
                 self.logger.warning(f"Docker客户端 {i+1} 初始化失败: {e}")
 
-        if not self.docker_clients:
-            raise RuntimeError("无法创建任何Docker客户端连接")
+        self.docker_pool_enabled = successful_clients > 0
+        if not self.docker_pool_enabled:
+            self.logger.warning("未能初始化任何Docker客户端连接，Docker连接池将被禁用")
 
     async def _init_http_pool(self):
         """初始化HTTP连接池"""
@@ -113,9 +117,15 @@ class ConnectionPoolManager:
             except Exception as e:
                 self.logger.warning(f"HTTP会话 {i+1} 初始化失败: {e}")
 
+    def has_docker_pool(self) -> bool:
+        """检查是否有可用的Docker连接"""
+        return self.docker_pool_enabled
+
     @asynccontextmanager
     async def get_docker_client(self):
         """获取Docker客户端"""
+        if not self.docker_pool_enabled:
+            raise RuntimeError("Docker连接池不可用")
         client = None
         try:
             client = await self.docker_available_clients.get()

@@ -403,7 +403,7 @@ class ContainerManager:
     async def is_container_running(self) -> bool:
         """异步检查容器是否正在运行（优化版本）"""
         try:
-            if self.connection_pool:
+            if self.connection_pool and self.connection_pool.has_docker_pool():
                 # 使用连接池
                 async with self.connection_pool.get_docker_client() as client:
                     try:

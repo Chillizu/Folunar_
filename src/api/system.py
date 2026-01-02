@@ -13,6 +13,7 @@ from typing import Optional, Dict
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import StreamingResponse, FileResponse
 from slowapi import Limiter
+from slowapi.util import get_remote_address
 from src.core.agent_manager import AgentManager
 from src.core.cache_manager import CacheManager
 from src.core.connection_pool import ConnectionPoolManager
@@ -23,6 +24,7 @@ from src.security_middleware import AuditLogger
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 # 全局变量（将在初始化时设置）
 config = None
@@ -31,7 +33,6 @@ cache_manager: CacheManager = None
 connection_pool: ConnectionPoolManager = None
 performance_monitor: PerformanceMonitor = None
 audit_logger: AuditLogger = None
-limiter: Limiter = None
 
 def init_system_routes(
     _config,
@@ -39,18 +40,16 @@ def init_system_routes(
     _cache_manager: CacheManager,
     _connection_pool: ConnectionPoolManager,
     _performance_monitor: PerformanceMonitor,
-    _audit_logger: AuditLogger,
-    _limiter: Limiter
+    _audit_logger: AuditLogger
 ):
     """初始化系统路由的依赖"""
-    global config, agent_manager, cache_manager, connection_pool, performance_monitor, audit_logger, limiter
+    global config, agent_manager, cache_manager, connection_pool, performance_monitor, audit_logger
     config = _config
     agent_manager = _agent_manager
     cache_manager = _cache_manager
     connection_pool = _connection_pool
     performance_monitor = _performance_monitor
     audit_logger = _audit_logger
-    limiter = _limiter
 
 @router.get("/")
 async def root():

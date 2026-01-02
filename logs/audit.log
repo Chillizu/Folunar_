@@ -2,3 +2,11 @@
 2026-01-01 18:12:58 - AUDIT - {"event_type": "LOGIN_SUCCESS", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
 2026-01-01 18:13:43 - AUDIT - {"event_type": "LOGIN_SUCCESS", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
 2026-01-01 18:14:12 - AUDIT - {"event_type": "LOGIN_SUCCESS", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
+2026-01-02 14:44:46 - AUDIT - {"event_type": "LOGIN_FAILED", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
+2026-01-02 14:44:47 - AUDIT - {"event_type": "LOGIN_FAILED", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
+2026-01-02 14:44:47 - AUDIT - {"event_type": "LOGIN_FAILED", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
+2026-01-02 14:44:47 - AUDIT - {"event_type": "LOGIN_FAILED", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
+2026-01-02 14:44:47 - AUDIT - {"event_type": "LOGIN_FAILED", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
+2026-01-02 14:44:47 - AUDIT - {"event_type": "LOGIN_FAILED", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
+2026-01-02 14:44:47 - AUDIT - {"event_type": "LOGIN_FAILED", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}
+2026-01-02 14:44:47 - AUDIT - {"event_type": "LOGIN_FAILED", "user": "anonymous", "details": {"username": "admin"}, "timestamp": "{\"username\": \"admin\"}"}

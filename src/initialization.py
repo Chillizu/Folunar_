@@ -12,7 +12,8 @@ from src.core.cache_manager import CacheManager
 from src.core.connection_pool import ConnectionPoolManager
 from src.core.performance_monitor import PerformanceMonitor
 from src.container_manager import ContainerManager
-from src.auth import AuthManager, ValidationManager
+from src.auth import AuthManager
+from src.validation import ValidationManager
 from src.security_middleware import AuditLogger
 from src.observer import Observer
 from src.whisper_injection import WhisperInjectionManager

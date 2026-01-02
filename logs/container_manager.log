@@ -402,3 +402,90 @@ json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes:
 2026-01-01 22:29:58,724 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
 2026-01-01 22:30:04,936 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
 2026-01-01 22:30:04,987 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:52:55,443 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: echo 'recovered'
+2026-01-01 22:52:55,495 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:54:13,413 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: echo 'recovered'
+2026-01-01 22:54:13,471 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:55:09,540 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: echo 'recovered'
+2026-01-01 22:55:09,590 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:56:06,379 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: echo 'recovered'
+2026-01-01 22:56:06,433 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-01 22:57:02,950 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: echo 'recovered'
+2026-01-01 22:57:03,000 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: Error response from daemon: No such container: test-agent-debian
+2026-01-02 14:40:05,166 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: echo 'recovered'
+2026-01-02 14:40:05,444 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
+2026-01-02 14:40:07,613 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-02 14:40:07,613 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-02 14:40:07,615 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-02 14:40:07,615 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-02 14:40:07,617 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-02 14:40:07,619 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-02 14:40:07,661 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-02 14:40:07,661 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-02 14:40:07,664 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-02 14:40:07,664 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-02 14:40:07,669 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-02 14:40:07,669 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-02 14:40:07,672 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-02 14:40:07,672 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-02 14:40:07,689 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-02 14:40:07,689 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-02 14:40:07,692 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-02 14:40:07,693 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-02 14:40:07,708 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-02 14:40:07,709 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-02 14:40:07,716 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-02 14:40:07,716 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-02 14:40:07,719 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-02 14:44:37,059 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: echo 'recovered'
+2026-01-02 14:44:37,247 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
+2026-01-02 14:44:39,461 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-02 14:44:39,461 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-02 14:44:39,463 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-02 14:44:39,464 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-02 14:44:39,468 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-02 14:44:39,468 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-02 14:44:39,487 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-02 14:44:39,488 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-02 14:44:39,492 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-02 14:44:39,492 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-02 14:44:39,496 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-02 14:44:39,496 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-02 14:44:39,500 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-02 14:44:39,500 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-02 14:44:39,518 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-02 14:44:39,519 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-02 14:44:39,524 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-02 14:44:39,525 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-02 14:44:39,543 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-02 14:44:39,544 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-02 14:44:39,551 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-02 14:44:39,551 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-02 14:44:39,553 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-02 14:49:17,244 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: echo 'recovered'
+2026-01-02 14:49:17,438 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
+2026-01-02 14:49:19,096 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-02 14:49:19,097 - src.container_manager.test-container - INFO - build_image:166 - 镜像构建成功
+2026-01-02 14:49:19,099 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-02 14:49:19,099 - src.container_manager.test-container - ERROR - build_image:173 - 镜像构建失败: Build failed: no such file
+2026-01-02 14:49:19,101 - src.container_manager.test-container - INFO - build_image:145 - 开始构建镜像: test-image
+2026-01-02 14:49:19,103 - src.container_manager.test-container - ERROR - build_image:183 - 镜像构建超时 (60秒)
+2026-01-02 14:49:19,114 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-02 14:49:19,115 - src.container_manager.test-container - INFO - start_container:289 - 容器启动成功
+2026-01-02 14:49:19,118 - src.container_manager.test-container - INFO - start_container:201 - 开始启动容器: test-container
+2026-01-02 14:49:19,118 - src.container_manager.test-container - INFO - start_container:208 - 容器已在运行
+2026-01-02 14:49:19,121 - src.container_manager.test-container - INFO - stop_container:330 - 开始停止容器: test-container
+2026-01-02 14:49:19,121 - src.container_manager.test-container - INFO - stop_container:344 - 容器停止成功
+2026-01-02 14:49:19,123 - src.container_manager.test-container - INFO - remove_container:368 - 开始删除容器: test-container
+2026-01-02 14:49:19,123 - src.container_manager.test-container - INFO - remove_container:382 - 容器删除成功
+2026-01-02 14:49:19,136 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: echo hello
+2026-01-02 14:49:19,136 - src.container_manager.test-container - INFO - exec_command:675 - 命令执行成功
+2026-01-02 14:49:19,139 - src.container_manager.test-container - INFO - exec_command:654 - 在容器中执行命令: invalid_command
+2026-01-02 14:49:19,139 - src.container_manager.test-container - ERROR - exec_command:691 - 命令执行失败: command failed
+2026-01-02 14:49:19,151 - container_manager.test-security-container - INFO - start_container:201 - 开始启动容器: test-security-container
+2026-01-02 14:49:19,151 - container_manager.test-security-container - INFO - start_container:289 - 容器启动成功
+2026-01-02 14:49:19,156 - container_manager.test-security-container - INFO - exec_command:654 - 在容器中执行命令: ls -la
+2026-01-02 14:49:19,156 - container_manager.test-security-container - INFO - exec_command:675 - 命令执行成功
+2026-01-02 14:49:19,159 - container_manager.test-security-container - WARNING - exec_command:641 - 命令被安全过滤器阻止: rm -rf / - 命令包含危险模式: rm\s+-rf\s+/
+2026-01-02 14:49:30,236 - src.container_manager.test-agent-debian - INFO - exec_command:654 - 在容器中执行命令: ls
+2026-01-02 14:49:30,405 - src.container_manager.test-agent-debian - ERROR - exec_command:691 - 命令执行失败: failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.

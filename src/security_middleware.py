@@ -6,7 +6,9 @@
 
 import logging
 import json
+from datetime import datetime
 from typing import Dict, Any, Optional, Callable
+from collections.abc import Mapping
 from fastapi import Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
@@ -160,14 +162,27 @@ class AuditLogger:
         if not self.enabled:
             return
 
+        sanitized_details = self._sanitize_value(details)
         log_data = {
             'event_type': event_type,
             'user': user or 'anonymous',
-            'details': details,
-            'timestamp': json.dumps(details, ensure_ascii=False, default=str)
+            'details': sanitized_details,
+            'timestamp': datetime.utcnow().isoformat() + 'Z'
         }
 
         self.audit_logger.info(json.dumps(log_data, ensure_ascii=False))
+
+    def _sanitize_value(self, value: Any):
+        """递归清理不可序列化的数据"""
+        if isinstance(value, Mapping):
+            return {k: self._sanitize_value(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [self._sanitize_value(v) for v in value]
+        try:
+            json.dumps(value, ensure_ascii=False)
+            return value
+        except (TypeError, ValueError):
+            return str(value)
 
 def setup_security_middleware(app, config: Dict[str, Any]):
     """设置安全中间件"""

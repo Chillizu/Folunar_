@@ -44,7 +44,9 @@ def create_app():
     # 注意：这个函数用于uvicorn工厂模式，但异步初始化需要特殊处理
     # 在实际部署时，建议使用异步主函数
     logger.warning("使用同步create_app函数，组件可能未正确初始化")
-    config = load_config()
+    config = globals().get('config')
+    if config is None:
+        config = load_config()
 
     # 创建一个基本的应用实例（组件将在startup事件中初始化）
     from fastapi import FastAPI
