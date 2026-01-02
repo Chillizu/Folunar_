@@ -24,6 +24,7 @@ AgentContainer 是一个 AI 沙盒系统，按「观察层 → 决策层 → 执
 - 重写 README：补充功能概览、部署方式（本地/Docker/多 Dockerfile 变体）、配置与常见问题
 - 清理与整理仓库：补充 `.gitignore`（logs/screenshot/.pytest_cache），恢复 `Idle/agents.md` 协作说明
 - 准备提交：阶段性变更将统一暂存并提交
+- README 使用方式更新：新增 uv / pipx 安装与运行流程说明
 
 ## 技术栈
 

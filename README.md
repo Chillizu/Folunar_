@@ -24,10 +24,27 @@ Security     Observer/Whisper       Docker Sandbox
 - Python 3.10+
 - Docker（用于容器执行）
 
-### 2) 安装依赖
+### 2) 安装依赖（推荐：uv）
 ```bash
 git clone https://github.com/yourusername/AgentContainer.git
 cd AgentContainer
+
+# 安装 uv（Windows PowerShell）
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# 安装依赖
+uv sync
+cp config.example.yaml config.yaml
+```
+
+如果你希望使用 pipx 统一管理工具：
+```bash
+pipx install uv
+uv sync
+```
+
+传统方式（venv + pip）：
+```bash
 python -m venv .venv
 .venv\Scripts\activate
 pip install -U pip
