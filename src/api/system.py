@@ -11,7 +11,7 @@ import uuid
 import psutil
 from pathlib import Path
 from typing import Optional, Dict
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse, JSONResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -34,6 +34,9 @@ cache_manager: CacheManager = None
 connection_pool: ConnectionPoolManager = None
 performance_monitor: PerformanceMonitor = None
 audit_logger: AuditLogger = None
+observer = None
+decision_engine = None
+whisper_injection = None
 
 def init_system_routes(
     _config,
@@ -41,16 +44,23 @@ def init_system_routes(
     _cache_manager: CacheManager,
     _connection_pool: ConnectionPoolManager,
     _performance_monitor: PerformanceMonitor,
-    _audit_logger: AuditLogger
+    _audit_logger: AuditLogger,
+    _observer=None,
+    _decision_engine=None,
+    _whisper_injection=None
 ):
     """初始化系统路由的依赖"""
     global config, agent_manager, cache_manager, connection_pool, performance_monitor, audit_logger
+    global observer, decision_engine, whisper_injection
     config = _config
     agent_manager = _agent_manager
     cache_manager = _cache_manager
     connection_pool = _connection_pool
     performance_monitor = _performance_monitor
     audit_logger = _audit_logger
+    observer = _observer
+    decision_engine = _decision_engine
+    whisper_injection = _whisper_injection
 
 @router.get("/", response_class=HTMLResponse)
 async def root(request: Request):
@@ -204,6 +214,27 @@ async def legacy_chat_js():
     """兼容旧的静态路径"""
     static_js = Path(__file__).resolve().parent.parent.parent / "static" / "chat.js"
     return FileResponse(static_js)
+
+@router.websocket("/ws/sandbox")
+async def sandbox_ws(websocket: WebSocket):
+    """提供沙盒监控的 WebSocket 数据流"""
+    await websocket.accept()
+    try:
+        while True:
+            status_payload = {
+                "type": "sandbox_status",
+                "status": "运行中" if agent_manager else "未知"
+            }
+            await websocket.send_json(status_payload)
+
+            if decision_engine is None:
+                await websocket.send_json({"type": "decision_log", "log": "暂无实时决策日志"})
+            if whisper_injection is None:
+                await websocket.send_json({"type": "injection_log", "log": "暂无随机想法注入"})
+
+            await asyncio.sleep(5)
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected: /ws/sandbox")
 
 @router.get("/agents")
 async def list_agents():

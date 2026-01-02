@@ -74,7 +74,10 @@ def _init_api_routes(app: FastAPI, config: Dict[str, Any], components: Dict[str,
         components['cache_manager'],
         components['connection_pool'],
         components['performance_monitor'],
-        components['audit_logger']
+        components['audit_logger'],
+        components.get('observer'),
+        components.get('decision_engine'),
+        components.get('whisper_injection')
     )
 
     # 注册路由
