@@ -92,10 +92,19 @@ uvicorn main:create_app --factory --reload
 
 ### Docker 一体化部署
 
+#### Linux / macOS
 ```bash
 docker build -t agentcontainer:latest .
 docker run -d --name agentcontainer -p 8000:8000 \
   -v $(pwd)/config.yaml:/app/config.yaml \
+  agentcontainer:latest
+```
+
+#### PowerShell (Windows)
+```powershell
+docker build -t agentcontainer:latest .
+docker run -d --name agentcontainer -p 8000:8000 `
+  -v ${PWD}/config.yaml:/app/config.yaml `
   agentcontainer:latest
 ```
 
