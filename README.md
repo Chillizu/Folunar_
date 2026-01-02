@@ -88,7 +88,7 @@ python main.py
 uvicorn main:create_app --factory --reload
 ```
 
-默认监听 `http://localhost:8000`。
+默认监听 `http://localhost:8000`，主页将展示轻量 Web 控制面板，并提供 `/chat`、`/api/system/status` 等快速入口。
 
 ### Docker 一体化部署
 

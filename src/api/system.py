@@ -11,7 +11,7 @@ import uuid
 import psutil
 from typing import Optional, Dict
 from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse, JSONResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from src.core.agent_manager import AgentManager
@@ -51,9 +51,139 @@ def init_system_routes(
     performance_monitor = _performance_monitor
     audit_logger = _audit_logger
 
-@router.get("/")
-async def root():
-    return {"message": "Welcome to AgentContainer", "version": config['app']['version']}
+@router.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    """首页展示状态面板或 JSON（根据 Accept 头）"""
+    if 'application/json' in request.headers.get("accept", ""):
+        return JSONResponse({"message": "Welcome to AgentContainer", "version": config['app']['version']})
+
+    html = f"""
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AgentContainer 控制面板</title>
+  <style>
+    body {{
+      margin: 0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,"PingFang SC",sans-serif;
+      background: linear-gradient(180deg,#030712,#0d1b2a);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }}
+    header {{
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }}
+    header h1 {{
+      margin: 0;
+      font-size: 1.6rem;
+    }}
+    main {{
+      flex: 1;
+      padding: 2rem;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+    }}
+    .card {{
+      background: rgba(10,25,60,.65);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 20px 45px rgba(5,10,20,.45);
+      border: 1px solid rgba(255,255,255,.05);
+    }}
+    .card h2 {{
+      margin-top: 0;
+      font-size: 1.25rem;
+    }}
+    .button {{
+      display: inline-flex;
+      margin-top: 1rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg,#00b4db,#0083ff);
+      color:#fff;
+      text-decoration: none;
+      font-weight:600;
+    }}
+    ul {{
+      padding-left: 1rem;
+      margin: 0;
+    }}
+    footer {{
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,.6);
+    }}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>AgentContainer 控制台</h1>
+      <p>版本 {config['app']['version']} · {config['app']['name']}</p>
+    </div>
+    <a class="button" href="/chat">前往聊天界面</a>
+  </header>
+  <main>
+    <div class="card">
+      <h2>系统状态</h2>
+      <p id="system-text">正在加载…</p>
+      <a class="button" href="/api/system/status" target="_blank">查看原始数据</a>
+    </div>
+
+    <div class="card">
+      <h2>核心路由</h2>
+      <ul>
+        <li><a href="/api/chat/completions" target="_blank">/api/chat/completions</a>（聊天完成）</li>
+        <li><a href="/api/system/status" target="_blank">/api/system/status</a>（系统指标）</li>
+        <li><a href="/health" target="_blank">/health</a>（健康探针）</li>
+        <li><a href="/api/container/monitor" target="_blank">/api/container/monitor</a>（容器概览）</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>安全审计</h2>
+      <p>审计日志过滤了敏感头，所有请求/响应都经过 CSP/HSTS 保护。</p>
+      <ul>
+        <li>JWT 登录：`/api/auth/login`</li>
+        <li>速率限制由单一 `Limiter` 控制</li>
+        <li>敏感头一律隐藏：授权、Cookie 等</li>
+      </ul>
+    </div>
+  </main>
+  <footer>由 AgentContainer 提供 · <a href="/chat" style="color:#4dd0e1">前往沙盒</a></footer>
+  <script>
+    async function refresh() {
+      try {
+        const resp = await fetch("/api/system/status");
+        if (!resp.ok) throw new Error("无法读取状态");
+        const data = await resp.json();
+        document.getElementById("system-text").innerHTML = `
+          <strong>活动代理：</strong>${data.active_agents}<br>
+          <strong>系统状态：</strong>${data.system?.cpu_percent.toFixed(1)}% CPU / ${data.system?.memory_percent.toFixed(1)}% 内存<br>
+          <strong>连接池：</strong>Docker ${data.performance?.connection_pool?.docker_pool?.available ?? 0}/${data.performance?.connection_pool?.docker_pool?.total}, HTTP ${data.performance?.connection_pool?.http_pool?.available ?? 0}/${data.performance?.connection_pool?.http_pool?.total}
+        `;
+      } catch (err) {
+        document.getElementById("system-text").innerText = "状态加载失败：" + err.message;
+      }
+    }
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>
+"""
+    return HTMLResponse(html)
 
 @router.get("/chat")
 async def chat_page():
