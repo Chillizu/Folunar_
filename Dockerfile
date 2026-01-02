@@ -1,38 +1,30 @@
-# 使用官方Debian镜像作为基础
-# 如果网络问题严重，可以预先下载镜像：docker pull debian:bullseye
-# 或者使用本地缓存：docker build --cache-from debian:bullseye
-FROM debian:bullseye
+FROM python:3.11-slim-bullseye
 
-# 设置环境变量
-ENV DEBIAN_FRONTEND=noninteractive
-# 添加代理配置（请根据实际情况修改代理地址）
-# 如果不需要代理，请注释掉下面两行
-# ENV HTTP_PROXY=http://proxy.example.com:8080
-# ENV HTTPS_PROXY=http://proxy.example.com:8080
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    CONFIG_FILE=/app/config.yaml \
+    PORT=8000
 
-# 配置apt镜像源（使用官方源）
-RUN echo "deb http://deb.debian.org/debian/ bullseye main contrib non-free" > /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian/ bullseye-updates main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb http://security.debian.org/debian-security bullseye-security main contrib non-free" >> /etc/apt/sources.list
-
-# 安装ca-certificates以解决证书问题
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-
-# 更新包列表并安装基本工具
-RUN apt-get update && apt-get install -y \
-    bash \
-    curl \
-    wget \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        libffi-dev \
+        libssl-dev \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 创建容器目录
-RUN mkdir -p /container
+WORKDIR /app
 
-# 设置工作目录
-WORKDIR /container
+# 先复制元数据以便利用 Docker cache 安装依赖
+COPY pyproject.toml uv.lock ./
 
-# 暴露端口（如果需要）
-# EXPOSE 80
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir .
 
-# 默认命令
-CMD ["/lib/systemd/systemd"]
+# 复制项目文件
+COPY . .
+
+RUN chmod +x docker-entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
