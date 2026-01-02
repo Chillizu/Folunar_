@@ -1,187 +1,58 @@
-# 项目概述
+# AgentContainer - AI自主探索系统
 
-这是一个AgentContainer项目，用于管理和运行各种AI代理工具。项目旨在提供一个容器化的环境，让不同的AI客户端能够无缝协作和继续任务。
+## 项目概述
 
-## 项目愿景
+AgentContainer是一个创新的AI沙盒系统，旨在创建一个让AI能够自主学习和创造的环境。通过三层架构（观察层→决策层→执行层），结合随机想法注入和多模态AI分析，实现AI的自主探索行为观察。
 
-该项目旨在构建一个AI自主探索系统，通过在隔离的Ubuntu沙盒环境中，让AI像"新生儿"一样从零开始学习和创造。核心理念是模拟意识诞生过程，通过随机性注入和外界链接创造混沌环境，观察AI如何在理性逻辑系统中涌现出"意义"和创造力。
+## 核心理念
 
-## 设计哲学
-
-- **混沌与秩序**：摒弃传统提示词的确定性控制，转而注入随机词汇和网络信息，模拟生物进化中的基因突变和环境影响。
-- **观察者模式**：人类扮演"上帝"角色，通过实时监控AI行为，研究其决策过程和创造模式。
-- **递归创造**：AI可能在沙盒内创建子沙盒，实现"蛋生蛋"的嵌套结构，展现工具使用和环境改造能力。
+- **混沌与秩序**：通过随机性注入打破AI的理性思维，观察创造力的涌现
+- **观察者模式**：人类作为"上帝"，通过实时监控见证AI的成长过程
+- **递归创造**：AI可能在沙盒内创建子环境，实现自我复制
 
 ## 架构设计
 
 ### 三层沙盒模型
-
 ```
 观察层 (Web UI) ← 决策层 (AI大脑) ← 执行层 (Ubuntu沙盒)
 ```
 
-#### 1. 执行层：不可变沙盒环境
-- **核心**：Docker容器化Ubuntu Desktop环境
-- **权限**：Root权限，支持任意操作
-- **隔离**：网络隔离、只读文件系统（除/home和/tmp）
-- **预装工具**：sudo, vim, curl, wget, git, python3-pip
+- **执行层**：Docker容器化Ubuntu环境，提供安全隔离的运行空间
+- **决策层**：多模态AI模型，基于视觉分析生成智能决策
+- **观察层**：实时Web监控界面，支持截图显示和日志追踪
 
-#### 2. 决策层：视觉大脑
-- **核心**：多模态大模型（Qwen-VL/LLaVA）
-- **工作流**：
-  1. 截取沙盒桌面截图
-  2. 发送截图+日志给模型分析
-  3. 模型输出JSON格式指令
-  4. 自动执行命令
+# 当前状态
 
-#### 3. 观察层：上帝视角
-- **核心**：Web界面实时监控
-- **功能**：桌面流显示、思维日志、操作录像回放
+## ✅ 已完成的核心功能
 
-## 技术实现计划
+### 基础架构
+- **现代化FastAPI应用**：模块化设计，支持异步处理和依赖注入
+- **JWT认证系统**：安全的用户认证和权限控制
+- **输入验证**：Pydantic模型验证，防止恶意输入
+- **统一错误处理**：标准化的异常处理和响应格式
 
-### 技术栈组合
-| 功能模块 | 推荐工具 | 说明 |
-|---------|---------|------|
-| 沙盒容器 | Docker + ubuntu-desktop | 核心环境，privileged模式 |
-| 桌面显示 | x11vnc/noVNC | 图形界面映射到网页 |
-| AI模型 | Qwen-VL-Chat/LLaVA | 多模态视觉理解 |
-| 推理框架 | Ollama/Transformers | 本地模型部署 |
-| 控制脚本 | Python + Pillow + Pexpect | 截图、API调用、命令执行 |
-| 前端界面 | Flask/FastAPI + WebSocket | 实时监控界面 |
+### AI沙盒系统
+- **观察者后端**：定期截图、多模态AI分析、观察记录存储
+- **决策引擎**：智能决策生成、安全命令验证、执行日志记录
+- **随机想法注入**：词汇库管理、定时注入、创造性激发
+- **Web监控界面**：实时沙盒监控、决策日志显示、注入日志展示
 
-### 实施步骤（分阶段）
+### 容器管理
+- **Docker集成**：容器生命周期管理、状态监控、命令执行
+- **安全隔离**：命令过滤、资源限制、网络隔离、审计日志
+- **性能优化**：异步处理、连接池、缓存机制
 
-#### 第一阶段：手动沙盒验证
-- 目标：在Docker中运行图形化Ubuntu
-- 操作：配置VNC/X11，验证Root权限和工具可用性
+### 测试与文档
+- **完整测试套件**：单元测试、集成测试、性能测试、端到端测试
+- **详细文档**：README、API文档、部署指南
+- **CI/CD支持**：GitHub Actions工作流
 
-#### 第二阶段：单向控制
-- 目标：AI分析截图输出建议
-- 操作：手动截图发送给模型，观察决策建议
-
-#### 第三阶段：闭环自动化
-- 目标：完全自主AI Agent
-- 操作：集成截图→分析→执行的自动循环
-
-### 关键组件实现
-
-#### 随机想法注入系统
-- **机制**：维护100个随机词汇列表，每30分钟注入一个
-- **方式**：写入容器/tmp/whisper.txt文件
-- **目的**：创造思维噪声，触发创造性行为
-
-#### 网络能力控制
-- **白名单机制**：仅允许访问github.com、stackoverflow.com等安全站点
-- **信使脚本**：定时抓取网页内容注入沙盒
-
-## 关键讨论点
-
-### AI行为观察重点
-1. **好奇心驱动**：观察AI如何从被动响应转向主动探索
-2. **创造力涌现**：记录AI创造"美丽东西"的瞬间（如自动化脚本、交互界面）
-3. **递归嵌套**：监测AI是否创建子沙盒，实现自我复制
-
-### 提示词架构设计
-分为三层心智模型：
-- **生存层**：好奇心、探索欲、审美本能
-- **逻辑层**：费曼技巧、第一性原理、系统思维
-- **艺术层**：极简主义、优雅代码、同理心
-
-### 安全与伦理考虑
-- **物理隔离**：容器不挂载宿主机根目录
-- **网络限制**：初期断网，防止外部攻击
-- **定期重置**：一键销毁重建机制
-
-### 哲学意义
-该项目超越技术实验，探讨意识塑造、自由意志与环境的关系。通过观察AI在混沌中的挣扎，验证理性系统中是否能诞生"意义"。
-
-这个AI沙盒系统代表了从传统编程向数字生命创造的转变，开发者从"工程师"角色升级为"造物主"和"启蒙导师"。
-
-# 当前进度
-
-- ✅ 完成了全面的安全加固：添加了API认证、输入验证、HTTPS支持、安全头、敏感信息保护、审计日志等安全措施
-- ✅ 添加了JWT认证系统：支持用户登录、token验证、权限控制
-- ✅ 实现了输入验证：使用Pydantic模型验证请求数据，防止恶意输入
-- ✅ 配置了HTTPS支持：支持SSL证书配置和安全传输
-- ✅ 添加了安全头中间件：CSP、HSTS、XSS保护等安全头
-- ✅ 实现了敏感信息过滤：自动过滤日志中的敏感头信息
-- ✅ 添加了审计日志系统：记录所有API操作和安全事件
-- ✅ 更新了配置系统：添加了完整的安保配置选项
-- ✅ 修复了阿里云镜像源路径错误：添加了缺失的斜杠到debian-security源，解决了pull access denied问题
-- ✅ 改用清华大学镜像源：使用https协议，提供更稳定可靠的国内镜像源访问
-- ✅ 更新Dockerfile配置：使用清华大学Debian镜像源替换阿里云源，确保apt update正常工作
-- ✅ 创建了Idle文件夹
-- ✅ 创建了copilot.md文件并初始化内容，包括项目概述、进度、计划、上下文和协作要求
-- ✅ 初始化了Git仓库
-- ✅ 添加了所有更改到Git暂存区
-- ✅ 提交了初始更改，提交消息："feat: 初始化Idle文件夹和copilot.md文件，用于跨客户端AI协作"
-- ✅ 配置了Git远程仓库origin为git@github.com:Chillizu/Folunar_.git
-- ✅ 将master分支重命名为main
-- ✅ 推送了main分支到远程仓库 
-- ✅ 修改main.py添加健康检查路由 (/health)
-- ✅ 确认FastAPI应用已加载config.yaml配置
-- ✅ 设置了基础路由包括根路由、agents列表和健康检查
-- ✅ 实现了AgentManager类，加载配置，处理chat completions请求，支持流式输出和工具调用预留
-- ✅ 添加了openai库到requirements.txt
-- ✅ 更新了config.yaml添加API key配置
-- ✅ 添加了 /v1/chat/completions 端点：集成AgentManager，处理POST请求，支持流式和非流式响应
-- ✅ 测试基础功能：安装依赖成功，应用成功启动在端口8000，/health端点返回200 {'status': 'healthy'}，/v1/chat/completions端点可达但返回500（API key配置问题）
-- ✅ 在config.yaml中添加了API基础路由base_url和默认模型default_model选项
-- ✅ 更新了agent_manager.py以使用这些配置选项
-- ✅ 修复了agent_manager.py中的Pylance类型错误：添加了正确的类型注解，使用Optional、List等，修复了async generator返回类型，包括导入Union、cast、ChatCompletionMessageParam等，处理tools参数的条件传递，修复handle_tool_call中的arguments解析
-- ✅ 运行了git status查看状态，git add . 添加更改，提交带有描述性消息的提交，git push origin main 上传更改
-- ✅ 创建了.gitignore文件，添加config.yaml到忽略列表以保护配置文件
-- ✅ 创建了config.example.yaml作为配置文件示例，移除了敏感API key信息
-- ✅ 从Git中删除了config.yaml（保留本地文件），使用git rm --cached命令
-- ✅ 提交了更改并推送到了远程仓库，提交消息："feat: 添加.gitignore忽略config.yaml，从Git中移除config.yaml并创建config.example.yaml示例文件"
-- 🔄 正在更新环境配置为uv版本管理：添加uv安装、依赖管理、使用说明，替换pip命令
-- ✅ 创建了pyproject.toml文件，添加了项目元数据（名称、版本、描述、作者）和依赖列表（从requirements.txt转换）
-- ✅ 更新了.gitignore文件，添加了常见的Python忽略项：__pycache__、*.pyc、.venv、.env等
-- 🔄 正在更新.gitignore添加*.egg-info/（确认已存在），从Git中删除src/agent_container.egg-info/目录，提交更改
-- ✅ 检查Git历史，发现有__pycache__缓存文件被提交
-- ✅ 使用git filter-branch重写了历史，移除了所有__pycache__文件
-- ✅ 推送了清理后的历史到远程仓库
-- ✅ 在copilot.md的测试部分添加了适用于Windows的通用健康检查命令，包括PowerShell Invoke-WebRequest和curl（如果安装了）
-- ✅ 完成了规划：让AI能够被成功调用并在API端点输出流式内容。分析发现流式输出已实现但响应格式需改进以符合OpenAI标准。确定测试策略：结合真实API和mock。规划了改进端点和添加测试功能。
-- 🔄 正在运行git status, add, commit, push以保存规划进度。
-- ✅ 修复了流式响应格式，使其符合OpenAI API标准：修改agent_manager.py yield完整chunk对象，更新main.py使用正确的SSE格式
-- ✅ 添加了错误处理和日志：导入logging模块，在chat_completion和chat_completions中添加try-except和日志记录
-- ✅ 创建了/test/streaming测试端点：返回模拟的OpenAI格式流式响应，用于验证流式功能
-- 🔄 正在更新copilot.md记录最新进度
-- ✅ 创建了static文件夹，包含index.html、styles.css和chat.js文件
-- ✅ 在main.py中挂载了静态文件服务，使用FastAPI的StaticFiles
-- ✅ 创建了/chat路由返回聊天页面HTML
-- ✅ 实现了Web聊天界面，支持流式显示，连接到/v1/chat/completions端点
-- ✅ 更新了copilot.md记录Web聊天界面创建进度
-- ✅ 检查并修复了main.py中的语法错误：f-string嵌套字典导致的括号匹配问题，通过将字典赋值给变量解决
-- ✅ 验证了main.py和agent_manager.py的语法正确性
-- ✅ 确认应用导入无错误，依赖配置正确
-- ✅ 检查了终端错误：运行应用成功启动，无错误信息
-- ✅ 构建Docker容器：修复了Dockerfile中的证书和包安装问题，成功构建debian容器镜像
-- ✅ 检查代码语法：所有Python文件（main.py, agent_manager.py, container_manager.py）语法正确，无逻辑错误
-- ✅ 修复CSS Safari兼容性：为backdrop-filter添加-webkit-backdrop-filter前缀，支持Safari浏览器
-- ✅ 修复markdown格式问题：检查并确认所有URL正确格式化，无裸URL、多标题或空格问题
-- ✅ 创建了新Git分支'container-optimization'用于容器优化任务
-- ✅ 推送了新分支到远程仓库
-- ✅ 改进了容器错误处理：在container_manager.py中添加详细的错误信息记录和返回，修复API响应中的空错误消息
-- ✅ 添加了容器状态监控功能：扩展status方法提供详细的容器统计信息（CPU、内存、网络等），添加新的API端点获取实时监控数据
-- ✅ 扩展了get_container_status方法：当容器运行时自动获取并返回CPU使用率、内存使用率、网络IO、块IO、进程数等统计信息
-- ✅ 添加了get_container_stats方法：使用docker stats命令获取容器实时统计数据，支持超时处理和错误处理
-- ✅ 创建了新的监控API端点：/api/container/monitor提供流式统计数据，每2秒更新一次，支持实时监控
-- ✅ 修复了编码问题：在所有subprocess调用中添加encoding='utf-8'参数，解决Windows环境下的中文编码问题
-- ✅ 测试了监控功能：验证了status端点正确返回统计信息，monitor端点正确提供流式数据，即使容器不存在时也返回适当的错误信息
-- ✅ 提交了更改：使用描述性提交消息"feat: 添加容器状态监控功能 - 扩展status方法提供详细统计信息，添加实时监控API端点"，并推送到了远程仓库
-- ✅ 完成了容器管理代码优化任务！所有目标都已实现：异步处理、日志改进、配置选项和代码重构
-- ✅ 提交并推送了优化后的代码，提交消息详细描述了所有改进
-- ✅ 创建了完整的README.md文档，包含项目介绍、安装指南、使用说明、API文档和开发指南
-- ✅ 提交并推送了README.md文档，提交消息："docs: 创建完整的README.md文档，包含项目介绍、安装指南、使用说明、API文档和开发指南"
-- ✅ 完成了基础设施修复：统一依赖管理，合并pyproject.toml和requirements.txt，升级Pydantic到V2，修复废弃API，添加缺失依赖
-- ✅ 合并了pyproject.toml和requirements.txt到统一的pyproject.toml中，删除了requirements.txt
-- ✅ 升级Pydantic到最新V2版本（2.12.5），修复了validation.py中的@validator废弃API
-- ✅ 更新了所有依赖版本：aiohttp、Pillow等，确保兼容性和安全性
-- ✅ 测试了依赖安装成功，所有包正确安装
-- ✅ 提交并推送了基础设施修复更改，提交消息："feat: 基础设施修复 - 统一依赖管理，合并pyproject.toml和requirements.txt，升级Pydantic到V2，修复废弃API，添加缺失依赖"
+## 🔧 技术栈
+- **后端**：FastAPI + Python 3.13 + Pydantic V2
+- **AI**：OpenAI GPT-4 Vision + 多模态模型
+- **容器**：Docker + Ubuntu Desktop
+- **前端**：HTML/CSS/JavaScript + WebSocket
+- **测试**：pytest + 异步测试支持
 
 # 计划
 
