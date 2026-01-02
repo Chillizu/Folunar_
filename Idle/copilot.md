@@ -30,6 +30,7 @@ AgentContainer 是一个 AI 沙盒系统，按「观察层 → 决策层 → 执
 - WebSocket 路由补齐：新增 `/ws/sandbox` 推送沙盒状态与占位日志，避免前端控制台报错
 - README 说明澄清：main.py 不会自动启动容器，配置步骤改为“最小可用 + 容器可选”
 - README 重新整理：仅保留容器化部署方式，收敛使用路径
+- 增加本地一键运行脚本（scripts/run-local.ps1 + scripts/run-local.sh）
 
 ## 技术栈
 

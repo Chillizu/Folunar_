@@ -92,3 +92,18 @@ container:
 
 ## License
 MIT
+
+## 本地一键运行脚本（可选）
+
+如果你需要在本机直接启动（非容器），可以使用以下脚本：
+
+Windows PowerShell：
+```powershell
+.\scripts\run-local.ps1
+```
+
+macOS/Linux：
+```bash
+chmod +x scripts/run-local.sh
+./scripts/run-local.sh
+```
