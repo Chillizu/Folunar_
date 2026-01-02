@@ -33,3 +33,8 @@ src/core/__pycache__/
 # Pip
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Runtime artifacts
+logs/
+screenshots/
+.pytest_cache/
