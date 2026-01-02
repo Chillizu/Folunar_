@@ -1,210 +1,129 @@
-# AgentContainer - AI操作系统容器框架
+# AgentContainer
+AgentContainer 是一个面向 AI 操作闭环的沙箱平台，通过观察 → 决策 → 执行的三层流线，在隔离的容器中安全运行代理任务。
 
-## 项目概述
+## 为什么选择 AgentContainer？
+- **闭环调度**：观察组件记录沙箱状态，决策引擎生成结构化命令，ContainerManager 在 Docker 容器内执行并反馈结果。  
+- **兼容 OpenAI**：提供与 `/v1/chat/completions` 接口一致的流式/非流式响应，支持工具调用、流式 chunk 传输以及性能优化。  
+- **安全驱动**：JWT 登录、统一限流、CSP/HSTS 标头、敏感数据过滤、多层审计日志和资源隔离共同保护宿主与容器。  
+- **性能与鲁棒**：连接池、异步任务、缓存、健康监控以及详细测试（集成、闭环、性能）提升系统可用性。  
+- **易扩展**：可插拔的观察者、决策策略、Whisper 注入、容器管理器与前端控制，便于快速演进。
 
-AgentContainer是一个基于Python的框架，旨在创建一个AI操作系统容器，具有以下核心功能：
+## 架构概览
 
-1. **OpenAI兼容的对话API**：提供与OpenAI API兼容的聊天完成端点
-2. **实时流式输出**：支持流式响应以实现实时交互
-3. **容器管理**：集成Docker容器管理功能
-4. **Web面板**：提供用户界面以监控和交互
-5. **安全容器环境**：在隔离的Linux容器中运行AI操作
-
-## 主要特性
-
-### 1. OpenAI兼容API
-- 完全兼容OpenAI的聊天完成API
-- 支持流式和非流式响应
-- 可配置的API密钥和端点
-
-### 2. 容器管理
-- 创建和管理Docker容器
-- 实时监控容器状态
-- 容器日志和统计信息
-- 安全隔离环境
-
-### 3. Web界面
-- 实时聊天界面
-- 容器状态监控面板
-- 系统日志和指标
-
-### 4. 安全性
-- 容器隔离
-- 资源限制
-- 安全的API访问控制
+```
+        +-----------+          +------------------+          +---------------------+
+        |  Web UI   |  <--->   |  Decision Engine |  <--->   | Container Manager   |
+        | (FastAPI) |          |   (Agent Brain)  |          | (Docker sandboxing) |
+        +-----------+          +------------------+          +---------------------+
+               ^                        ^                             ^
+               |                        |                             |
+               +----------+-------------+-------------+---------------+
+                          |                           |
+                    安全层服务                 支撑服务模块
+                  (JWT、限流、头部、           (缓存、连接池、
+                   审计日志等)                 性能监控等)
+```
 
 ## 快速开始
 
-### 先决条件
-- Python 3.9+
-- Docker
-- OpenAI API密钥（可选，用于测试）
+### 准备条件
+- Python 3.10+  
+- Docker（用于实际容器执行）  
+- 可选：OpenAI/API 兼容密钥，用于真实模型调用或测试流式返回
 
-### 安装
-
+### 安装步骤
 ```bash
-# 克隆仓库
-git clone https://github.com/yourusername/agentcontainer.git
-cd agentcontainer
-
-# 安装依赖
+git clone https://github.com/yourusername/AgentContainer.git
+cd AgentContainer
+python -m venv .venv
+.venv\\Scripts\\activate
+pip install -U pip
 pip install -r requirements.txt
-
-# 复制配置文件
 cp config.example.yaml config.yaml
-
-# 编辑配置文件
-nano config.yaml
 ```
 
-### 配置
-
-编辑`config.yaml`文件：
+### 配置说明
+编辑 `config.yaml`，重点字段包括：
 
 ```yaml
-# API配置
+app:
+  name: AgentContainer
+  version: "1.0.0"
+  description: "AI 控制型沙箱编排平台"
+
 api:
-  key: "your-openai-api-key"  # 可选，用于测试
+  key: "your-openai-api-key"   # 测试或在线接入
   base_url: "https://api.openai.com/v1"
-  model: "gpt-3.5-turbo"
+  default_model: "gpt-3.5-turbo"
+  timeout: 30
 
-# 服务器配置
-server:
-  host: "0.0.0.0"
-  port: 8000
-  debug: true
-
-# 容器配置
 container:
-  name: "agent-debian"
-  image: "debian:bullseye"
-  auto_start: true
-  resources:
-    memory_limit: "512m"
-    cpu_limit: 0.5
+  image_name: "debian:bookworm"
+  container_name: "agent-container"
+  dockerfile_path: "Dockerfile"
+  network_mode: "bridge"
 
-# 日志配置
-logging:
-  level: "info"
-  file: "agentcontainer.log"
+security:
+  jwt_secret_key: "change-this-to-a-secret"
+  enable_audit_log: true
+  cors_origins: ["*"]
 ```
 
-### 运行项目
+FastAPI 应用将自动读取 `config.yaml`，项目同时提供 `config.example.yaml` 作为安全的示例。
+
+### 启动服务
+```bash
+python main.py
+```
+
+或在开发中使用 uvicorn 工厂模式（支持热重载）：
+```bash
+uvicorn main:create_app --factory --reload
+```
+
+默认监听 `http://localhost:8000`。
+
+## API 概览
+
+| 路径 | 方法 | 说明 |
+|------|------|------|
+| `/api/chat/completions` | POST | 兼容 OpenAI 的流式 / 非流式聊天接口，调用 AgentManager 与 OpenAI 模型。 |
+| `/api/system/status` | GET | 提供缓存的 CPU/内存/Agent 数量 + 连接池状态。 |
+| `/health` | GET | 健康检查（受统一 limiter 保护）。 |
+| `/api/container/*` | POST/GET | 容器生命周期、日志、统计与 exec 命令，运行在隔离沙箱内。 |
+| `/test/streaming` | GET | 模拟 OpenAI 流式响应，用于前端测试客户端。 |
+
+认证：通过 `/api/auth/login` 获取 JWT，后续请求携带 `Authorization: Bearer <token>`。
+
+## 测试指南
 
 ```bash
-# 启动服务器
-python main.py
-
-# 服务器将在http://localhost:8000运行
+pytest
 ```
 
-### 访问Web界面
+测试覆盖 AgentManager、ContainerManager、安全模块及系统集成。当前 FastAPI `@app.on_event` 处有弃用警告（建议未来迁移到生命周期 `lifespan`），Pydantic 也提示 `dict` 方法可替代为 `model_dump`。
 
-打开浏览器并访问：
-- 主界面：http://localhost:8000
-- 容器监控：http://localhost:8000/api/container/monitor
-- 聊天API：http://localhost:8000/api/chat/completions
+## 安全与硬化
 
-## API端点
+- Docker 容器沙箱 + 限定的网络、资源与权限。  
+- 全局 `slowapi.Limiter` 实例统一限流，避免引入多份装饰器。  
+- 审计日志严格过滤敏感头，并递归清理不可序列化对象。  
+- JWT 登录、敏感数据中间件、CSP/HSTS/HTTPS 配置、日志记录线上辨识能力。
 
-### 聊天完成
+## 贡献流程
 
-**POST** `/api/chat/completions`
-
-请求体：
-```json
-{
-  "model": "gpt-3.5-turbo",
-  "messages": [
-    {"role": "user", "content": "Hello!"}
-  ],
-  "stream": true
-}
-```
-
-响应：
-```json
-{
-  "id": "chatcmpl-xxx",
-  "object": "chat.completion.chunk",
-  "created": 1234567890,
-  "model": "gpt-3.5-turbo",
-  "choices": [
-    {
-      "delta": {"content": "Hello! How can I help you today?"},
-      "index": 0,
-      "finish_reason": null
-    }
-  ]
-}
-```
-
-### 容器管理
-
-**GET** `/api/container/monitor` - 实时容器统计信息
-
-**POST** `/api/container/start` - 启动容器
-
-**POST** `/api/container/stop` - 停止容器
-
-**GET** `/api/container/logs` - 获取容器日志
-
-## 架构
-
-```
-AgentContainer
-├── config.yaml          # 配置文件
-├── main.py              # 主应用入口
-├── requirements.txt     # 依赖项
-├── Dockerfile           # 容器定义
-├── 
-├── src/
-│   ├── container_manager.py  # 容器管理
-│   └── core/
-│       ├── agent_manager.py   # AI代理管理
-│       └── __init__.py
-├── static/              # Web静态文件
-│   ├── chat.js          # 聊天界面JavaScript
-│   ├── index.html       # 主页面
-│   └── styles.css       # 样式表
-└── README.md            # 项目文档
-```
-
-## 安全注意事项
-
-1. **容器隔离**：所有AI操作都在隔离的Docker容器中运行
-2. **资源限制**：容器有内存和CPU限制
-3. **API安全**：确保API密钥安全存储
-4. **网络安全**：使用防火墙保护端口
-
-## 贡献
-
-欢迎贡献！请遵循以下步骤：
-
-1. Fork项目
-2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开Pull Request
+1. Fork 本仓库  
+2. 建立 feature 分支（例如：`feature/优化容器状态`）  
+3. 本地运行 `pytest`，确认全部测试通过  
+4. 提交变更并 push  
+5. 创建 Pull Request
 
 ## 许可证
 
-本项目采用MIT许可证 - 详情请见LICENSE文件。
+MIT © AgentContainer 项目
 
 ## 联系方式
 
-如有任何问题或建议，请联系：
-- 电子邮件：support@agentcontainer.com
-- GitHub Issues：https://github.com/yourusername/agentcontainer/issues
-
-## 未来计划
-
-1. 添加更多AI模型支持
-2. 改进容器管理功能
-3. 添加用户认证
-4. 扩展监控功能
-5. 支持多容器编排
-
----
-
-© 2024 AgentContainer. All rights reserved.
+如有问题或建议，请通过 Issue 或邮箱：
+- Email: support@agentcontainer.com  
+- GitHub Issues: https://github.com/yourusername/AgentContainer/issues
