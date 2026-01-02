@@ -13,7 +13,14 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Dict, List, Optional, Any
-import pyautogui
+
+try:
+    import pyautogui
+except Exception as exc:
+    pyautogui = None  # pyautogui requires DISPLAY; headless environments shouldn't break the app
+    HEADLESS_SCREENSHOT_ERROR = exc
+else:
+    HEADLESS_SCREENSHOT_ERROR = None
 from PIL import Image
 import openai
 from openai import AsyncOpenAI
@@ -34,6 +41,8 @@ class Observer:
         # 确保目录存在
         self.screenshot_dir.mkdir(exist_ok=True)
         self.observation_log_file.parent.mkdir(exist_ok=True)
+        if pyautogui is None:
+            logger.warning(f"pyautogui unavailable; desktop screenshots are disabled: {HEADLESS_SCREENSHOT_ERROR}")
 
         # 初始化OpenAI客户端用于多模态分析
         self.vision_client = AsyncOpenAI(
@@ -133,6 +142,8 @@ class Observer:
     async def _take_screenshot(self, timestamp: datetime) -> Path:
         """截取桌面截图"""
         try:
+            if pyautogui is None:
+                raise RuntimeError(f"pyautogui unavailable for screenshots: {HEADLESS_SCREENSHOT_ERROR}")
             # 使用pyautogui截图
             screenshot = pyautogui.screenshot()
 
