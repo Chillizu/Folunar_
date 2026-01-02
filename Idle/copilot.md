@@ -25,6 +25,8 @@ AgentContainer 是一个 AI 沙盒系统，按「观察层 → 决策层 → 执
 - 清理与整理仓库：补充 `.gitignore`（logs/screenshot/.pytest_cache），恢复 `Idle/agents.md` 协作说明
 - 准备提交：阶段性变更将统一暂存并提交
 - README 使用方式更新：新增 uv / pipx 安装与运行流程说明
+- 依赖解析修正：将 requires-python 提升为 >=3.10 以匹配 Pillow 12.0.0 等依赖
+- 静态资源兼容：为 /styles.css 与 /chat.js 添加兼容路由，避免旧页面引用导致样式缺失
 
 ## 技术栈
 

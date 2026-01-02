@@ -193,6 +193,18 @@ async def chat_page():
     static_index = Path(__file__).resolve().parent.parent.parent / "static" / "index.html"
     return FileResponse(static_index)
 
+@router.get("/styles.css")
+async def legacy_styles():
+    """兼容旧的静态路径"""
+    static_css = Path(__file__).resolve().parent.parent.parent / "static" / "styles.css"
+    return FileResponse(static_css)
+
+@router.get("/chat.js")
+async def legacy_chat_js():
+    """兼容旧的静态路径"""
+    static_js = Path(__file__).resolve().parent.parent.parent / "static" / "chat.js"
+    return FileResponse(static_js)
+
 @router.get("/agents")
 async def list_agents():
     return {"agents": agent_manager.list_agents()}
