@@ -80,6 +80,8 @@ pytest
 - 完成容器化基线：新增 docker-compose.yml（API + Debian 沙盒）、重写 Dockerfile.sandbox（Debian 12 轻量版）、修复主 Dockerfile 依赖安装与 entrypoint 逻辑，默认网络/镜像名与沙盒对齐。
 - 补全一键脚本与配置：新增 scripts/run-compose.sh & .ps1，更新 run-local 脚本创建 logs/data 目录，引入 requirements.txt，容器配置默认指向 agentcontainer-sandbox，.gitignore 增加 data/sandbox/。
 - 更新 README：改写部署指引（compose 优先、手动命令可选）、容器说明与配置示例。
+- Github Action 暂停自动触发：将 CI workflow 改为仅 workflow_dispatch 手动执行。
+- README PowerShell 指令改为添加 ExecutionPolicy Bypass，适配部分环境无法直接执行 pwsh 的情况。
 
 ## 下一步计划
 - 后端链路强化：梳理/优化 ContainerManager 与 API 路由，确保 sandbox Exec/状态/日志/截图流闭环，校准 network_mode 与 Compose 网络。

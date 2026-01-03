@@ -30,7 +30,7 @@ Security     Observer/Whisper       Debian Sandbox
 或 PowerShell:
 
 ```powershell
-pwsh -File scripts/run-compose.ps1
+powershell -ExecutionPolicy Bypass -File scripts/run-compose.ps1
 ```
 
 - 会准备 `config.yaml`、`logs`、`data`（含 `data/sandbox`）并以 docker compose 构建/启动  
@@ -47,7 +47,7 @@ chmod +x scripts/run-local.sh
 或 PowerShell:
 
 ```powershell
-.\scripts\run-local.ps1
+powershell -ExecutionPolicy Bypass -File scripts\run-local.ps1
 ```
 
 ## 手动容器命令（可选）
