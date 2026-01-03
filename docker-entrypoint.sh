@@ -4,7 +4,7 @@ set -euo pipefail
 CONFIG_FILE="${CONFIG_FILE:-/app/config.yaml}"
 PORT="${PORT:-8000}"
 
-# 如果未提供配置，则复制示例配置
+# If no config is provided, copy the example for a sane default
 if [ ! -f "$CONFIG_FILE" ]; then
   cp /app/config.example.yaml "$CONFIG_FILE"
 fi

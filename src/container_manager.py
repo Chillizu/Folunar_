@@ -30,9 +30,9 @@ class ContainerManager:
         self.connection_pool = connection_pool
 
         # 从配置中读取参数
-        self.image_name = self.container_config.get('image_name', 'debian-container')
-        self.container_name = self.container_config.get('container_name', 'agent-debian')
-        self.dockerfile_path = self.container_config.get('dockerfile_path', 'Dockerfile')
+        self.image_name = self.container_config.get('image_name', 'agentcontainer-sandbox:latest')
+        self.container_name = self.container_config.get('container_name', 'agentcontainer-sandbox')
+        self.dockerfile_path = self.container_config.get('dockerfile_path', 'Dockerfile.sandbox')
         self.build_timeout = self.container_config.get('build_timeout', 300)
         self.exec_timeout = self.container_config.get('exec_timeout', 30)
         self.stats_timeout = self.container_config.get('stats_timeout', 10)

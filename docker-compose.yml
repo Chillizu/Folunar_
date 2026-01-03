@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: agentcontainer-api:latest
+    container_name: agentcontainer-api
+    environment:
+      CONFIG_FILE: /app/config.yaml
+      PORT: 8000
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./static:/app/static
+    ports:
+      - "8000:8000"
+    depends_on:
+      - sandbox
+    restart: unless-stopped
+    networks:
+      - agentcontainer-net
+
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox
+    image: agentcontainer-sandbox:latest
+    container_name: agentcontainer-sandbox
+    privileged: false
+    security_opt:
+      - no-new-privileges:true
+    cap_add:
+      - NET_BIND_SERVICE
+    volumes:
+      - ./data/sandbox:/workspace
+    expose:
+      - "5901"
+      - "8888"
+    restart: unless-stopped
+    networks:
+      - agentcontainer-net
+    mem_limit: 1g
+    cpus: "1.0"
+
+networks:
+  agentcontainer-net:
+    driver: bridge

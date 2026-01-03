@@ -74,4 +74,32 @@ pytest
 - 接下来计划与风险
 - 重要决策与上下文
 
+## 本轮进度
+- 阅读 agents.md、summary.md、README 与 copilot.md，确认现状（核心功能已 95% 完成，已具备 OpenAI 兼容接口、容器管理、Web UI、随机思绪注入等）。
+- 明确用户目标：交付可直接部署的整合版本，包含一键启动脚本、Web 监视面板、内置可供 AI 操作的 Debian 容器，以及 summary 中提到的全部能力整合。
+- 完成容器化基线：新增 docker-compose.yml（API + Debian 沙盒）、重写 Dockerfile.sandbox（Debian 12 轻量版）、修复主 Dockerfile 依赖安装与 entrypoint 逻辑，默认网络/镜像名与沙盒对齐。
+- 补全一键脚本与配置：新增 scripts/run-compose.sh & .ps1，更新 run-local 脚本创建 logs/data 目录，引入 requirements.txt，容器配置默认指向 agentcontainer-sandbox，.gitignore 增加 data/sandbox/。
+- 更新 README：改写部署指引（compose 优先、手动命令可选）、容器说明与配置示例。
+
+## 下一步计划
+- 后端链路强化：梳理/优化 ContainerManager 与 API 路由，确保 sandbox Exec/状态/日志/截图流闭环，校准 network_mode 与 Compose 网络。
+- 前端监控与 WebSocket：完善 `/ws/sandbox` 推送内容（状态/日志/截图占位），监控页 UI 行为对齐。
+- 安全与随机思绪：审视命令过滤/白名单、随机注入路径与日志；补充配置切换与测试。
+- 文档与交付：补充 README/部署指南中的端到端流程、常见故障与离线方案。
+
+## 关键决策与上下文
+- 交流语言：按要求使用中文沟通，必要时可穿插 Emoji 标记阶段。
+- 交付形态：优先保证可直接部署（Docker/Compose）与本地一键脚本，并确保内置 Debian 沙盒可被 AI 全权操作。
+- 版本管理：阶段性更新 copilot.md，不同大类功能后续拆分分支提交。
+
+## 风险与上下游
+- Docker 网络/镜像拉取可能受限，需准备加速或离线镜像方案。
+- 本地与容器化路径需同时兼容（配置加载、静态资源路由）。
+- Web 监控与沙盒执行链路需要充分测试，避免长连接或权限问题导致不稳定。
+
+## 规划概要
+- 交付目标：可直接部署（Docker/Compose）、本地/容器一键启动脚本、内置可供 AI 操作的 Debian 沙盒、Web 监控面板、整合 summary 中的全部能力。
+- 架构蓝图：Compose 统一编排 FastAPI 核心服务 + Debian 沙盒（带必要工具与权限隔离）；后台统一通过 ContainerManager 执行/流式日志；Observer 提供截图/日志输入，Decision Engine 产生命令，Executor 通过 Docker exec 执行；WebSocket 推送状态/监控流至前端。
+- 实施阶段：① 基线梳理/依赖与配置统一；② 沙盒镜像与 Compose（含加速/离线选项）+ 一键启动脚本；③ 后端管控链路（命令执行、状态/日志/截图流）；④ 前端监控页与聊天页整合；⑤ 随机思绪注入与安全加固（网络/权限/审计）；⑥ 测试矩阵（单测/集成/端到端/性能）与 CI；⑦ 文档与交付包（README、脚本说明、镜像分发方案）。
+
 总工程师：Kilo Code

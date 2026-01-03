@@ -33,17 +33,21 @@ api:
   retry_delay: 1
 
 container:
-  image_name: "debian-container"
-  container_name: "agent-debian"
-  dockerfile_path: "Dockerfile"
+  image_name: "agentcontainer-sandbox:latest"
+  container_name: "agentcontainer-sandbox"
+  dockerfile_path: "Dockerfile.sandbox"
   build_timeout: 300
   exec_timeout: 30
   stats_timeout: 10
-  ports: {}
-  environment: {}
-  volumes: {}
-  restart_policy: "no"
-  network_mode: "bridge"
+  ports:
+    "5901": "5901"
+    "8888": "8888"
+  environment:
+    TZ: "Etc/UTC"
+  volumes:
+    "./data/sandbox": "/workspace"
+  restart_policy: "unless-stopped"
+  network_mode: "agentcontainer-net"
 
 # 缓存配置
 cache:

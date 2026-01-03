@@ -1,198 +1,50 @@
-# AI沙盒环境Dockerfile - 安全版本
-# 基于Ubuntu 22.04，包含XFCE桌面、VNC服务器、Python环境和AI工具
-# 实现容器安全隔离和权限控制
+FROM debian:12-slim
 
-FROM ubuntu:22.04
-
-# 设置环境变量
 ENV DEBIAN_FRONTEND=noninteractive \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    DISPLAY=:1 \
-    VNC_PORT=5901 \
-    JUPYTER_PORT=8888 \
-    USER=aiuser \
-    HOME=/home/aiuser \
-    PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    TZ=Etc/UTC \
+    HOME=/home/sandbox \
+    SHELL=/bin/bash \
+    WORKDIR=/workspace
 
-# 安全配置：禁用危险功能
-RUN echo "kernel.unprivileged_userns_clone=0" >> /etc/sysctl.conf && \
-    echo "kernel.dmesg_restrict=1" >> /etc/sysctl.conf && \
-    echo "kernel.kptr_restrict=2" >> /etc/sysctl.conf && \
-    echo "net.core.bpf_jit_harden=2" >> /etc/sysctl.conf && \
-    echo "kernel.yama.ptrace_scope=3" >> /etc/sysctl.conf
-
-# 更新包列表并安装基础工具（安全版本）
-RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    gnupg2 \
-    software-properties-common \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    apparmor \
-    apparmor-utils \
-    auditd \
-    rsyslog \
-    iptables \
-    ufw \
-    && rm -rf /var/lib/apt/lists/*
-
-# 启用AppArmor
-RUN systemctl enable apparmor || true
-
-# 配置auditd
-RUN sed -i 's/^log_file = .*/log_file = \/var\/log\/audit\/audit.log/' /etc/audit/auditd.conf && \
-    sed -i 's/^log_format = .*/log_format = ENRICHED/' /etc/audit/auditd.conf && \
-    sed -i 's/^flush = .*/flush = INCREMENTAL/' /etc/audit/auditd.conf && \
-    sed -i 's/^freq = .*/freq = 50/' /etc/audit/auditd.conf
-
-# 添加Ubuntu Universe仓库（包含XFCE）
-RUN add-apt-repository universe
-
-# 安装XFCE桌面环境和VNC服务器
-RUN apt-get update && apt-get install -y \
-    xfce4 \
-    xfce4-goodies \
-    tightvncserver \
-    xfonts-base \
-    xfonts-75dpi \
-    xfonts-100dpi \
-    xfonts-scalable \
-    && rm -rf /var/lib/apt/lists/*
-
-# 安装Python环境和开发工具
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-dev \
-    python3-venv \
+    curl \
+    wget \
     git \
     vim \
     nano \
-    htop \
+    sudo \
+    locales \
+    tzdata \
+    python3 \
+    python3-venv \
+    python3-pip \
+    python3-dev \
     build-essential \
+    procps \
+    iproute2 \
+    iputils-ping \
+    dnsutils \
+    net-tools \
+    less \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装supervisord用于进程管理
-RUN apt-get update && apt-get install -y \
-    supervisor \
-    && rm -rf /var/lib/apt/lists/*
+# Locale
+RUN sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && locale-gen
 
-# 创建非root用户（安全配置）
-RUN useradd -m -s /bin/bash -u 1000 $USER && \
-    echo "$USER:aiuser123" | chpasswd && \
-    # 移除sudo权限，防止权限提升
-    mkdir -p $HOME/.vnc && \
-    chown -R $USER:$USER $HOME && \
-    # 设置用户权限限制
-    echo "$USER soft nproc 1024" >> /etc/security/limits.conf && \
-    echo "$USER hard nproc 2048" >> /etc/security/limits.conf && \
-    echo "$USER soft nofile 1024" >> /etc/security/limits.conf && \
-    echo "$USER hard nofile 2048" >> /etc/security/limits.conf && \
-    # 创建安全目录
-    mkdir -p /var/log/audit && \
-    chown root:root /var/log/audit && \
-    chmod 750 /var/log/audit
+# Non-root user with sudo (for AI-controlled tasks that require privilege escalation)
+RUN useradd -m -s /bin/bash sandbox \
+    && echo "sandbox ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/sandbox \
+    && chmod 0440 /etc/sudoers.d/sandbox
 
-# 切换到用户环境安装Python包
-USER $USER
-WORKDIR $HOME
+WORKDIR ${WORKDIR}
+RUN chown -R sandbox:sandbox ${WORKDIR}
 
-# 安装Python科学计算和AI工具
-RUN python3 -m pip install --user --no-cache-dir \
-    jupyter \
-    jupyterlab \
-    numpy \
-    pandas \
-    matplotlib \
-    scikit-learn \
-    tensorflow \
-    torch \
-    torchvision \
-    transformers \
-    pillow \
-    opencv-python \
-    requests \
-    flask \
-    fastapi \
-    uvicorn
+USER sandbox
 
-# 创建工作目录
-RUN mkdir -p $HOME/workspace $HOME/.jupyter
-
-# 配置Jupyter Notebook
-RUN jupyter notebook --generate-config && \
-    echo "c.NotebookApp.ip = '0.0.0.0'" >> $HOME/.jupyter/jupyter_notebook_config.py && \
-    echo "c.NotebookApp.port = $JUPYTER_PORT" >> $HOME/.jupyter/jupyter_notebook_config.py && \
-    echo "c.NotebookApp.open_browser = False" >> $HOME/.jupyter/jupyter_notebook_config.py && \
-    echo "c.NotebookApp.allow_root = False" >> $HOME/.jupyter/jupyter_notebook_config.py && \
-    echo "c.NotebookApp.token = ''" >> $HOME/.jupyter/jupyter_notebook_config.py && \
-    echo "c.NotebookApp.password = ''" >> $HOME/.jupyter/jupyter_notebook_config.py
-
-# 切换回root配置系统级设置
-USER root
-
-# 复制启动脚本
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# 配置supervisord
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# 创建VNC密码文件
-RUN mkdir -p /home/$USER/.vnc && \
-    echo "aiuser123" | vncpasswd -f > /home/$USER/.vnc/passwd && \
-    chmod 600 /home/$USER/.vnc/passwd && \
-    chown -R $USER:$USER /home/$USER/.vnc
-
-# 配置XFCE会话
-RUN mkdir -p /home/$USER/.vnc && \
-    echo "#!/bin/sh\nxrdb \$HOME/.Xresources\nxsetroot -solid grey\nx-terminal-emulator -geometry 80x24+10+10 -ls -title \"\$VNCDESKTOP Desktop\" &\nxfce4-session &" > /home/$USER/.vnc/xstartup && \
-    chmod +x /home/$USER/.vnc/xstartup && \
-    chown -R $USER:$USER /home/$USER/.vnc
-
-# 暴露端口
-EXPOSE $VNC_PORT $JUPYTER_PORT
-
-# 设置卷挂载点
-VOLUME ["/home/$USER/workspace"]
-
-# 配置安全策略
-RUN echo "* hard core 0" >> /etc/security/limits.conf && \
-    echo "fs.suid_dumpable = 0" >> /etc/sysctl.conf && \
-    echo "kernel.randomize_va_space = 2" >> /etc/sysctl.conf && \
-    echo "net.ipv4.ip_forward = 0" >> /etc/sysctl.conf && \
-    echo "net.ipv4.conf.all.accept_redirects = 0" >> /etc/sysctl.conf && \
-    echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.conf && \
-    echo "net.ipv4.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
-
-# 创建安全启动脚本
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-# 应用安全配置\n\
-sysctl -p /etc/sysctl.conf\n\
-\n\
-# 启动审计服务\n\
-service auditd start\n\
-\n\
-# 配置防火墙（仅允许必要端口）\n\
-ufw --force reset\n\
-ufw default deny incoming\n\
-ufw default allow outgoing\n\
-ufw allow 5901/tcp\n\
-ufw allow 8888/tcp\n\
-ufw --force enable\n\
-\n\
-# 设置只读根文件系统（除了必要目录）\n\
-mount -o remount,ro / || true\n\
-\n\
-# 启动supervisord\n\
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' > /usr/local/bin/docker-entrypoint-secure.sh && \
-    chmod +x /usr/local/bin/docker-entrypoint-secure.sh
-
-# 设置默认用户
-USER $USER
-
-# 启动命令（安全版本）
-CMD ["/usr/local/bin/docker-entrypoint-secure.sh"]
+# Default command keeps the container running and ready for exec
+CMD ["bash"]

@@ -14,11 +14,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# 先复制元数据以便利用 Docker cache 安装依赖
-COPY pyproject.toml uv.lock ./
-
+# 复制依赖并安装
+COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir .
+    && pip install --no-cache-dir -r requirements.txt
 
 # 复制项目文件
 COPY . .

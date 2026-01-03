@@ -38,3 +38,4 @@ pip-delete-this-directory.txt
 logs/
 screenshots/
 .pytest_cache/
+data/sandbox/

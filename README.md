@@ -1,109 +1,96 @@
 # AgentContainer
 
-AgentContainer 是一个面向 AI 代理的「观察 → 决策 → 执行」沙盒平台，提供安全容器、OpenAI 兼容接口与可视化监控，帮助你在可控环境中运行 AI 自动化任务。
+AgentContainer 是一个围绕「观察 → 决策 → 执行」闭环的 AI 沙盒平台，提供 OpenAI 兼容接口、安全隔离的 Debian 容器、可视化监控面板以及审计/性能观测，方便在可控环境中运行与观察 AI 代理。
 
 ## 功能概览
 - OpenAI 兼容 `/v1/chat/completions`（流式/非流式）
-- AI 观察者：截图、视觉分析、观察记录
-- 决策引擎：基于观察生成可执行命令
-- Docker 容器管理：启动/停止/执行/状态监控
-- 安全组件：JWT、限流、CSP/HSTS、安全头、审计日志
-- 可视化面板：`/` 仪表板 + `/chat` 聊天界面
+- Web UI：仪表盘 `/` 与聊天页 `/chat`
+- 容器管理：启动/停止/状态/执行命令、资源与审计日志
+- 观察者：截图、日志聚合；决策引擎：指令生成与随机思绪注入
+- 安全：JWT、速率限制、安全头、命令过滤、容器资源与网络限制
+- 性能与测试：缓存/连接池、指标监控，pytest 覆盖单元+集成
 
 ## 架构概览
 ```
 Web UI  <->  Decision Engine  <->  Container Manager
    |              |                     |
-Security     Observer/Whisper       Docker Sandbox
+Security     Observer/Whisper       Debian Sandbox
 ```
 
-## 容器化部署（唯一方式）
-
-### 1) 构建镜像
+## 快速启动
+### Docker compose（推荐，一键 API + Debian 沙盒）
 ```bash
-docker build -t agentcontainer:latest .
+./scripts/run-compose.sh
 ```
-
-### 2) 运行容器
-Linux/macOS:
-```bash
-docker run -d --name agentcontainer -p 8000:8000 \
-  -v $(pwd)/config.yaml:/app/config.yaml \
-  agentcontainer:latest
-```
-
-Windows PowerShell:
+或 PowerShell:
 ```powershell
-docker run -d --name agentcontainer -p 8000:8000 `
-  -v ${PWD}/config.yaml:/app/config.yaml `
-  agentcontainer:latest
+pwsh -File scripts/run-compose.ps1
 ```
+- 会准备 `config.yaml`、`logs`、`data`（含 `data/sandbox`）并以 docker compose 构建/启动  
+- `agentcontainer-api`：FastAPI 主服务  
+- `agentcontainer-sandbox`：内置 Debian 12 沙盒（默认工作目录 `/workspace`，挂载到 `./data/sandbox`）
 
-### 3) 访问入口
-- 仪表板：`http://localhost:8000/`
-- 聊天页面：`http://localhost:8000/chat`
-
-## 配置说明（容器内生效）
-
-1. 复制示例配置：
-```bash
-cp config.example.yaml config.yaml
-```
-
-2. 最小可用配置：
-```yaml
-app:
-  name: AgentContainer
-  version: "1.0.0"
-  description: "AI 沙盒系统"
-
-api:
-  key: "your-openai-api-key"
-  base_url: "https://api.openai.com/v1"
-  default_model: "gpt-3.5-turbo"
-
-security:
-  jwt_secret_key: "change-this-to-a-secret"
-  enable_audit_log: true
-```
-
-3. 需要容器执行能力时再补充：
-```yaml
-container:
-  image_name: "debian:bookworm"
-  container_name: "agent-container"
-  dockerfile_path: "Dockerfile"
-  network_mode: "bridge"
-```
-
-## 主要接口
-- `/`：仪表板（HTML）
-- `/chat`：聊天界面
-- `/api/chat/completions`：OpenAI 兼容聊天
-- `/api/system/status`：系统状态
-- `/health`：健康检查
-
-## 常见问题
-1) Docker 无法连接  
-确认 Docker Desktop 已启动，`docker info` 返回正常。
-
-2) 镜像拉取失败  
-网络受限时请配置镜像加速或使用内网镜像。
-
-## License
-MIT
-
-## 本地一键运行脚本（可选）
-
-如果你需要在本机直接启动（非容器），可以使用以下脚本：
-
-Windows PowerShell：
-```powershell
-.\scripts\run-local.ps1
-```
-
-macOS/Linux：
+### 本地运行（仅主服务）
 ```bash
 chmod +x scripts/run-local.sh
 ./scripts/run-local.sh
 ```
+或 PowerShell:
+```powershell
+.\scripts\run-local.ps1
+```
+
+## 手动容器命令（可选）
+```bash
+docker build -t agentcontainer-api:latest .
+docker build -t agentcontainer-sandbox:latest -f Dockerfile.sandbox .
+docker network create agentcontainer-net || true
+docker run -d --name agentcontainer-sandbox agentcontainer-sandbox:latest
+docker run -d --name agentcontainer-api -p 8000:8000 \
+  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/data:/app/data \
+  --network agentcontainer-net \
+  --link agentcontainer-sandbox \
+  agentcontainer-api:latest
+```
+
+## 配置（核心字段）
+```bash
+cp config.example.yaml config.yaml
+```
+```yaml
+app:
+  name: AgentContainer
+  version: "1.0.0"
+
+api:
+  base_url: "https://api.openai.com/v1"
+  default_model: "gpt-3.5-turbo"
+  key: "your-openai-api-key"
+
+container:
+  image_name: "agentcontainer-sandbox:latest"
+  container_name: "agentcontainer-sandbox"
+  dockerfile_path: "Dockerfile.sandbox"
+  volumes:
+    "./data/sandbox": "/workspace"
+  ports:
+    "5901": "5901"
+    "8888": "8888"
+
+security:
+  jwt_secret_key: "change-me"
+  enable_audit_log: true
+```
+
+## 关键入口与测试
+- 仪表板：`http://localhost:8000/`
+- 聊天：`http://localhost:8000/chat`
+- API：`/api/chat/completions`、`/api/system/status`、`/health`
+- 测试：`pytest`
+
+## 常见问题
+- Docker 无法连接：确认 Docker Desktop 已运行，`docker info` 正常。
+- 镜像拉取/构建慢：可配置镜像加速或离线预拉取基础镜像。
+- 沙盒网络/权限：默认桥接网络与 no-new-privileges，可按需在 `config.yaml`/`docker-compose.yml` 中调整。

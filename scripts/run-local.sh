@@ -21,4 +21,6 @@ if [ ! -f "config.yaml" ]; then
   cp config.example.yaml config.yaml
 fi
 
+mkdir -p logs data data/sandbox
+
 "$PYTHON" main.py
