@@ -1,5 +1,6 @@
 .venv/
 venv/
+checkpoints/
 .env
 .env.example
 *.log
