@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Folunar_ is a greenfield redesign of an autonomous AI agent around **PEDA** (Predictive-Error-Driven Autonomous Agent). The goal is to replace prompt-driven LLM calls with an internal prediction-error loop: a World Model predicts the consequences of actions, prediction errors drive exploration, and intermittent learning closes the loop. This repository currently contains only the PEDA design and review documents under `PEDA_FINAL/`; no source code, build config, or tests exist yet.
+Folunar_ is a greenfield redesign of an autonomous AI agent around **PEDA** (Predictive-Error-Driven Autonomous Agent). The goal is to replace prompt-driven LLM calls with an internal prediction-error loop: a World Model predicts the consequences of actions, prediction errors drive exploration, and intermittent learning closes the loop. The repository now contains the **Phase 1 Grid World implementation** under `src/phase1/`, plus scripts, tests, and config/results scaffolding. The code is built for the approved `local://peda-phase1-plan.md`: a 5×5 grid, a local-LLM + LoRA World Model, EFE-based action selection, and intermittent learning. A deterministic `stub` World Model is included so the pipeline can be tested without downloading multi-gigabyte models.
 
 This document is a living guide for AI assistants working on the codebase. It inherits the global `AGENTS.md` rules in `~/.omp/agent/AGENTS.md`, but the **Project Overrides** below take precedence when they conflict.
 
@@ -59,32 +59,34 @@ Things explicitly **not** predicted: timestamps, PIDs, random numbers. These are
 | Directory | Purpose |
 |---|---|
 | `PEDA_FINAL/` | All current design and review documents. Source of truth until code is scaffolded. |
-| `src/` | Planned: source code (does not exist yet). |
-| `tests/` | Planned: test suite (does not exist yet). |
-| `scripts/` | Planned: utility scripts and Docker helpers (does not exist yet). |
-| `config/` | Planned: experiment configs and security policy files (does not exist yet). |
+| `src/phase1/` | Phase 1 source code: `types.py`, `grid_env.py`, `world_model.py`, `drive_system.py`, `run.py`. |
+| `tests/phase1/` | Phase 1 pytest suite. |
+| `scripts/` | Phase 1 runnable scripts: `phase1_latency_check.py`, `phase1_grid_search.py`, `phase1_eval.py`. |
+| `config/` | Phase 1 generated configs (`phase1_model.json`, `phase1_default_drives.json`). |
+| `results/` | Phase 1 generated evaluation reports (`phase1_eval.json`). |
+| `checkpoints/phase1/` | LoRA adapter checkpoints and stub markers (generated, not normally committed). |
 
 ## Development Commands
 
-No build or test commands exist yet because the repository is a greenfield. The intended scaffolding is:
+Environment setup and Phase 1 commands (verified in this session):
 
 ```bash
-# Environment setup (planned)
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# Use the local venv (already created during this session)
+source venv/bin/activate
 
-# Run Phase 1 Grid World experiment (planned)
-python -m src.phase1.grid_world
+# Run the full Phase 1 verification pipeline
+python scripts/phase1_latency_check.py --stub
+python scripts/phase1_grid_search.py --stub
+python scripts/phase1_eval.py --stub
 
-# Run tests (planned)
-pytest
+# Run tests
+PYTHONPATH=src FOLUNAR_STUB_MODEL=1 python -m pytest tests/phase1 -q
 
-# Run linting (planned)
+# Lint
 ruff check src tests
 ```
 
-Create these commands as scaffolding lands; do not invent them before the files exist.
+The `--stub` flag (or `FOLUNAR_STUB_MODEL=1`) uses the deterministic grid-rule placeholder World Model instead of downloading Qwen. For real LLM evaluation, omit `--stub` after ensuring the model is available locally.
 
 ## Code Conventions & Common Patterns
 
@@ -127,12 +129,15 @@ Create these commands as scaffolding lands; do not invent them before the files 
 
 - **Framework:** pytest (to be added).
 - **Test real behavior, not plumbing.** Assert that the World Model improves prediction accuracy, that the Drive System reduces revisit rate, and that safety filters block dangerous commands. Avoid asserting on current default strings.
-- **All metrics must be quantifiable.** Examples:
-  - L1 exit-code accuracy ≥ 90%.
-  - L2 filesystem delta accuracy ≥ 70%.
-  - Revisit rate in Grid World < 20%.
-  - Task-completion rate, not command-execution rate.
-- **Phase 1 is a go/no-go gate.** If the Grid World experiment fails, stop before adding complexity.
+For Phase 1, the metrics are:
+- G1 — Level 2 next-state accuracy > 90%.
+- G2 — Drive-agent steps-to-goal ratio vs random < 50%.
+- G3 — Revisit rate in the grid < 20%.
+- Completion at 5/10/20 steps vs random baseline.
+
+**Verification status (stub mode):** `pytest` runs 138 tests, all passing. Running the scripts with `--stub` executes the pipeline end-to-end but does **not** satisfy the go/no-go: G1 passes (1.0) because the stub predicts perfectly, but G2 and G3 fail because the stub has no learned uncertainty and therefore no prediction-error-driven exploration signal. Satisfying G2/G3 requires the real LLM-based World Model and learning loop.
+
+**Phase 1 is a hard go/no-go gate.** If the Grid World experiment fails with the real model after a reasonable grid search, stop before adding complexity.
 - **Review standard:** every new module must be justified by whether it improves the World Model. If it does not, reject it.
 - **Safety QA:** include adversarial tests that try to execute blacklist commands and verify interception.
 
