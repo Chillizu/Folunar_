@@ -41,6 +41,12 @@ def main():
     )
     parser.add_argument("--stub", action="store_true", help="Use stub world model.")
     parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="HuggingFace model name (default: Qwen/Qwen2.5-1.5B-Instruct).",
+    )
+    parser.add_argument(
         "--episodes",
         type=int,
         default=100,
@@ -49,6 +55,7 @@ def main():
     args = parser.parse_args()
 
     use_stub = args.stub or os.environ.get("FOLUNAR_STUB_MODEL", "0") == "1"
+    model_name_arg = args.model
 
     config_dir = Path("config")
     results_dir = Path("results")
@@ -87,7 +94,7 @@ def main():
     # Environment and models
     # ----------------------------------------------------------------
     env = GridWorld(width=5, height=5, max_steps=50)
-    wm = WorldModel(use_stub=use_stub)
+    wm = WorldModel(model_name=model_name_arg, use_stub=use_stub)
     ec = EnsembleErrorComputer(wm, num_checkpoints=5)
     ds = HomeostaticDriveSystem(
         DriveWeights(

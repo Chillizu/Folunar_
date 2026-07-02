@@ -139,6 +139,12 @@ def main():
     )
     parser.add_argument("--stub", action="store_true", help="Use stub world model.")
     parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="HuggingFace model name (default: Qwen/Qwen2.5-1.5B-Instruct).",
+    )
+    parser.add_argument(
         "--phase-a-episodes",
         type=int,
         default=2,
@@ -159,6 +165,7 @@ def main():
     args = parser.parse_args()
 
     use_stub = args.stub or os.environ.get("FOLUNAR_STUB_MODEL", "0") == "1"
+    model_name_arg = args.model
     config_dir = Path("config")
     config_dir.mkdir(parents=True, exist_ok=True)
 
@@ -166,6 +173,7 @@ def main():
     print("Phase 1 Drive-Weight Grid Search")
     print("=" * 60)
     print(f"  Stub mode: {use_stub}")
+    print(f"  Model: {model_name_arg or 'Qwen/Qwen2.5-1.5B-Instruct'}")
     print(f"  Weight space: {WEIGHT_VALUES}")
     print(f"  Total combos: {len(WEIGHT_VALUES)**4}")
     print(f"  Phase A episodes per combo: {args.phase_a_episodes}")
@@ -174,7 +182,7 @@ def main():
     print()
 
     env = make_env()
-    wm = WorldModel(use_stub=use_stub)
+    wm = WorldModel(model_name=model_name_arg, use_stub=use_stub)
     all_combinations = list(itertools.product(WEIGHT_VALUES, repeat=4))
 
     # ----------------------------------------------------------------
