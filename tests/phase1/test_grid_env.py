@@ -1,10 +1,9 @@
 """Tests for GridWorld environment and Perception."""
 
-import itertools
 
 import pytest
 
-from phase1.grid_env import GridWorld, Perception
+from phase1.grid_env import GridWorld
 from phase1.types import Action, GridState
 
 

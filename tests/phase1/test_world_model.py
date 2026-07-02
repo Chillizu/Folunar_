@@ -1,7 +1,6 @@
 """Tests for WorldModel: prompt building, parsing, stub prediction, checkpoint."""
 
 import json
-from pathlib import Path
 
 import pytest
 
@@ -217,6 +216,7 @@ class TestRollout:
 class TestCheckpoint:
     def test_save_stub_checkpoint(self, stub_wm, tmp_path):
         ckpt_path = stub_wm.save_lora_checkpoint(step=1)
+        assert ckpt_path.exists()
 
     def test_save_checkpoint_creates_marker(self, stub_wm, tmp_path):
         ckpt_path = stub_wm.save_lora_checkpoint(step=42)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """Phase 1 final evaluation: run episodes with best drive weights and compute G1/G2/G3.
 
 Usage:
@@ -26,9 +27,7 @@ from phase1.drive_system import ActionGenerator, HomeostaticDriveSystem
 from phase1.grid_env import GridWorld
 from phase1.run import (
     aggregate_metrics,
-    next_state_accuracy,
     random_baseline,
-    revisit_rate,
     run_episode,
     steps_to_goal_ratio,
 )
@@ -176,22 +175,22 @@ def main():
     print(f"  Mean steps:             {drive_mean_steps:.1f}")
     print(f"  Completion at 20 steps: {drive_completion_20:.3f}")
 
-    print(f"\n--- Random baseline ---")
+    print("\n--- Random baseline ---")
     print(f"  Success rate:           {random_success_rate:.3f}")
     print(f"  Mean steps:             {random_mean_steps:.1f}")
     print(f"  Completion at 5 steps:  {random_completion_5:.3f}")
     print(f"  Completion at 10 steps: {random_completion_10:.3f}")
     print(f"  Completion at 20 steps: {random_completion_20:.3f}")
 
-    print(f"\n--- G1: Next-state accuracy ---")
+    print("\n--- G1: Next-state accuracy ---")
     print(f"  G1 = {g1:.4f}  (target > 0.90)  {'PASS' if g1 > 0.90 else 'FAIL'}")
 
-    print(f"\n--- G2: Steps-to-goal ratio ---")
+    print("\n--- G2: Steps-to-goal ratio ---")
     print(f"  G2 = {g2:.4f}  (target < 0.50)  {'PASS' if g2 < 0.50 else 'FAIL'}")
     print(f"    Drive mean steps: {drive_mean_steps:.1f}")
     print(f"    Random mean steps: {random_mean_steps:.1f}")
 
-    print(f"\n--- G3: Revisit rate ---")
+    print("\n--- G3: Revisit rate ---")
     print(f"  G3 = {g3:.4f}  (target < 0.20)  {'PASS' if g3 < 0.20 else 'FAIL'}")
 
     # ----------------------------------------------------------------

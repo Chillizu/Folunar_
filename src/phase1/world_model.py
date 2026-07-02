@@ -8,7 +8,7 @@ import random
 import re
 from collections import deque
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from phase1.grid_env import GridWorld, Perception
 from phase1.types import Action, ErrorVector, Experience, GridState, PredictedState
@@ -17,8 +17,8 @@ from phase1.types import Action, ErrorVector, Experience, GridState, PredictedSt
 # a model is available; otherwise the deterministic stub path is used.
 try:
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
     from peft import LoraConfig, get_peft_model
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
     _LLM_DEPS_AVAILABLE = True
 except Exception:  # pragma: no cover - depends on environment
@@ -375,9 +375,6 @@ class EnsembleErrorComputer:
         pred_exits = [p.level1_exit_code for p in predictions]
 
         n = len(pred_positions)
-        # Mean position (float)
-        mean_x = sum(x for x, _ in pred_positions) / n
-        mean_y = sum(y for _, y in pred_positions) / n
 
         # Mean deviation from actual position
         level2_errors = [
@@ -472,7 +469,8 @@ class ExperienceBuffer:
         if len(self.buffer) <= batch_size:
             return list(self.buffer)
         if priority_fn is None:
-            priority_fn = lambda e: e.error.epistemic_error
+            def priority_fn(exp: Experience) -> float:
+                return exp.error.epistemic_error
         priorities = [max(1e-6, float(priority_fn(exp))) for exp in self.buffer]
         total = sum(priorities)
         probs = [p / total for p in priorities]

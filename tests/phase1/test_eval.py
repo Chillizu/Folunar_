@@ -2,8 +2,8 @@
 
 import pytest
 
+from phase1.drive_system import ActionGenerator, HomeostaticDriveSystem
 from phase1.grid_env import GridWorld
-from phase1.types import Action, GridState, PredictedState
 from phase1.run import (
     aggregate_metrics,
     completion_rate_at_horizon,
@@ -13,10 +13,8 @@ from phase1.run import (
     run_episode,
     steps_to_goal_ratio,
 )
+from phase1.types import Action, DriveWeights, GridState, PredictedState
 from phase1.world_model import EnsembleErrorComputer, LearningModule, WorldModel
-from phase1.drive_system import ActionGenerator, HomeostaticDriveSystem
-from phase1.types import DriveWeights, ErrorVector
-
 
 # ---------- Fixtures ----------
 
@@ -266,7 +264,6 @@ class TestAggregateMetrics:
         dummy_preds = []
         for traj in trajectories:
             ep_preds = []
-            prev = traj[0]
             for s in traj[1:]:
                 ep_preds.append(
                     PredictedState(

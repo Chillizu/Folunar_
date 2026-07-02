@@ -1,12 +1,10 @@
 """Tests for EnsembleErrorComputer: ensemble variance, aleatoric decomposition."""
 
-import math
 
 import pytest
 
 from phase1.types import Action, GridState
 from phase1.world_model import EnsembleErrorComputer, WorldModel
-
 
 # ---------- Fixtures ----------
 
@@ -40,6 +38,7 @@ class TestSaveCheckpoint:
         assert stub_computer.checkpoints[0] == p1
         p2 = stub_computer.save_checkpoint(2)
         assert len(stub_computer.checkpoints) == 2
+        assert stub_computer.checkpoints[1] == p2
 
     def test_checkpoint_limit_enforced(self, stub_computer):
         stub_computer.save_checkpoint(1)

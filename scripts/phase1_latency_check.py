@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """Phase 1 latency check: measure single-prediction latency and write config.
 
 Usage:
@@ -12,15 +13,14 @@ Writes config/phase1_model.json with selected model and latency stats.
 import argparse
 import json
 import os
+import sys
 import time
 from pathlib import Path
-import sys
 
 # Add src/ directory to path so phase1 modules are importable.
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT / "src"))
 from phase1.grid_env import GridWorld
-from phase1.types import Action
 from phase1.world_model import WorldModel
 
 

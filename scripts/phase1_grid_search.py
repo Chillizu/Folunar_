@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """Phase 1 drive-weight grid search.
 
 Coarse-to-fine grid search over [0.1, 0.5, 1.0, 2.0] for curiosity, competence,
@@ -26,12 +27,11 @@ from pathlib import Path
 # Add src/ directory to path so phase1 modules are importable.
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT / "src"))
-from phase1.grid_env import GridWorld
 from phase1.drive_system import ActionGenerator, HomeostaticDriveSystem
-from phase1.run import aggregate_metrics, random_baseline, run_episode
+from phase1.grid_env import GridWorld
+from phase1.run import aggregate_metrics, run_episode
 from phase1.types import DriveWeights
 from phase1.world_model import EnsembleErrorComputer, LearningModule, WorldModel
-
 
 WEIGHT_VALUES = [0.1, 0.5, 1.0, 2.0]
 DRIVE_NAMES = ["curiosity", "competence", "boredom", "novelty"]
@@ -344,7 +344,7 @@ def main():
     print(f"  G3 (revisit rate): {'OK' if g3_ok else 'FAIL'} "
           f"({best['revisit_rate']:.3f}, target < 0.20)")
     print(f"  Completion at 20 steps: {best['completion_20']:.3f}")
-    print(f"\nNote: G2 and G3 require comparison against a random baseline;")
+    print("\nNote: G2 and G3 require comparison against a random baseline;")
     print("run scripts/phase1_eval.py for the final go/no-go decision.")
     print("=" * 60)
 

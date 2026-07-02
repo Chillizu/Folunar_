@@ -95,16 +95,13 @@ class GridWorld:
         if wall:
             next_pos = (x, y)
             reward = -0.2
-            exit_code = 1
         else:
             next_pos = (nx, ny)
             reward = -0.05
-            exit_code = 0
 
         done = next_pos == state.goal
         if done:
             reward = 1.0
-            exit_code = 2
 
         next_step = state.step + 1
         if next_step >= state.max_steps:

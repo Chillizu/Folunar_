@@ -1,14 +1,12 @@
 """Main PEDA loop, metrics, and random baseline for Phase 1."""
 
-import json
 import random
-from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from phase1.drive_system import ActionGenerator, HomeostaticDriveSystem
 from phase1.grid_env import GridWorld
 from phase1.types import Action, Experience, GridState, PredictedState
 from phase1.world_model import EnsembleErrorComputer, LearningModule, WorldModel
-from phase1.drive_system import ActionGenerator, HomeostaticDriveSystem
 
 
 def run_episode(
