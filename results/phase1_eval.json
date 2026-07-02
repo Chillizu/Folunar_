@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-07-03T00:07:33",
+  "config": {
+    "stub_mode": true,
+    "num_episodes": 100,
+    "best_weights": {
+      "curiosity": 0.1,
+      "competence": 0.5,
+      "boredom": 0.1,
+      "novelty": 0.1
+    },
+    "model": "Qwen/Qwen2.5-1.5B-Instruct"
+  },
+  "drive_agent": {
+    "success_rate": 0.17,
+    "mean_steps": 43.06,
+    "next_state_accuracy": 1.0,
+    "revisit_rate": 0.8014,
+    "completion_20": 0.17
+  },
+  "random_baseline": {
+    "success_rate": 0.63,
+    "mean_steps": 31.1,
+    "mean_revisit_rate": 0.5619,
+    "completion_5": 0.08,
+    "completion_10": 0.15,
+    "completion_20": 0.36
+  },
+  "g1": {
+    "value": 1.0,
+    "threshold": 0.9,
+    "pass": true
+  },
+  "g2": {
+    "value": 1.3846,
+    "threshold": 0.5,
+    "pass": false
+  },
+  "g3": {
+    "value": 0.8014,
+    "threshold": 0.2,
+    "pass": false
+  }
+}
