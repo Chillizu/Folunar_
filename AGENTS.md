@@ -12,7 +12,7 @@ This document is a living guide for AI assistants working on the codebase. It in
 - **Role split:** the main agent has broader knowledge and owns synthesis, architecture decisions, and final verification. Subagents are narrow but strong coders; give them exact, self-contained assignments with acceptance criteria.
 - **No emoji, concise Chinese/English prose, and a `Ciallo~~` greeting in every assistant response** still apply.
 - **Before destructive actions** (deleting files, rewriting history, force-pushing, changing core data formats), ask the user. Routine code edits and tests do not need explicit permission.
-- **Git dual-tree:** frequent small commits on `dev`; milestone squash-merge to `main`. Never force-push.
+- **Git dual-tree:** frequent small commits and pushes on both `dev` and `main`. Milestone work can be merged to `main` via squash-merge. Never force-push.
 
 ## Architecture & Data Flow
 
