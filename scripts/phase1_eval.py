@@ -47,6 +47,12 @@ def main():
         help="HuggingFace model name (default: Qwen/Qwen2.5-1.5B-Instruct).",
     )
     parser.add_argument(
+        "--max-candidates",
+        type=int,
+        default=4,
+        help="Number of candidate actions the ActionGenerator evaluates per step (default: 4).",
+    )
+    parser.add_argument(
         "--episodes",
         type=int,
         default=100,
@@ -56,6 +62,7 @@ def main():
 
     use_stub = args.stub or os.environ.get("FOLUNAR_STUB_MODEL", "0") == "1"
     model_name_arg = args.model
+    max_candidates_arg = args.max_candidates
 
     config_dir = Path("config")
     results_dir = Path("results")
@@ -105,7 +112,7 @@ def main():
         )
     )
     lm = LearningModule(wm, ec, buffer_size=1000, update_interval=500)
-    ag = ActionGenerator(wm, ec, ds, horizon=2, max_candidates=4, latency_budget_ms=3000.0)
+    ag = ActionGenerator(wm, ec, ds, horizon=2, max_candidates=max_candidates_arg, latency_budget_ms=3000.0)
 
     # ----------------------------------------------------------------
     # Run evaluation episodes
