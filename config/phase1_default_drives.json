@@ -4,29 +4,5 @@
     "competence": 0.5,
     "boredom": 0.1,
     "novelty": 0.1
-  },
-  {
-    "curiosity": 0.1,
-    "competence": 2.0,
-    "boredom": 1.0,
-    "novelty": 1.0
-  },
-  {
-    "curiosity": 0.1,
-    "competence": 0.5,
-    "boredom": 2.0,
-    "novelty": 0.1
-  },
-  {
-    "curiosity": 2.0,
-    "competence": 1.0,
-    "boredom": 0.5,
-    "novelty": 0.5
-  },
-  {
-    "curiosity": 1.0,
-    "competence": 2.0,
-    "boredom": 1.0,
-    "novelty": 1.0
   }
 ]

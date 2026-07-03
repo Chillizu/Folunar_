@@ -34,6 +34,15 @@ def run_episode(
         next_state, reward, done = env.step(state, action)
         total_reward += reward
 
+        wall = next_state.agent == state.agent
+        reached_goal = next_state.agent == state.goal
+        exit_code = 2 if reached_goal else (1 if wall else 0)
+        summary = f"agent moved {action.name.lower()}"
+        if wall:
+            summary = f"agent hit wall/obstacle with {action.name.lower()}"
+        elif reached_goal:
+            summary = "agent reached goal"
+
         error = error_computer.decompose_error(state, action, next_state)
         drive_system.update(error, action, has_external_input=False, action_history=action_history)
 
@@ -43,6 +52,8 @@ def run_episode(
                 action=action,
                 next_state=next_state,
                 error=error,
+                exit_code=exit_code,
+                summary=summary,
             )
         )
         if learning_module.should_update():

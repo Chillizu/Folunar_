@@ -7,7 +7,7 @@ from collections import deque
 from pathlib import Path
 from typing import List, Optional
 
-from phase1.types import Action, DriveTerms, DriveWeights, PredictedState
+from phase1.types import Action, DriveTerms, DriveWeights, GridState, PredictedState
 from phase1.world_model import EnsembleErrorComputer, WorldModel
 
 
@@ -139,6 +139,7 @@ class ActionGenerator:
 
     def compute_efe(
         self,
+        state: GridState,
         trajectory: List[PredictedState],
         action_history: List[Action],
         candidate_action: Optional[Action] = None,
@@ -148,7 +149,13 @@ class ActionGenerator:
             ratio = p.epistemic_ratio if p.epistemic_ratio is not None else 0.5
             epistemic += (1.0 - p.level2_confidence) * ratio * (0.9 ** i)
         pragmatic = 0.0
-        base_efe = epistemic + pragmatic
+        if trajectory and state.goal is not None:
+            final = trajectory[-1].level2_next_agent
+            if final is not None:
+                dist = abs(final[0] - state.goal[0]) + abs(final[1] - state.goal[1])
+                max_dist = max(1, (state.width - 1) + (state.height - 1))
+                pragmatic = dist / max_dist
+        base_efe = epistemic + pragmatic * 3.0
         return self.drive_system.apply_to_efe(
             base_efe, trajectory, action_history, candidate_action=candidate_action
         )
@@ -168,7 +175,7 @@ class ActionGenerator:
         best_efe = float("inf")
         for action in candidates:
             trajectory = self.world_model.rollout(state, action, horizon=horizon)
-            efe = self.compute_efe(trajectory, action_history, candidate_action=action)
+            efe = self.compute_efe(state, trajectory, action_history, candidate_action=action)
             if efe < best_efe:
                 best_efe = efe
                 best_action = action

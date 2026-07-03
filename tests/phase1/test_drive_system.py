@@ -280,7 +280,8 @@ class TestActionGenerator:
 
     def test_compute_efe_returns_float(self, stub_wm, stub_computer, drive, sample_trajectory):
         gen = ActionGenerator(stub_wm, stub_computer, drive)
-        result = gen.compute_efe(sample_trajectory, [UP_ACTION], candidate_action=UP_ACTION)
+        state = GridState(agent=(2, 2), goal=(4, 4), width=5, height=5)
+        result = gen.compute_efe(state, sample_trajectory, [UP_ACTION], candidate_action=UP_ACTION)
         assert isinstance(result, float)
 
     def test_compute_efe_with_stub_trajectory(self, stub_wm, stub_computer, drive):
@@ -288,7 +289,7 @@ class TestActionGenerator:
         gen = ActionGenerator(stub_wm, stub_computer, drive)
         state = GridState(agent=(2, 2), goal=(4, 4), width=5, height=5)
         traj = stub_wm.rollout(state, RIGHT_ACTION, horizon=2)
-        efe = gen.compute_efe(traj, [], candidate_action=RIGHT_ACTION)
+        efe = gen.compute_efe(state, traj, [], candidate_action=RIGHT_ACTION)
         assert isinstance(efe, float)
 
     def test_select_action_returns_valid_action(self, stub_wm, stub_computer, drive):

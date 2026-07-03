@@ -6,9 +6,12 @@ Usage:
     python scripts/phase1_eval.py                              # 100 episodes with real LLM
     python scripts/phase1_eval.py --stub                       # stub model, fast verification
     python scripts/phase1_eval.py --episodes 20                # override episode count
+    python scripts/phase1_eval.py --drive-config results/phase1_grid_search.json
     FOLUNAR_STUB_MODEL=1 python scripts/phase1_eval.py
 
-Reads best weights from config/phase1_default_drives.json.
+Reads best weights from config/phase1_default_drives.json by default (or from a
+custom JSON file via --drive-config). Accepts either a legacy list of weight
+objects or a grid-search report with a 'top_5' list.
 Outputs full report to results/phase1_eval.json.
 Exits with code 1 if G1 < 0.90 or G2 >= 0.50 or G3 >= 0.20.
 """
@@ -47,6 +50,12 @@ def main():
         help="HuggingFace model name (default: Qwen/Qwen2.5-1.5B-Instruct).",
     )
     parser.add_argument(
+        "--adapter",
+        type=str,
+        default=None,
+        help="Path to a saved LoRA adapter to load on top of the model.",
+    )
+    parser.add_argument(
         "--max-candidates",
         type=int,
         default=4,
@@ -58,27 +67,50 @@ def main():
         default=100,
         help="Number of evaluation episodes (default: 100).",
     )
+    parser.add_argument(
+        "--drive-config",
+        type=str,
+        default="config/phase1_default_drives.json",
+        help="Path to drive weights (legacy list or grid-search report with top_5).",
+    )
     args = parser.parse_args()
 
     use_stub = args.stub or os.environ.get("FOLUNAR_STUB_MODEL", "0") == "1"
     model_name_arg = args.model
+    adapter_path_arg = args.adapter
     max_candidates_arg = args.max_candidates
 
-    config_dir = Path("config")
+    # If an adapter is given but no base model, read the base model from the
+    # adapter's training metadata so the architecture matches.
+    if adapter_path_arg and model_name_arg is None:
+        info_path = Path(adapter_path_arg) / "training_info.json"
+        if info_path.exists():
+            model_name_arg = json.loads(info_path.read_text()).get("model")
+            print(f"[eval] Inferred base model from adapter: {model_name_arg}")
+
     results_dir = Path("results")
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # ----------------------------------------------------------------
     # Load best drive weights
     # ----------------------------------------------------------------
-    default_drives_path = config_dir / "phase1_default_drives.json"
+    default_drives_path = Path(args.drive_config)
     if not default_drives_path.exists():
         print(f"ERROR: {default_drives_path} not found.")
-        print("Run scripts/phase1_grid_search.py first.")
+        print("Run scripts/phase1_grid_search.py or use --drive-config to point to a grid-search report.")
         sys.exit(1)
 
     with open(default_drives_path) as f:
-        all_configs = json.load(f)
+        raw_config = json.load(f)
+
+    # Accept both a bare list of weight objects and a grid-search report with top_5.
+    if isinstance(raw_config, dict):
+        all_configs = raw_config.get("top_5", [])
+    elif isinstance(raw_config, list):
+        all_configs = raw_config
+    else:
+        print(f"ERROR: unexpected drive-config format in {default_drives_path}.")
+        sys.exit(1)
 
     if not all_configs:
         print("ERROR: No drive configurations found in "
@@ -86,10 +118,13 @@ def main():
         sys.exit(1)
 
     best_weights = all_configs[0]
+    if isinstance(best_weights, dict) and "weights" in best_weights:
+        best_weights = best_weights["weights"]
     print("=" * 60)
     print("Phase 1 Final Evaluation")
     print("=" * 60)
     print(f"  Stub mode: {use_stub}")
+    print(f"  Adapter:   {adapter_path_arg}")
     print(f"  Episodes:  {args.episodes}")
     print(f"  Best drive weights: cur={best_weights['curiosity']} "
           f"cmp={best_weights['competence']} "
@@ -101,7 +136,7 @@ def main():
     # Environment and models
     # ----------------------------------------------------------------
     env = GridWorld(width=5, height=5, max_steps=50)
-    wm = WorldModel(model_name=model_name_arg, use_stub=use_stub)
+    wm = WorldModel(model_name=model_name_arg, use_stub=use_stub, adapter_path=adapter_path_arg)
     ec = EnsembleErrorComputer(wm, num_checkpoints=5)
     ds = HomeostaticDriveSystem(
         DriveWeights(
