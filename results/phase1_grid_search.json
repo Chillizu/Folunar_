@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-07-03T20:13:39.443611",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "stub": true,
+  "phase_a_episodes": 1,
+  "phase_b_episodes": 10,
+  "top_k": 20,
+  "top_5": [
+    {
+      "weights": {
+        "curiosity": 1.0,
+        "competence": 0.5,
+        "boredom": 1.0,
+        "novelty": 0.1
+      },
+      "score": 0.9912000000000001,
+      "success_rate": 1.0,
+      "mean_steps": 2.2,
+      "revisit_rate": 0.0,
+      "completion_20": 1.0
+    },
+    {
+      "weights": {
+        "curiosity": 0.1,
+        "competence": 0.5,
+        "boredom": 0.1,
+        "novelty": 0.1
+      },
+      "score": 0.99,
+      "success_rate": 1.0,
+      "mean_steps": 2.5,
+      "revisit_rate": 0.0,
+      "completion_20": 1.0
+    },
+    {
+      "weights": {
+        "curiosity": 1.0,
+        "competence": 0.5,
+        "boredom": 1.0,
+        "novelty": 2.0
+      },
+      "score": 0.99,
+      "success_rate": 1.0,
+      "mean_steps": 2.5,
+      "revisit_rate": 0.0,
+      "completion_20": 1.0
+    },
+    {
+      "weights": {
+        "curiosity": 0.1,
+        "competence": 0.5,
+        "boredom": 0.1,
+        "novelty": 1.0
+      },
+      "score": 0.9892000000000001,
+      "success_rate": 1.0,
+      "mean_steps": 2.7,
+      "revisit_rate": 0.0,
+      "completion_20": 1.0
+    },
+    {
+      "weights": {
+        "curiosity": 0.1,
+        "competence": 0.5,
+        "boredom": 0.5,
+        "novelty": 0.1
+      },
+      "score": 0.9892000000000001,
+      "success_rate": 1.0,
+      "mean_steps": 2.7,
+      "revisit_rate": 0.0,
+      "completion_20": 1.0
+    }
+  ]
+}

@@ -40,6 +40,7 @@ class WorldModel:
         lora_r: int = 16,
         lora_alpha: int = 32,
         lora_dropout: float = 0.05,
+        adapter_path: Optional[str] = None,
     ):
         self.model_name = model_name or self.DEFAULT_MODEL
         if _LLM_DEPS_AVAILABLE and device is None:
@@ -73,6 +74,18 @@ class WorldModel:
             return
 
         self._load_model()
+        if adapter_path and self.mode == "llm" and self.model is not None:
+            path = Path(adapter_path)
+            if path.exists():
+                try:
+                    self.model.load_adapter(str(path), adapter_name="synthetic")
+                    self.model.set_adapter("synthetic")
+                    self.adapter_name = "synthetic"
+                    print(f"[WorldModel] Loaded adapter from {path}")
+                except Exception as exc:
+                    print(f"[WorldModel] Failed to load adapter {adapter_path}: {exc}")
+            else:
+                print(f"[WorldModel] Adapter path not found: {adapter_path}; using default adapter.")
 
     def _load_model(self) -> None:
         try:
@@ -95,6 +108,19 @@ class WorldModel:
             self.mode = "stub"
             self.model = None
             self.tokenizer = None
+
+    def _system_message(self) -> str:
+        """System instruction with one concise example for grid prediction."""
+        return (
+            "You predict the next state of a 5x5 grid world. "
+            "Given a state and action, output exactly one JSON object with "
+            "next_position, exit_code, and summary.\n"
+            "exit_code rules: 0 = moved successfully, 1 = hit wall or obstacle, 2 = reached goal.\n\n"
+            "Example:\n"
+            "State: Agent at (0, 0). Goal at (4, 4). Obstacles at none.\n"
+            "Action: RIGHT\n"
+            '{"next_position": [1, 0], "exit_code": 0, "summary": "agent moved right"}'
+        )
 
     def _build_prompt(self, state: GridState, action: Optional[Action]) -> str:
         state_text = Perception.render(state)
@@ -121,18 +147,63 @@ class WorldModel:
         except json.JSONDecodeError:
             return {}
 
+    @staticmethod
+    def _extract_input_ids(tokenizer_output: Any) -> torch.Tensor:
+        """Return the input_ids tensor whether tokenizer output is a Tensor or BatchEncoding."""
+        if isinstance(tokenizer_output, torch.Tensor):
+            return tokenizer_output
+        return tokenizer_output["input_ids"]
+
+    @staticmethod
+    def _generation_confidence(scores, generated_ids):
+        if not scores or generated_ids.numel() == 0:
+            return 0.8
+        probs = []
+        for token_id, score in zip(generated_ids, scores):
+            probs.append(torch.softmax(score, dim=-1)[0, token_id].item())
+        return float(sum(probs)) / len(probs)
+
     def _llm_predict(self, state: GridState, action: Optional[Action]) -> PredictedState:
         prompt = self._build_prompt(state, action)
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
-        with torch.no_grad():
-            output_ids = self.model.generate(
-                **inputs,
-                max_new_tokens=80,
-                do_sample=False,
-                pad_token_id=self.tokenizer.pad_token_id,
-            )
-        full_text = self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
-        generated = full_text[len(prompt):]
+        messages = [
+            {"role": "system", "content": self._system_message()},
+            {"role": "user", "content": prompt},
+        ]
+        if self.tokenizer.chat_template is not None:
+            input_ids = self._extract_input_ids(
+                self.tokenizer.apply_chat_template(
+                    messages, tokenize=True, return_tensors="pt", add_generation_prompt=True
+                )
+            ).to(self.device)
+            input_len = input_ids.shape[1]
+            with torch.no_grad():
+                gen_out = self.model.generate(
+                    input_ids,
+                    max_new_tokens=80,
+                    do_sample=False,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    output_scores=True,
+                    return_dict_in_generate=True,
+                )
+            generated_ids = gen_out.sequences[0, input_len:]
+            generated = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
+            confidence = self._generation_confidence(gen_out.scores, generated_ids)
+        else:
+            formatted_prompt = f"{self._system_message()}\n\n{prompt}"
+            inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.device)
+            input_len = inputs["input_ids"].shape[1]
+            with torch.no_grad():
+                gen_out = self.model.generate(
+                    **inputs,
+                    max_new_tokens=80,
+                    do_sample=False,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    output_scores=True,
+                    return_dict_in_generate=True,
+                )
+            generated_ids = gen_out.sequences[0, input_len:]
+            generated = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
+            confidence = self._generation_confidence(gen_out.scores, generated_ids)
         parsed = self._parse_generation(generated)
 
         next_pos = parsed.get("next_position")
@@ -151,12 +222,12 @@ class WorldModel:
 
         return PredictedState(
             level1_exit_code=exit_code,
-            level1_confidence=0.8,
+            level1_confidence=confidence,
             level2_next_agent=next_pos,
-            level2_confidence=0.8,
+            level2_confidence=confidence,
             level3_output_summary=summary,
-            level3_confidence=0.8,
-            epistemic_ratio=0.5,
+            level3_confidence=confidence,
+            epistemic_ratio=1.0 - confidence,
         )
 
     def _stub_predict(self, state: GridState, action: Optional[Action]) -> PredictedState:
@@ -240,17 +311,40 @@ class WorldModel:
                     next_pos = [int(parsed[0]), int(parsed[1])]
             except (SyntaxError, ValueError, TypeError):
                 pass
+            exit_code = int(ex.get("exit_code", 0))
+            summary = str(ex.get("summary", ""))
             target = json.dumps({
                 "next_position": next_pos,
-                "exit_code": 0,
-                "summary": "",
+                "exit_code": exit_code,
+                "summary": summary,
             }, ensure_ascii=False)
-            prompt = (
+            user_content = (
                 f"State: {state_text}\n"
                 f"Action: {action_text}\n"
                 "Predict next position, exit code, and one-line summary as JSON:"
             )
-            examples.append((prompt, target))
+            messages = [
+                {"role": "system", "content": self._system_message()},
+                {"role": "user", "content": user_content},
+            ]
+            if self.tokenizer.chat_template is not None:
+                prompt_input_ids = self._extract_input_ids(
+                    self.tokenizer.apply_chat_template(
+                        messages, add_generation_prompt=True, return_tensors="pt", max_length=256, truncation=True
+                    )
+                ).squeeze(0)
+                full_messages = messages + [{"role": "assistant", "content": target}]
+                full_input_ids = self._extract_input_ids(
+                    self.tokenizer.apply_chat_template(
+                        full_messages, add_generation_prompt=False, return_tensors="pt", max_length=256, truncation=True
+                    )
+                ).squeeze(0)
+            else:
+                prompt = f"{messages[0]['content']}\n\n{messages[1]['content']}"
+                full = f"{prompt}{target}{self.tokenizer.eos_token}"
+                prompt_input_ids = self.tokenizer(prompt, return_tensors="pt", max_length=256, truncation=True)["input_ids"].squeeze(0)
+                full_input_ids = self.tokenizer(full, return_tensors="pt", max_length=256, truncation=True)["input_ids"].squeeze(0)
+            examples.append((prompt_input_ids, full_input_ids))
 
         if not examples:
             return
@@ -264,14 +358,11 @@ class WorldModel:
                 return len(self.pairs)
 
             def __getitem__(self, idx):
-                prompt, target = self.pairs[idx]
-                full = prompt + target
-                full_tokens = self.tokenizer(full, return_tensors="pt", max_length=128, truncation=True)
-                prompt_tokens = self.tokenizer(prompt, return_tensors="pt", max_length=128, truncation=True)
-                input_ids = full_tokens["input_ids"].squeeze(0)
-                attention_mask = full_tokens["attention_mask"].squeeze(0)
+                prompt_input_ids, full_input_ids = self.pairs[idx]
+                input_ids = full_input_ids
+                attention_mask = torch.ones_like(input_ids)
                 labels = input_ids.clone()
-                prompt_len = prompt_tokens["input_ids"].shape[1]
+                prompt_len = prompt_input_ids.shape[0]
                 labels[:prompt_len] = -100
                 return {
                     "input_ids": input_ids,
@@ -280,11 +371,13 @@ class WorldModel:
                 }
 
         dataset = _GridDataset(examples, self.tokenizer)
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate)
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=lambda x: x)
+        optimizer = torch.optim.AdamW([p for p in self.model.parameters() if p.requires_grad], lr=learning_rate)
         self.model.train()
-        for _ in range(epochs):
-            for batch in dataloader:
+        for epoch in range(epochs):
+            epoch_loss = 0.0
+            num_batches = 0
+            for batch_idx, batch in enumerate(dataloader):
                 optimizer.zero_grad()
                 # Pad batch
                 input_ids = torch.nn.utils.rnn.pad_sequence(
@@ -304,6 +397,12 @@ class WorldModel:
                 if loss is not None:
                     loss.backward()
                     optimizer.step()
+                    epoch_loss += loss.item()
+                    num_batches += 1
+                    if batch_idx % 20 == 0:
+                        print(f"[lora_finetune] epoch {epoch+1}/{epochs} batch {batch_idx} loss={loss.item():.4f}")
+            if num_batches:
+                print(f"[lora_finetune] epoch {epoch+1}/{epochs} avg loss={epoch_loss/num_batches:.4f}")
         self.model.eval()
 
     def save_lora_checkpoint(self, step: int) -> Path:
@@ -512,6 +611,8 @@ class LearningModule:
                 "state_text": Perception.render(exp.state),
                 "action_name": exp.action.name,
                 "next_state_text": str(exp.next_state.agent),
+                "exit_code": exp.exit_code,
+                "summary": exp.summary,
             })
         self.world_model.lora_finetune(data, epochs=1, learning_rate=2e-4, batch_size=4)
         self.step_count += 1

@@ -52,9 +52,16 @@ def main():
         action="store_true",
         help="Use stub world model (no LLM download). Skips actual timing.",
     )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="HuggingFace model name (default: Qwen/Qwen2.5-1.5B-Instruct).",
+    )
     args = parser.parse_args()
 
     use_stub = args.stub or os.environ.get("FOLUNAR_STUB_MODEL", "0") == "1"
+    model_name_arg = args.model
 
     # Ensure config/ directory exists.
     config_dir = Path("config")
@@ -62,7 +69,7 @@ def main():
 
     # Instantiate grid env and world model.
     env = GridWorld(width=5, height=5, max_steps=50)
-    wm = WorldModel(use_stub=use_stub)
+    wm = WorldModel(model_name=model_name_arg, use_stub=use_stub)
 
     actions = GridWorld.all_actions()
 

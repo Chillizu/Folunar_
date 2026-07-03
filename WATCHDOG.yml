@@ -1,0 +1,20 @@
+advisors: 
+  - name: default
+  - name: SubAdvisor
+    tools: 
+      - read
+      - ask
+      - glob
+      - grep
+      - web_search
+      - learn
+      - manage_skill
+    instructions: 在必要时给予全面的建议，在模型似乎陷入困境和遇到阻碍时在用户同意的情况下给予模型合适建议，可以尝试搜索为模型补充信息。勤问用户
+  - name: Kimi Role
+    model: kimi-code/kimi-for-coding:high
+    tools: 
+      - read
+      - glob
+      - grep
+      - web_search
+    instructions: Especially pay attention to @/home/chillizu/Projects/Folunar_/WATCHDOG.md

@@ -8,15 +8,20 @@ boredom, and novelty (256 combinations total).
 Phase A — coarse screen: run --phase-a-episodes (default 2) per combo.
 Phase B — fine screen:  top --top-k (default 20) combos, --phase-b-episodes (default 10) each.
 
-Computes Pareto frontier and saves top 5 configurations to config/phase1_default_drives.json.
+Computes Pareto frontier and saves a full report with the top 5 configurations
+to results/phase1_grid_search.json by default. The report can be passed directly
+to scripts/phase1_eval.py via --drive-config. The live config file is only
+overwritten when --write-config is explicitly provided.
 
 Usage:
-    python scripts/phase1_grid_search.py                                # full search
-    python scripts/phase1_grid_search.py --stub --phase-a-episodes 1    # fast verification
+    python scripts/phase1_grid_search.py                                    # full search
+    python scripts/phase1_grid_search.py --stub --phase-a-episodes 1        # fast verification
+    python scripts/phase1_grid_search.py --write-config                     # also update config/phase1_default_drives.json
     FOLUNAR_STUB_MODEL=1 python scripts/phase1_grid_search.py
 """
 
 import argparse
+import datetime
 import itertools
 import json
 import os
@@ -139,6 +144,12 @@ def main():
     )
     parser.add_argument("--stub", action="store_true", help="Use stub world model.")
     parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="HuggingFace model name (default: Qwen/Qwen2.5-1.5B-Instruct).",
+    )
+    parser.add_argument(
         "--phase-a-episodes",
         type=int,
         default=2,
@@ -156,9 +167,21 @@ def main():
         default=20,
         help="Number of top combos from Phase A to advance to Phase B (default: 20).",
     )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="results/phase1_grid_search.json",
+        help="Path to the grid-search report (default: results/phase1_grid_search.json).",
+    )
+    parser.add_argument(
+        "--write-config",
+        action="store_true",
+        help="Also write the top-5 weights to config/phase1_default_drives.json.",
+    )
     args = parser.parse_args()
 
     use_stub = args.stub or os.environ.get("FOLUNAR_STUB_MODEL", "0") == "1"
+    model_name_arg = args.model
     config_dir = Path("config")
     config_dir.mkdir(parents=True, exist_ok=True)
 
@@ -166,6 +189,7 @@ def main():
     print("Phase 1 Drive-Weight Grid Search")
     print("=" * 60)
     print(f"  Stub mode: {use_stub}")
+    print(f"  Model: {model_name_arg or 'Qwen/Qwen2.5-1.5B-Instruct'}")
     print(f"  Weight space: {WEIGHT_VALUES}")
     print(f"  Total combos: {len(WEIGHT_VALUES)**4}")
     print(f"  Phase A episodes per combo: {args.phase_a_episodes}")
@@ -174,7 +198,7 @@ def main():
     print()
 
     env = make_env()
-    wm = WorldModel(use_stub=use_stub)
+    wm = WorldModel(model_name=model_name_arg, use_stub=use_stub)
     all_combinations = list(itertools.product(WEIGHT_VALUES, repeat=4))
 
     # ----------------------------------------------------------------
@@ -292,7 +316,7 @@ def main():
     print()
 
     # ----------------------------------------------------------------
-    # Save top 5
+    # Save results
     # ----------------------------------------------------------------
     # Rank by composite score (from Phase B aggregated metrics) within the frontier.
     frontier.sort(key=lambda r: r["score"], reverse=True)
@@ -314,9 +338,38 @@ def main():
         for r in top_5
     ]
 
-    config_path = config_dir / "phase1_default_drives.json"
-    config_path.write_text(json.dumps(default_drives, indent=2))
-    print(f"Top 5 default drive weights saved to {config_path}")
+    results_dir = Path(args.output).parent
+    results_dir.mkdir(parents=True, exist_ok=True)
+    report = {
+        "timestamp": datetime.datetime.now().isoformat(),
+        "model": model_name_arg or "Qwen/Qwen2.5-1.5B-Instruct",
+        "stub": use_stub,
+        "phase_a_episodes": args.phase_a_episodes,
+        "phase_b_episodes": args.phase_b_episodes,
+        "top_k": args.top_k,
+        "top_5": [
+            {
+                "weights": r["weights"],
+                "score": r["score"],
+                "success_rate": r["success_rate"],
+                "mean_steps": r["mean_steps"],
+                "revisit_rate": r["revisit_rate"],
+                "completion_20": r["completion_20"],
+            }
+            for r in top_5
+        ],
+    }
+    output_path = Path(args.output)
+    output_path.write_text(json.dumps(report, indent=2))
+    print(f"Grid-search report saved to {output_path}")
+
+    if args.write_config:
+        config_path = config_dir / "phase1_default_drives.json"
+        config_path.write_text(json.dumps(default_drives, indent=2))
+        print(f"Top 5 default drive weights saved to {config_path}")
+    else:
+        print("Skipped config/phase1_default_drives.json update (use --write-config to overwrite).")
+
     for i, dw in enumerate(default_drives):
         print(
             f"  {i + 1}. cur={dw['curiosity']} cmp={dw['competence']} "

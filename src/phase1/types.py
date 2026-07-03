@@ -76,3 +76,5 @@ class Experience:
     action: Action
     next_state: GridState
     error: ErrorVector
+    exit_code: int = 0
+    summary: str = ""
