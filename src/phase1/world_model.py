@@ -294,6 +294,7 @@ class WorldModel:
         epochs: int = 1,
         learning_rate: float = 2e-4,
         batch_size: int = 4,
+        checkpoint_dir: Optional[Path] = None,
     ) -> None:
         """Batch fine-tune the LoRA adapter on (state, action) -> next-state examples."""
         if self.mode == "stub" or self.model is None:
@@ -403,6 +404,10 @@ class WorldModel:
                         print(f"[lora_finetune] epoch {epoch+1}/{epochs} batch {batch_idx} loss={loss.item():.4f}")
             if num_batches:
                 print(f"[lora_finetune] epoch {epoch+1}/{epochs} avg loss={epoch_loss/num_batches:.4f}")
+            if checkpoint_dir is not None:
+                epoch_ckpt = checkpoint_dir / f"checkpoint_epoch_{epoch+1}"
+                self.model.save_pretrained(epoch_ckpt)
+                print(f"[lora_finetune] saved checkpoint {epoch_ckpt}")
         self.model.eval()
 
     def save_lora_checkpoint(self, step: int) -> Path:

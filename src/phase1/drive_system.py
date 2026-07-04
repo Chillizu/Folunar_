@@ -120,6 +120,8 @@ class ActionGenerator:
         horizon: int = 2,
         max_candidates: int = 4,
         latency_budget_ms: float = 3000.0,
+        pragmatic_only: bool = False,
+        pragmatic_weight: float = 3.0,
     ):
         self.world_model = world_model
         self.error_computer = error_computer
@@ -127,6 +129,8 @@ class ActionGenerator:
         self.horizon = horizon
         self.max_candidates = max_candidates
         self.latency_budget_ms = latency_budget_ms
+        self.pragmatic_only = pragmatic_only
+        self.pragmatic_weight = pragmatic_weight
 
     def _load_latency_ms(self) -> float:
         if self.LATENCY_CONFIG.exists():
@@ -144,10 +148,6 @@ class ActionGenerator:
         action_history: List[Action],
         candidate_action: Optional[Action] = None,
     ) -> float:
-        epistemic = 0.0
-        for i, p in enumerate(trajectory):
-            ratio = p.epistemic_ratio if p.epistemic_ratio is not None else 0.5
-            epistemic += (1.0 - p.level2_confidence) * ratio * (0.9 ** i)
         pragmatic = 0.0
         if trajectory and state.goal is not None:
             final = trajectory[-1].level2_next_agent
@@ -155,7 +155,13 @@ class ActionGenerator:
                 dist = abs(final[0] - state.goal[0]) + abs(final[1] - state.goal[1])
                 max_dist = max(1, (state.width - 1) + (state.height - 1))
                 pragmatic = dist / max_dist
-        base_efe = epistemic + pragmatic * 3.0
+        if self.pragmatic_only:
+            return pragmatic * self.pragmatic_weight
+        epistemic = 0.0
+        for i, p in enumerate(trajectory):
+            ratio = p.epistemic_ratio if p.epistemic_ratio is not None else 0.5
+            epistemic += (1.0 - p.level2_confidence) * ratio * (0.9 ** i)
+        base_efe = epistemic + pragmatic * self.pragmatic_weight
         return self.drive_system.apply_to_efe(
             base_efe, trajectory, action_history, candidate_action=candidate_action
         )
