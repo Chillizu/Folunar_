@@ -1,74 +1,74 @@
 {
-  "timestamp": "2026-07-03T20:13:39.443611",
+  "timestamp": "2026-07-04T08:59:13.233480",
   "model": "Qwen/Qwen2.5-1.5B-Instruct",
   "stub": true,
-  "phase_a_episodes": 1,
+  "phase_a_episodes": 2,
   "phase_b_episodes": 10,
   "top_k": 20,
   "top_5": [
     {
       "weights": {
-        "curiosity": 1.0,
-        "competence": 0.5,
-        "boredom": 1.0,
-        "novelty": 0.1
-      },
-      "score": 0.9912000000000001,
-      "success_rate": 1.0,
-      "mean_steps": 2.2,
-      "revisit_rate": 0.0,
-      "completion_20": 1.0
-    },
-    {
-      "weights": {
         "curiosity": 0.1,
-        "competence": 0.5,
+        "competence": 2.0,
         "boredom": 0.1,
-        "novelty": 0.1
+        "novelty": 2.0
       },
-      "score": 0.99,
+      "score": 0.9796,
       "success_rate": 1.0,
-      "mean_steps": 2.5,
-      "revisit_rate": 0.0,
+      "mean_steps": 3.1,
+      "revisit_rate": 0.02,
       "completion_20": 1.0
     },
     {
       "weights": {
         "curiosity": 1.0,
-        "competence": 0.5,
+        "competence": 0.1,
+        "boredom": 2.0,
+        "novelty": 0.5
+      },
+      "score": 0.9796,
+      "success_rate": 1.0,
+      "mean_steps": 2.6,
+      "revisit_rate": 0.025,
+      "completion_20": 1.0
+    },
+    {
+      "weights": {
+        "curiosity": 1.0,
+        "competence": 0.1,
         "boredom": 1.0,
         "novelty": 2.0
       },
-      "score": 0.99,
+      "score": 0.9704,
       "success_rate": 1.0,
-      "mean_steps": 2.5,
-      "revisit_rate": 0.0,
+      "mean_steps": 2.4,
+      "revisit_rate": 0.05,
       "completion_20": 1.0
     },
     {
       "weights": {
         "curiosity": 0.1,
-        "competence": 0.5,
-        "boredom": 0.1,
-        "novelty": 1.0
-      },
-      "score": 0.9892000000000001,
-      "success_rate": 1.0,
-      "mean_steps": 2.7,
-      "revisit_rate": 0.0,
-      "completion_20": 1.0
-    },
-    {
-      "weights": {
-        "curiosity": 0.1,
-        "competence": 0.5,
-        "boredom": 0.5,
+        "competence": 1.0,
+        "boredom": 1.0,
         "novelty": 0.1
       },
-      "score": 0.9892000000000001,
+      "score": 0.9776,
       "success_rate": 1.0,
-      "mean_steps": 2.7,
-      "revisit_rate": 0.0,
+      "mean_steps": 3.1,
+      "revisit_rate": 0.025,
+      "completion_20": 1.0
+    },
+    {
+      "weights": {
+        "curiosity": 0.5,
+        "competence": 1.0,
+        "boredom": 0.5,
+        "novelty": 1.0
+      },
+      "score": 0.9764,
+      "success_rate": 1.0,
+      "mean_steps": 3.4,
+      "revisit_rate": 0.025,
       "completion_20": 1.0
     }
   ]

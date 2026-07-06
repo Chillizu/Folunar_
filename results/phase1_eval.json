@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-07-03T20:53:43",
+  "timestamp": "2026-07-04T08:59:13",
   "config": {
-    "stub_mode": false,
+    "stub_mode": true,
     "num_episodes": 20,
     "best_weights": {
       "curiosity": 0.1,
@@ -9,14 +9,13 @@
       "boredom": 0.1,
       "novelty": 0.1
     },
-    "model": "Qwen/Qwen2.5-0.5B-Instruct",
-    "drive_weights_source": "Restored from config/phase1_default_drives.json; validated by this 20-episode real-LLM eval. Not traceable to a real-model grid search (grid search was only run in stub mode due to CPU/time constraints)."
+    "model": "Qwen/Qwen2.5-1.5B-Instruct"
   },
   "drive_agent": {
     "success_rate": 1.0,
-    "mean_steps": 3.3,
+    "mean_steps": 4.9,
     "next_state_accuracy": 1.0,
-    "revisit_rate": 0.0,
+    "revisit_rate": 0.1461,
     "completion_20": 1.0
   },
   "random_baseline": {
@@ -33,12 +32,12 @@
     "pass": true
   },
   "g2": {
-    "value": 0.1211,
+    "value": 0.1798,
     "threshold": 0.5,
     "pass": true
   },
   "g3": {
-    "value": 0.0,
+    "value": 0.1461,
     "threshold": 0.2,
     "pass": true
   }

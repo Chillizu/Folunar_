@@ -54,6 +54,17 @@ def _is_known_cell(cell: Tuple[int, int], known_cells: Set[Tuple[int, int]]) -> 
     return cell in known_cells
 
 
+def _to_json_serializable(obj: Any) -> Any:
+    """Recursively convert tuples and other non-JSON types into JSON-safe structures."""
+    if isinstance(obj, tuple):
+        return [_to_json_serializable(x) for x in obj]
+    if isinstance(obj, list):
+        return [_to_json_serializable(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _to_json_serializable(v) for k, v in obj.items()}
+    return obj
+
+
 def _sample_untrained_start(
     env: GridWorld, base_seed: int, known_cells: Set[Tuple[int, int]], max_trials: int = 1000
 ) -> Tuple[GridState, int]:
@@ -147,6 +158,8 @@ def _run_agent_episode(
         "revisit_rate": revisit_rate(trajectory),
         "g1": next_state_accuracy(predictions, trajectory[1:]),
         "trajectory": [s.agent for s in trajectory],
+        "start": trajectory[0].agent,
+        "goal": trajectory[0].goal,
     }
 
 
@@ -216,6 +229,8 @@ def main() -> None:
         help="Path to the trained LoRA adapter.",
     )
     parser.add_argument("--episodes", type=int, default=20, help="Episodes per condition.")
+    parser.add_argument("--start-episode", type=int, default=0, help="Episode offset for chunked runs.")
+    parser.add_argument("--total-episodes", type=int, default=10, help="Total episodes per condition in the full run (for deterministic chunking).")
     parser.add_argument("--max-candidates", type=int, default=4)
     parser.add_argument(
         "--drive-config",
@@ -226,6 +241,7 @@ def main() -> None:
     parser.add_argument("--eval-seed", type=int, default=123)
     parser.add_argument("--pragmatic-weight", type=float, default=3.0)
     parser.add_argument("--max-steps", type=int, default=50)
+    parser.add_argument("--skip-g1-test", action="store_true", help="Skip g1_test_set computation to save time during chunked runs.")
     args = parser.parse_args()
 
     adapter_path = Path(args.adapter)
@@ -245,6 +261,7 @@ def main() -> None:
 
     manifest = json.loads(manifest_path.read_text())
     known_cells = {tuple(c) for c in manifest["known_cells"]}
+    known_cells_list = [tuple(c) for c in manifest["known_cells"]]
     all_cells = [tuple(c) for c in manifest["all_cells"]]
     train_fraction = manifest.get("train_fraction", 0.5)
 
@@ -255,6 +272,7 @@ def main() -> None:
     print(f"[partial_eval] Known cells: {len(known_cells)} / {len(all_cells)}")
     print(f"[partial_eval] Pragmatic weight: {args.pragmatic_weight}")
     print(f"[partial_eval] Episodes per condition: {args.episodes}")
+    print(f"[partial_eval] Start episode: {args.start_episode}")
 
     print("[partial_eval] Loading WorldModel...")
     use_stub = os.environ.get("FOLUNAR_STUB_MODEL", "0") == "1"
@@ -283,10 +301,16 @@ def main() -> None:
     results: Dict[str, Any] = {cond: {"peda": [], "pragmatic_only": []} for cond in conditions}
 
     eval_start = time.time()
-    for cond in conditions:
+    for cond_idx, cond in enumerate(conditions):
         print(f"\n[partial_eval] Running condition: {cond}")
-        for ep in range(args.episodes):
-            goal = _sample_goal(cond, rng, manifest["known_cells"], all_cells)
+        # Each condition uses its own deterministic RNG stream so chunked runs
+        # can be resumed without reproducing the entire prior condition sequence.
+        rng = __import__("random").Random(args.eval_seed + cond_idx * args.total_episodes)
+        # Advance the RNG to the requested start episode.
+        for _ in range(args.start_episode):
+            _ = _sample_goal(cond, rng, known_cells_list, all_cells)
+        for ep in range(args.start_episode, args.start_episode + args.episodes):
+            goal = _sample_goal(cond, rng, known_cells_list, all_cells)
             env = GridWorld(goal=goal, max_steps=max_steps)
             cond_offset = 1000000 if cond == "goal_unknown" else 0
             base_seed = args.eval_seed + ep + cond_offset
@@ -325,9 +349,13 @@ def main() -> None:
             results[cond]["peda"].append(peda_result)
             results[cond]["pragmatic_only"].append(prag_result)
 
-            if (ep + 1) % 5 == 0 or ep == 0 or ep == args.episodes - 1:
+            if (
+                (ep + 1) % 5 == 0
+                or ep == args.start_episode
+                or ep == args.start_episode + args.episodes - 1
+            ):
                 print(
-                    f"  [{ep + 1}/{args.episodes}] "
+                    f"  [{ep + 1}/{args.total_episodes}] "
                     f"PEDA steps={peda_result['steps']} success={peda_result['success']} | "
                     f"Prag steps={prag_result['steps']} success={prag_result['success']}"
                 )
@@ -336,7 +364,11 @@ def main() -> None:
     print(f"\n[partial_eval] Evaluation complete in {eval_elapsed:.0f}s")
 
     print("[partial_eval] Computing g1_test_set on held-out state-action pairs...")
-    g1_test_set = _compute_g1_test_set(wm, manifest, max_steps=max_steps)
+    if args.skip_g1_test:
+        print("[partial_eval] Skipping g1_test_set computation (--skip-g1-test).")
+        g1_test_set = 0.0
+    else:
+        g1_test_set = _compute_g1_test_set(wm, manifest, max_steps=max_steps)
     print(f"[partial_eval] g1_test_set = {g1_test_set:.4f}")
 
     aggregated: Dict[str, Any] = {}
@@ -361,6 +393,9 @@ def main() -> None:
             "train_fraction": train_fraction,
             "known_cells": manifest["known_cells"],
             "episodes_per_condition": args.episodes,
+            "start_episode": args.start_episode,
+            "total_episodes": args.total_episodes,
+            "max_steps": max_steps,
             "pragmatic_weight": args.pragmatic_weight,
             "drive_weights": {
                 "curiosity": drive_weights.curiosity,
@@ -370,6 +405,7 @@ def main() -> None:
             },
         },
         "g1_test_set": round(g1_test_set, 4),
+        "raw_results": _to_json_serializable(results),
         "conditions": aggregated,
         "verdict": {
             "peda_better_in_unknown_goal": peda_better,

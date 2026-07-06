@@ -40,3 +40,6 @@ out.bin
 *.yuv
 *.fit
 *.ipynb_checkpoints
+
+# Partial eval chunk artifacts (merge results only)
+results/phase1_partial_eval_chunk_*.json

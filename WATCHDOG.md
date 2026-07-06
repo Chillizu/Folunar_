@@ -104,6 +104,65 @@ doc is too large, that is a signal to delete, not to split.
 
 ---
 
+### B5: Insufficient sample size claimed as hypothesis validation
+
+**Trigger**: The primary agent runs an experiment with <5
+episodes/condition (or <30 total observations) and uses the results to
+declare a hypothesis "validated", "confirmed", or "proven" — or to make a
+go/no-go decision about Phase advancement.
+
+**Why**: Phase 1 partial-training pilot showed a strong signal (PEDA 2
+steps vs pragmatic_only 20 steps failure) with only 1 episode/condition.
+The agent was tempted to treat this as confirmation. But 1 episode cannot
+distinguish signal from luck. Statistical inference requires enough data
+to rule out randomness. PEDA is a scientific project, not a demo.
+
+**Correct behavior**: 
+- Pilot (exploratory): 1-3 episodes, used to discover if an effect might
+  exist. Results are directional only, never decisive.
+- Confirmatory (validation): ≥10 episodes/condition, used to test a
+  pre-registered hypothesis with a pre-defined success threshold.
+- Never mix the two: a pilot result, no matter how strong, does NOT
+  replace a confirmatory experiment.
+- If hardware limits sample size, state the statistical uncertainty
+  explicitly (e.g., "N=3, directional signal only, p-value not computed").
+
+**Reference**: `PHASE1_PARTIAL_EVALUATION.md` — "统计显著性分析" section
+
+---
+
+### B6: Cherry-picking experimental conditions to fit desired outcomes
+
+**Trigger**: The primary agent changes an experimental condition
+(e.g., train_fraction, pragmatic_weight, grid size, model size) AFTER
+seeing initial results, and the change direction makes the results look
+better rather than testing a pre-registered hypothesis. OR: the agent
+reports only a subset of conditions where results were favorable while
+omitting unfavorable conditions.
+
+**Why**: Lowering train_fraction from 0.5 to 0.25 because g1_test_set
+was too high (>0.90) is a valid scientific decision — it increases
+experimental difficulty to create a meaningful test. But doing so without
+a pre-registered protocol, or repeatedly adjusting until results "look
+good", is p-hacking. The line between legitimate protocol refinement and
+cherry-picking is thin and must be explicitly defended.
+
+**Correct behavior**: 
+- Before running experiments, pre-register the experimental conditions
+  (train_fraction, grid size, episode count, success thresholds) in the
+  evaluation script or a brief protocol note.
+- If a condition must be changed mid-experiment, document the reason
+  ("g1_test_set=0.95, need more uncertainty") and re-run ALL conditions
+  with the new parameter — do not selectively re-run only the ones that
+  were previously unfavorable.
+- Report ALL results, including null and negative results. A negative
+  result that is well-controlled is more valuable than a positive result
+  that is cherry-picked.
+
+**Reference**: `PHASE1_PARTIAL_EVALUATION.md` — "pilot vs confirmatory" distinction
+
+---
+
 ## Concern Rules (WARN — advisor emits concern, held and re-confirmed)
 
 ### C1: Lint/docs/git consuming >2 consecutive turns
@@ -225,6 +284,91 @@ the measured latency and the selected configuration.
 
 ---
 
+### C7: Pilot success used to skip confirmatory experiment
+
+**Trigger**: A pilot experiment (1-3 episodes) produces a favorable
+result, and the agent uses it to justify moving forward — skipping the
+planned confirmatory experiment (≥10 episodes) — OR starts drafting
+Phase advancement documentation before the confirmatory run completes.
+
+**Why**: Strong pilot results create psychological pressure to "just move
+on". The Phase 1 partial-training pilot showed PEDA 2 steps vs
+pragmatic_only 20 steps — a dramatic difference. It is very tempting to
+treat this as "good enough" and proceed to Phase 1.5. But pilot results
+are, by definition, unreliable. The confirmatory experiment (10 episodes)
+is the only way to know if the effect is real.
+
+**Correct behavior**: 
+- A strong pilot result should INCREASE motivation to run the
+  confirmatory experiment quickly, not decrease it.
+- The confirmatory experiment must use the EXACT same protocol as the
+  pilot (same train_fraction, same drive weights, same pragmatic_weight)
+  unless a pre-registered protocol change is documented.
+- If the agent says "the pilot was so strong that we don't need more
+  data", treat this as a red flag requiring explicit override.
+
+**Reference**: `PHASE1_PARTIAL_EVALUATION.md` — "pilot vs confirmatory" section
+
+---
+
+### C8: Epistemic signal dominated by pragmatic term
+
+**Trigger**: The EFE calculation shows that the pragmatic term
+(`pragmatic * weight`, typically weight=3.0) contributes >80% of the
+EFE value while the epistemic term contributes <20%, across most
+states/actions. OR: the agent observes that behavior does not change
+meaningfully when epistemic is set to zero (pragmatic_only mode produces
+similar trajectories to full PEDA).
+
+**Why**: PEDA's core claim is that "prediction error drives exploration".
+If pragmatic distance dominates EFE, the system is not "prediction error
+driven" — it is "greedy distance minimization with a small curiosity
+bonus". Phase 1 first-round validation had this exact problem:
+pragmatic_weight=3.0 with epistemic≈0 created a pure greedy navigator
+that happened to perform well, but did not validate the core hypothesis.
+
+**Correct behavior**: 
+- Monitor the epistemic/pragmatic ratio during experiments (log both
+  terms per step).
+- If pragmatic dominates consistently, consider: (a) reducing
+  pragmatic_weight to 1.0 or 0.5, (b) increasing the environment's
+  uncertainty (lower train_fraction, larger grid), (c) adding a minimum
+  epistemic floor.
+- Report the ratio explicitly in validation reports. A PEDA validation
+  without epistemic contribution data is incomplete.
+
+**Reference**: `PHASE1_EVALUATION.md` — "核心问题：这不是预测误差驱动探索" section
+
+---
+
+### C9: Training and evaluation on same distribution
+
+**Trigger**: The agent trains a World Model (or any predictive model) on
+a dataset and then evaluates it on a draw from the SAME distribution
+without an explicit train/test split, hold-out set, or out-of-distribution
+test. OR: the evaluation environment has the same structure, rules, and
+state space as the training environment with no meaningful variation.
+
+**Why**: Phase 1 first-round validation had this exact problem — G1=1.0
+(World Model accuracy) because the eval data came from the same
+5×5 grid with the same dynamics as the training data. The WM was not
+"learning to predict"; it was "memorizing the training set". This is a
+fundamental experimental design flaw that invalidates any claim about
+generalization or learning.
+
+**Correct behavior**: 
+- Always maintain an explicit test set that the model has never seen
+  during training. In grid world: hold out a region of cells; in text
+  environments: hold out a subset of commands/tasks.
+- Report both in-distribution (train-set-like) and out-of-distribution
+  (novel) accuracy. In-distribution accuracy alone is meaningless.
+- If OOD accuracy is not available, explicitly state this limitation
+  and treat all claims as "memorization, not generalization".
+
+**Reference**: `PHASE1_EVALUATION.md` — "训练-评估同分布问题" section
+
+---
+
 ## Nit Rules (Minor — advisor emits nit, delivered immediately)
 
 ### N1: Work that could be deferred
@@ -280,5 +424,8 @@ until a genuinely new issue appears.
 
 - `PEDA架构设计与开发计划书_v1.1.docx` — full architecture and plan
 - `peda_reflection_v11.md` — what went wrong in v1.0 and how v1.1 fixed it
-- `CODING_AGENT_EVALUATION.md` — evaluation of the coding agent's execution
+- `CODING_AGENT_EVALUATION.md` — evaluation of the coding agent's Phase 1 execution
 - `folunar_review.agent.final.md` — Folunar_ post-mortem (historical lessons)
+- `PHASE1_EVALUATION.md` — evaluation of the first-round validation (G1/G2/G3)
+- `PHASE1_PARTIAL_EVALUATION.md` — evaluation of the partial-training redesign
+- `PROMPT_RUN_10EPS.md` — task prompt for the 10-episode confirmatory experiment

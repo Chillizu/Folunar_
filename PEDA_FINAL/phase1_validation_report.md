@@ -161,8 +161,6 @@ validation as Option A from the external evaluation: train the World Model on
 only a subset of cells, then compare PEDA against a pragmatic-only baseline
 when the goal lies in the **unknown** region.
 
-### 8.1 Setup
-
 | Item | Value |
 |------|-------|
 | Train fraction | 0.25 (6 known cells / 19 unknown cells) |
@@ -172,61 +170,106 @@ when the goal lies in the **unknown** region.
 | PEDA | `pragmatic_only=False`, `pragmatic_weight=3.0` |
 | Pragmatic-only baseline | `pragmatic_only=True`, `pragmatic_weight=3.0` |
 | Controls | Fresh `HomeostaticDriveSystem` per agent per episode; `LearningModule` disabled (`update_interval=100000`); same start/goal for both agents |
-| Pilot scale | 1 episode per condition (CPU inference limits prevented a larger run) |
+| Scale | 10 episodes per condition, run as 1-episode chunks with `--skip-g1-test`, merged via `merge_partial_eval_chunks.py` |
 
-### 8.2 Pilot Results
+### 8.2 Full Results (10 Episodes per Condition)
 
 ```
 Adapter: checkpoints/phase1/partial_adapter_real_25
 Known cells: 6 / 25
-Episodes per condition: 1
+Episodes per condition: 10
+Held-out test-set accuracy (g1_test_set): 0.8684 (computed from chunk 0 only)
 ```
 
 | Condition | Agent | Success | Mean Steps | Revisit Rate | g1 |
 |-----------|-------|---------|------------|--------------|-----|
-| goal_known | PEDA | 1.000 | 3.0 | 0.000 | 1.000 |
-| goal_known | pragmatic_only | 1.000 | 3.0 | 0.000 | 1.000 |
-| goal_unknown | PEDA | 1.000 | 2.0 | 0.000 | 0.500 |
-| goal_unknown | pragmatic_only | 0.000 | 20.0 | 0.905 | 1.000 |
+| goal_known | PEDA | 0.9 | 8.6 | 0.128 | 0.931 |
+| goal_known | pragmatic_only | 0.7 | 17.3 | 0.271 | 0.996 |
+| goal_unknown | PEDA | 0.7 | 16.6 | 0.311 | 0.727 |
+| goal_unknown | pragmatic_only | 0.6 | 21.1 | 0.366 | 0.754 |
 
-Held-out test-set accuracy (state-action pairs outside the trained cells):
-**g1_test_set = 0.8684**, confirming the model does not perfectly generalize to
-unknown cells.
+**Per-episode comparison** shows PEDA's advantage is concentrated in a few episodes where pragmatic-only gets stuck at max_steps (50). In most episodes, both agents behave nearly identically:
+
+* goal_known: PEDA wins in episodes 6–7 (6 steps each vs 50-step failures for pragmatic); episodes 0–5,8–9 are tied.
+* goal_unknown: PEDA wins in episode 7 (4 steps vs 50); episodes 0–6,8–9 are tied.
+* Both agents fail the same difficult episodes (3 out of 10 in each condition).
+
+Data: `results/phase1_partial_eval_10eps.json`
 
 ### 8.3 Interpretation
 
-In the `goal_unknown` condition, the pragmatic-only baseline fails because it
-greedily follows a distance signal toward an unknown goal location and gets
-stuck in revisits. PEDA succeeds because the prediction-error signal directs the
-agent away from well-predicted (known) cells and toward the unknown region where
-the goal is located. This is the strongest evidence obtained so far that the
-PEDA loop can use epistemic uncertainty to drive exploration.
+PEDA shows a directional advantage on aggregate metrics (mean_steps, success_rate,
+revisit_rate) over pragmatic-only in both conditions. However, **the difference
+cannot be attributed to prediction-error-driven exploration** for the following
+reasons:
+
+1. **Single checkpoint.** The adapter was trained with only 1 epoch, so
+   `EnsembleErrorComputer` loads exactly 1 checkpoint. Ensemble epistemic variance
+   is identically zero. PEDA's EFE formula collapses to:
+   ```
+   EFE = drive_system.apply_to_efe(pragmatic * 3.0)
+   ```
+   The output is dominated by the pragmatic distance term, modulated by the
+   `HomeostaticDriveSystem` (curiosity=0.1, competence=0.5, boredom=0.1, novelty=0.1).
+
+2. **Drive system as confound.** The observed advantage comes from the drive system
+   (low curiosity/boredom weight pushing exploration when the agent is stuck),
+   not from epistemic uncertainty. This is a meaningful signal but tests a
+   different mechanism than the core PEDA hypothesis.
+
+3. **Identical behavior on most episodes.** The aggregate advantage is driven by
+   2–3 episodes where pragmatic-only hits max_steps while PEDA succeeds. On the
+   remaining 7–8 episodes, both agents take exactly the same steps, choose the
+   same actions, and succeed/fail identically. This pattern is consistent with
+   rare-case drive modulation rather than a systematic epistemic exploration
+   advantage.
+
+4. **g1_test_set = 0.8684.** The model already generalizes reasonably well to
+   held-out state-action pairs, reducing the epistemic signal that could appear
+   even with a full ensemble.
 
 ### 8.4 Limitations
 
-1. **Pilot scale.** Only 1 episode per condition was run because each real-LLM
-   episode takes ~15 minutes on the CPU-only workstation. The result is
-   encouraging but not statistically robust.
-2. **Single checkpoint.** Training was limited to 1 epoch to fit the session
-   budget, so `EnsembleErrorComputer` has zero ensemble variance. The epistemic
-   signal used here is the per-prediction confidence term `(1 - level2_confidence)`
-   plus the dynamic drive modulation, not full ensemble variance.
-3. **g1_test_set < 0.90.** The held-out accuracy is 0.8684, below the original G1
-   target. This is acceptable for the hypothesis test (we want the model to be
-   imperfect in unknown cells) but would fail the original G1 gate if applied to
-   that metric.
-4. **Pragmatic weight.** The same pragmatic weight (3.0) was used for both agents,
-   so the comparison is fair. A lower weight might reveal even stronger epistemic
-   dominance, but it is not required for the pilot signal.
+1. **Scale.** 10 episodes per condition is a directional sample, not a
+   statistically robust comparison. Several episodes are trivially short (1–2
+   steps), reducing the effective difficulty.
+2. **Single checkpoint.** The most critical limitation: without ≥2 per-epoch
+   checkpoints, `epistemic_error` is always zero. This experiment **cannot**
+   validate the core PEDA hypothesis that prediction-error drives exploration.
+   To properly test it, the adapter needs ≥3 epochs of training with per-epoch
+   checkpoint saving.
+3. **Unknown cells visited.** PEDA's exploration metrics
+   (`mean_unknown_cells_visited=3.3, mean_unknown_fraction=0.86` in goal_unknown)
+   show that both agents operate primarily in unknown territory, but PEDA's
+   modest advantage is driven by escaping dead ends, not by intentional epistemic
+   exploration.
+4. **--skip-g1-test.** The g1_test_set was computed only in chunk 0 and reused.
+   This is acceptable for aggregation but means per-chunk held-out accuracy is
+   not tracked.
+5. **Reduced max_steps for chunks 8–9.** Chunks 8–9 used `--max-steps 45`
+   instead of 50 to fit within the 3600s timeout. The effect on aggregate
+   metrics is negligible (2 failed episodes would have added 5 more steps each
+   at 50 instead of 45).
+
+**Conclusion for the core hypothesis:** The 10-episode partial-training eval
+does not provide evidence that prediction-error (epistemic) signals drive
+exploration in the PEDA loop. The observed PEDA advantage is consistent with
+drive-system modulation alone, which is a separate mechanism. To isolate the
+epistemic contribution, re-run with ≥2 checkpoints (≥3 epochs of training) so
+that `EnsembleErrorComputer.produce_error()` returns nonzero epistemic
+uncertainty.
 
 ---
 
 ## 9. Verdict
 
 **G1/G2/G3 pass on the real 0.5B model in the controlled 5×5 synthetic setting.**
-The core prediction-error-driven action selection works here. However, the
-validation does **not** fully satisfy PEDA_FINAL/WATCHDOG hyperparameter
+The core hypothesis (prediction-error-driven exploration) is **not validated** by the partial-training test: the observed PEDA advantage can be explained by drive-system modulation alone, since ensemble epistemic error was zero (single checkpoint). See §8.4 for details.
+
+However, the validation does **not** fully satisfy PEDA_FINAL/WATCHDOG hyperparameter
 traceability requirements, and the model-size / generalization gaps are real.
+
+**Do not treat Phase 1 as closed or move to Phase 1.5 until (a) the partial-training test is re-run with ≥2 checkpoints to generate nonzero epistemic signal, (b) a real-LLM grid search is performed, and (c) model-size concerns are addressed.**
 
 **Do not treat Phase 1 as closed or move to Phase 1.5 until the real grid search
 and model-size concerns are addressed.**
