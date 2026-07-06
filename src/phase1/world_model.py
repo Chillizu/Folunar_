@@ -284,6 +284,25 @@ class WorldModel:
 
     def _stub_predict(self, state: GridState, action: Optional[Action]) -> PredictedState:
         """Deterministic grid-rule predictor for dependency-free testing."""
+        # TextState stub (Phase 1.5)
+        if hasattr(state, "room"):
+            pred_room = state.room
+            if action.name in ("go north", "north") and state.room == "study":
+                pred_room = "hallway"
+            elif action.name in ("go south", "south") and state.room == "hallway":
+                pred_room = "study"
+            exit_code = 2 if state.victory else 0
+            return PredictedState(
+                level1_exit_code=exit_code,
+                level1_confidence=1.0,
+                level2_next_agent=(0, 0),
+                level2_confidence=1.0,
+                level3_output_summary=f"you {action.name}",
+                level3_confidence=1.0,
+                level2_text=f"Location: {pred_room}.\n{state.description}",
+                epistemic_ratio=0.0,
+            )
+
         env = GridWorld(
             width=state.width,
             height=state.height,
@@ -322,22 +341,36 @@ class WorldModel:
             return self._stub_predict(state, action)
         return self._llm_predict(state, action)
 
-    def rollout(self, state: GridState, action: Action, horizon: int = 2) -> List[PredictedState]:
+    def rollout(self, state, action: Action, horizon: int = 2) -> List[PredictedState]:
         """Apply the same candidate action repeatedly to build a short trajectory."""
         trajectory = []
         current_state = state
         for _ in range(horizon):
             pred = self.predict(current_state, action)
             trajectory.append(pred)
-            current_state = GridState(
-                agent=pred.level2_next_agent,
-                goal=current_state.goal,
-                obstacles=current_state.obstacles,
-                width=current_state.width,
-                height=current_state.height,
-                step=current_state.step + 1,
-                max_steps=current_state.max_steps,
-            )
+            if hasattr(current_state, "room"):
+                # TextState: maintain text fields, update room from prediction
+                next_room = current_state.room
+                if pred.level2_text and "Location: " in pred.level2_text:
+                    next_room = pred.level2_text.split("\n")[0].replace("Location: ", "").strip().rstrip(".")
+                current_state = current_state.__class__(
+                    room=next_room,
+                    description=current_state.description,
+                    inventory=list(current_state.inventory),
+                    goal=current_state.goal,
+                    step=current_state.step + 1,
+                    max_steps=current_state.max_steps,
+                )
+            else:
+                current_state = GridState(
+                    agent=pred.level2_next_agent,
+                    goal=current_state.goal,
+                    obstacles=current_state.obstacles,
+                    width=current_state.width,
+                    height=current_state.height,
+                    step=current_state.step + 1,
+                    max_steps=current_state.max_steps,
+                )
         return trajectory
 
     def lora_finetune(
@@ -347,8 +380,13 @@ class WorldModel:
         learning_rate: float = 2e-4,
         batch_size: int = 4,
         checkpoint_dir: Optional[Path] = None,
+        text_mode: bool = False,
     ) -> None:
-        """Batch fine-tune the LoRA adapter on (state, action) -> next-state examples."""
+        """Batch fine-tune the LoRA adapter on (state, action) -> next-state examples.
+
+        text_mode=True uses text-environment prompt/target format (next_room/next_description)
+        instead of grid format (next_position).
+        """
         if self.mode == "stub" or self.model is None:
             return
 
@@ -356,28 +394,49 @@ class WorldModel:
         for ex in data:
             state_text = ex["state_text"]
             action_text = ex["action_name"]
-            next_text = ex["next_state_text"]
-            next_pos = [0, 0]
-            try:
-                parsed = ast.literal_eval(next_text)
-                if isinstance(parsed, (list, tuple)) and len(parsed) == 2:
-                    next_pos = [int(parsed[0]), int(parsed[1])]
-            except (SyntaxError, ValueError, TypeError):
-                pass
             exit_code = int(ex.get("exit_code", 0))
             summary = str(ex.get("summary", ""))
-            target = json.dumps({
-                "next_position": next_pos,
-                "exit_code": exit_code,
-                "summary": summary,
-            }, ensure_ascii=False)
-            user_content = (
-                f"State: {state_text}\n"
-                f"Action: {action_text}\n"
-                "Predict next position, exit code, and one-line summary as JSON:"
-            )
+
+            if text_mode:
+                next_room = ex.get("next_room", "")
+                next_desc = ex.get("next_description", "")
+                target = json.dumps({
+                    "next_room": next_room,
+                    "next_description": next_desc,
+                    "exit_code": exit_code,
+                    "summary": summary,
+                }, ensure_ascii=False)
+                user_content = (
+                    f"State:\n{state_text}\n"
+                    f"Action: {action_text}\n"
+                    "Predict next_room, next_description, exit_code, and summary as JSON:"
+                )
+                msg_system = self._text_system_message()
+            else:
+                # Grid format (original logic)
+                next_text = ex.get("next_state_text", "")
+                next_pos = [0, 0]
+                try:
+                    import ast
+                    parsed = ast.literal_eval(next_text)
+                    if isinstance(parsed, (list, tuple)) and len(parsed) == 2:
+                        next_pos = [int(parsed[0]), int(parsed[1])]
+                except (SyntaxError, ValueError, TypeError):
+                    pass
+                target = json.dumps({
+                    "next_position": next_pos,
+                    "exit_code": exit_code,
+                    "summary": summary,
+                }, ensure_ascii=False)
+                user_content = (
+                    f"State: {state_text}\n"
+                    f"Action: {action_text}\n"
+                    "Predict next position, exit code, and one-line summary as JSON:"
+                )
+                msg_system = self._system_message()
+
             messages = [
-                {"role": "system", "content": self._system_message()},
+                {"role": "system", "content": msg_system},
                 {"role": "user", "content": user_content},
             ]
             if self.tokenizer.chat_template is not None:
@@ -393,7 +452,7 @@ class WorldModel:
                     )
                 ).squeeze(0)
             else:
-                prompt = f"{messages[0]['content']}\n\n{messages[1]['content']}"
+                prompt = f"{msg_system}\n\n{user_content}"
                 full = f"{prompt}{target}{self.tokenizer.eos_token}"
                 prompt_input_ids = self.tokenizer(prompt, return_tensors="pt", max_length=256, truncation=True)["input_ids"].squeeze(0)
                 full_input_ids = self.tokenizer(full, return_tensors="pt", max_length=256, truncation=True)["input_ids"].squeeze(0)
@@ -402,14 +461,13 @@ class WorldModel:
         if not examples:
             return
 
+        # (dataset, dataloader, optimizer, training loop — unchanged from original)
         class _GridDataset(torch.utils.data.Dataset):
             def __init__(self, pairs, tokenizer):
                 self.pairs = pairs
                 self.tokenizer = tokenizer
-
             def __len__(self):
                 return len(self.pairs)
-
             def __getitem__(self, idx):
                 prompt_input_ids, full_input_ids = self.pairs[idx]
                 input_ids = full_input_ids
@@ -432,7 +490,6 @@ class WorldModel:
             num_batches = 0
             for batch_idx, batch in enumerate(dataloader):
                 optimizer.zero_grad()
-                # Pad batch
                 input_ids = torch.nn.utils.rnn.pad_sequence(
                     [b["input_ids"] for b in batch], batch_first=True, padding_value=self.tokenizer.pad_token_id
                 )
@@ -451,14 +508,15 @@ class WorldModel:
                     loss.backward()
                     optimizer.step()
                     epoch_loss += loss.item()
-                    num_batches += 1
                     if batch_idx % 20 == 0:
                         print(f"[lora_finetune] epoch {epoch+1}/{epochs} batch {batch_idx} loss={loss.item():.4f}")
-            if num_batches:
-                print(f"[lora_finetune] epoch {epoch+1}/{epochs} avg loss={epoch_loss/num_batches:.4f}")
+                num_batches += 1
+            avg_loss = epoch_loss / max(num_batches, 1)
+            print(f"[lora_finetune] epoch {epoch+1}/{epochs} avg loss={avg_loss:.4f}")
             if checkpoint_dir is not None:
-                epoch_ckpt = checkpoint_dir / f"checkpoint_epoch_{epoch+1}"
-                self.model.save_pretrained(epoch_ckpt)
+                epoch_ckpt = checkpoint_dir / f"checkpoint_epoch_{epoch + 1}"
+                epoch_ckpt.mkdir(parents=True, exist_ok=True)
+                self.model.save_pretrained(str(epoch_ckpt))
                 print(f"[lora_finetune] saved checkpoint {epoch_ckpt}")
         self.model.eval()
 
@@ -508,14 +566,15 @@ class EnsembleErrorComputer:
         return path
 
     @staticmethod
-    def _actual_exit_code(state: GridState, actual: GridState) -> int:
+    def _actual_exit_code(state, actual) -> int:
+        if hasattr(actual, "room"):
+            return 2 if actual.victory else 0
         if actual.agent == actual.goal:
             return 2
         if actual.agent == state.agent:
             return 1
         return 0
-
-    def _predictions_for(self, state: GridState, action: Optional[Action]) -> List[PredictedState]:
+    def _predictions_for(self, state, action: Optional[Action]) -> List[PredictedState]:
         if not self.checkpoints:
             return [self.world_model.predict(state, action)]
         return [
@@ -523,23 +582,54 @@ class EnsembleErrorComputer:
             for ckpt in self.checkpoints
         ]
 
-    def decompose_error(self, state: GridState, action: Optional[Action], actual: GridState) -> ErrorVector:
+    def decompose_error(self, state, action: Optional[Action], actual) -> ErrorVector:
         predictions = self._predictions_for(state, action)
         actual_exit = self._actual_exit_code(state, actual)
 
+        # TextState path
+        if hasattr(actual, "room"):
+            n = len(predictions)
+            pred_exits = [p.level1_exit_code for p in predictions]
+            pred_rooms = []
+            for p in predictions:
+                r = "unknown"
+                if p.level2_text and "Location: " in p.level2_text:
+                    r = p.level2_text.split("\n")[0].replace("Location: ", "").strip().rstrip(".")
+                pred_rooms.append(r)
+            level1_error = sum(1 for e in pred_exits if e != actual_exit) / n if n else 0
+            level2_errors = [0.0 if r == actual.room else 1.0 for r in pred_rooms]
+            mean_deviation = sum(level2_errors) / n if n else 0
+            if n > 1:
+                pw = 0.0
+                c = 0
+                for i in range(n):
+                    for j in range(i + 1, n):
+                        d = (1.0 if pred_exits[i] != pred_exits[j] else 0.0)
+                        d += (1.0 if pred_rooms[i] != pred_rooms[j] else 0.0)
+                        pw += d
+                        c += 1
+                ev = pw / c if c else 0.0
+            else:
+                ev = 0.0
+            return ErrorVector(
+                total_error=mean_deviation + ev,
+                level1_error=level1_error,
+                level2_error=mean_deviation,
+                level3_error=0.0,
+                epistemic_error=ev,
+                aleatoric_error=max(0.0, mean_deviation - ev),
+                ensemble_variance=ev,
+            )
+
+        # GridState path (original logic)
         pred_positions = [p.level2_next_agent for p in predictions]
         pred_exits = [p.level1_exit_code for p in predictions]
-
         n = len(pred_positions)
-
-        # Mean deviation from actual position
         level2_errors = [
             math.sqrt((x - actual.agent[0]) ** 2 + (y - actual.agent[1]) ** 2)
             for x, y in pred_positions
         ]
-        mean_deviation = sum(level2_errors) / n
-
-        # Ensemble variance: average pairwise squared distance among predictions
+        mean_deviation = sum(level2_errors) / n if n else 0
         if n > 1:
             pairwise = 0.0
             count = 0
@@ -549,19 +639,14 @@ class EnsembleErrorComputer:
                     dy = pred_positions[i][1] - pred_positions[j][1]
                     pairwise += dx * dx + dy * dy
                     count += 1
-            ensemble_variance = pairwise / count
+            ensemble_variance = pairwise / count if count else 0.0
         else:
             ensemble_variance = 0.0
-
-        # Level 1 error: discrete disagreement with actual exit code
-        level1_error = sum(1 for e in pred_exits if e != actual_exit) / n
-
+        level1_error = sum(1 for e in pred_exits if e != actual_exit) / n if n else 0
         level3_error = 0.0
-
         epistemic_error = ensemble_variance
         aleatoric_error = max(0.0, mean_deviation - ensemble_variance)
         total_error = mean_deviation + ensemble_variance
-
         return ErrorVector(
             total_error=total_error,
             level1_error=level1_error,

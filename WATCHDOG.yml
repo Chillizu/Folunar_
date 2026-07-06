@@ -1,6 +1,8 @@
 advisors: 
   - name: default
+    model: deepseek/deepseek-v4-pro:medium
   - name: SubAdvisor
+    model: kimi-code/kimi-k2.5
     tools: 
       - read
       - ask

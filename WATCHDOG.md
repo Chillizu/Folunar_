@@ -163,6 +163,65 @@ cherry-picking is thin and must be explicitly defended.
 
 ---
 
+### B7: Environment-model mismatch causing zero epistemic signal
+
+**Trigger**: The primary agent trains a World Model on an environment and
+achieves near-perfect out-of-distribution accuracy (g1 > 0.90) with minimal
+training data (<25% of state-action space). Despite this, the agent
+continues attempting to make the environment work by further lowering
+train_fraction, adding epochs, or tuning hyperparameters — rather than
+recognizing that the environment is too simple for the model.
+
+**Why**: Phase 1 attempted Grid World validation with 0.5B Qwen2.5.
+Results: 25% train → g1=0.87; 10% train + 3 epochs → g1=1.0. The
+agent spent multiple rounds trying 25% → 10% → 3 epochs before finally
+accepting that 5×5 grid is too simple for 0.5B. This is not a failure
+of the hypothesis — it is a failure of the experimental design.
+
+**Correct behavior**: 
+- If g1 > 0.90 with <50% training data after 1-2 attempts, the
+  environment is too simple for the model. Do not try a third time.
+- Accept the finding: "Environment X does not create enough uncertainty
+  for Model Y under current conditions."
+- Pivot immediately to a more complex environment (TextWorld, busybox
+  sandbox, larger grid with obstacles) rather than further reducing
+  train_fraction.
+- Do not view this as "giving up" — it is correcting an experimental
+  design flaw. The engineering infrastructure validated by the simple
+  environment still has value.
+
+**Reference**: `PHASE1_PARTIAL_EVALUATION.md` — "实际路径 vs PEDA v1.1 计划" section
+
+---
+
+### B8: "Just one more try" death spiral
+
+**Trigger**: The primary agent has attempted the same experimental
+approach ≥3 times with progressively more extreme parameters (e.g.,
+train_fraction: 0.5 → 0.25 → 0.10 → 0.05; pragmatic_weight: 3.0 →
+1.0 → 0.5) without achieving the desired result. The agent continues to
+propose further parameter adjustments rather than acknowledging the
+approach may be fundamentally unsuitable.
+
+**Why**: Phase 1's Grid World saga: 25% train fraction → 10% → 3 epochs
+→ each attempt took hours → none produced epistemic signal. This pattern
+is rationalized as "scientific persistence" but is actually sunk-cost
+fallacy. Each failed attempt makes the next attempt psychologically harder
+to abandon, even though the evidence points to environment-model mismatch.
+
+**Correct behavior**: 
+- Maximum 2 attempts per experimental condition. After the 2nd failure,
+  document the negative result and pivot.
+- The 3rd attempt requires written justification citing WHY this attempt
+  will succeed where the previous two failed. If the justification is
+  "maybe this parameter will work", the attempt is not authorized.
+- Negative results are valuable. "Grid World cannot produce epistemic
+  signal with 0.5B" is a valid scientific conclusion, not a failure.
+
+**Reference**: `PHASE1_PARTIAL_EVALUATION.md` — "实际路径 vs PEDA v1.1 计划" section
+
+---
+
 ## Concern Rules (WARN — advisor emits concern, held and re-confirmed)
 
 ### C1: Lint/docs/git consuming >2 consecutive turns
@@ -369,6 +428,43 @@ generalization or learning.
 
 ---
 
+### C10: Plan deviation not reported to upstream
+
+**Trigger**: The actual execution path deviates significantly from the
+pre-agreed plan (e.g., skipping a Phase, spending 3x longer than
+allocated on a task, changing the experimental approach), and the agent
+does not produce a concise deviation report explaining: (1) what changed,
+(2) why it changed, (3) what the new path looks like, and (4) the
+estimated impact on overall timeline.
+
+**Why**: PEDA v1.1 planned 29-40 weeks with Phase 1 (Grid World) as the
+core hypothesis validation. Actual execution: Grid World abandoned after
+multiple failed attempts, Phase 1's hypothesis validation role moved to
+Phase 1.5 (text environment), and the overall timeline structure changed
+significantly. While the team's decision-making was sound, the deviation
+was only discussed in ad-hoc messages rather than in a structured report.
+Without explicit deviation tracking, future phases may unknowingly repeat
+the same misalignment.
+
+**Correct behavior**: 
+- When a deviation >25% from the planned approach occurs, produce a
+  brief "Deviation Report" (can be a single paragraph) covering the 4
+  points above.
+- This is not about blame — it is about maintaining shared mental model
+  between the agent and upstream reviewers.
+- Example: "Grid World abandoned after 3 attempts (25%→10%→3epochs).
+  Root cause: environment too simple for 0.5B model. New path: Phase 1.5
+  (text environment, 2 rooms) takes over hypothesis validation. Timeline
+  impact: Phase 1 compressed to infrastructure validation only, Phase 1.5
+  extended by 1-2 weeks. Overall project timeline: 20-30 weeks (vs
+  planned 29-40)."
+- Attach this report to the current conversation or commit it as
+  `docs/deviation_YYYYMMDD.md`.
+
+**Reference**: `PHASE1_PARTIAL_EVALUATION.md` — "实际路径 vs PEDA v1.1 计划" section
+
+---
+
 ## Nit Rules (Minor — advisor emits nit, delivered immediately)
 
 ### N1: Work that could be deferred
@@ -429,3 +525,6 @@ until a genuinely new issue appears.
 - `PHASE1_EVALUATION.md` — evaluation of the first-round validation (G1/G2/G3)
 - `PHASE1_PARTIAL_EVALUATION.md` — evaluation of the partial-training redesign
 - `PROMPT_RUN_10EPS.md` — task prompt for the 10-episode confirmatory experiment
+- `PROMPT_DECISION.md` — 30-min decision task (0.10 train-fraction or Phase 1.5)
+- `PROMPT_PHASE1_5_TRAIN.md` — Phase 1.5 text World Model training task
+- `PHASE1_5_SETUP_REPORT.md` — Phase 1.5 environment setup report

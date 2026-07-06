@@ -143,11 +143,29 @@ class ActionGenerator:
 
     def compute_efe(
         self,
-        state: GridState,
+        state,
         trajectory: List[PredictedState],
         action_history: List[Action],
         candidate_action: Optional[Action] = None,
     ) -> float:
+        # TextState path: pragmatic = distance to victory (0 if predicted win, else 0.5)
+        if hasattr(state, "room"):
+            pragmatic = 0.0
+            if trajectory:
+                final_exit = trajectory[-1].level1_exit_code
+                pragmatic = 0.0 if final_exit == 2 else 0.5
+            if self.pragmatic_only:
+                return pragmatic * self.pragmatic_weight
+            epistemic = 0.0
+            for i, p in enumerate(trajectory):
+                ratio = p.epistemic_ratio if p.epistemic_ratio is not None else 0.5
+                epistemic += (1.0 - p.level2_confidence) * ratio * (0.9 ** i)
+            base_efe = epistemic + pragmatic * self.pragmatic_weight
+            return self.drive_system.apply_to_efe(
+                base_efe, trajectory, action_history, candidate_action=candidate_action
+            )
+
+        # GridState path (original logic)
         pragmatic = 0.0
         if trajectory and state.goal is not None:
             final = trajectory[-1].level2_next_agent
