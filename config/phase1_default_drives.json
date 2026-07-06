@@ -1,8 +1,9 @@
 [
   {
     "curiosity": 0.1,
-    "competence": 0.5,
+    "competence": 2.0,
     "boredom": 0.1,
-    "novelty": 0.1
+    "novelty": 2.0
   }
 ]
+
