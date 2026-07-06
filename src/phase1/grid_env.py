@@ -152,3 +152,14 @@ class Perception:
                     row.append(".")
             lines.append("".join(row))
         return "\n".join(lines)
+
+    @staticmethod
+    def render_text(state) -> str:
+        """Render a text-based state for LLM prompts."""
+        inv = ", ".join(state.inventory) if state.inventory else "nothing"
+        return (
+            f"Location: {state.room.upper()}.\n"
+            f"Description: {state.description}\n"
+            f"Inventory: {inv}.\n"
+            f"Goal: {state.goal}"
+        )

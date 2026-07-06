@@ -131,6 +131,37 @@ class WorldModel:
             "Predict next position, exit code, and one-line summary as JSON:"
         )
 
+    def _text_system_message(self) -> str:
+        """System instruction for text adventure prediction."""
+        return (
+            "You predict what happens next in a text adventure game. "
+            "Given a state description and action, output exactly one JSON object with "
+            "next_room, next_description, exit_code, and summary.\n"
+            "exit_code rules: 0 = action succeeded, 1 = action failed or invalid, 2 = game completed.\n\n"
+            "Example:\n"
+            "State:\n"
+            'Location: STUDY.\n'
+            'Description: You are in a small study. On the desk is a key. A door leads north.\n'
+            'Inventory: nothing.\n'
+            'Goal: Find the treasure.\n'
+            "Action: take key\n"
+            '{"next_room": "study", "next_description": "You take the key from the desk.", '
+            '"exit_code": 0, "summary": "you take the key"}'
+        )
+
+    def _build_text_prompt(self, state, action: Optional[Action]) -> str:
+        from phase1.grid_env import Perception as P
+        if hasattr(state, "room"):
+            state_text = P.render_text(state)
+        else:
+            state_text = str(state)
+        action_text = action.name if action else "NONE"
+        return (
+            f"State:\n{state_text}\n"
+            f"Action: {action_text}\n"
+            "Predict next_room, next_description, exit_code, and summary as JSON:"
+        )
+
     @staticmethod
     def _parse_generation(text: str) -> Dict[str, Any]:
         """Extract the first JSON object from generated text."""
@@ -163,12 +194,15 @@ class WorldModel:
             probs.append(torch.softmax(score, dim=-1)[0, token_id].item())
         return float(sum(probs)) / len(probs)
 
-    def _llm_predict(self, state: GridState, action: Optional[Action]) -> PredictedState:
-        prompt = self._build_prompt(state, action)
+    def _llm_predict(self, state, action: Optional[Action]) -> PredictedState:
+        is_text = hasattr(state, "room")  # TextState has .room, GridState has .agent
+        prompt = self._build_text_prompt(state, action) if is_text else self._build_prompt(state, action)
+        msg_system = self._text_system_message() if is_text else self._system_message()
         messages = [
-            {"role": "system", "content": self._system_message()},
+            {"role": "system", "content": msg_system},
             {"role": "user", "content": prompt},
         ]
+        max_tok = 120 if is_text else 80
         if self.tokenizer.chat_template is not None:
             input_ids = self._extract_input_ids(
                 self.tokenizer.apply_chat_template(
@@ -179,7 +213,7 @@ class WorldModel:
             with torch.no_grad():
                 gen_out = self.model.generate(
                     input_ids,
-                    max_new_tokens=80,
+                    max_new_tokens=max_tok,
                     do_sample=False,
                     pad_token_id=self.tokenizer.pad_token_id,
                     output_scores=True,
@@ -189,13 +223,13 @@ class WorldModel:
             generated = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
             confidence = self._generation_confidence(gen_out.scores, generated_ids)
         else:
-            formatted_prompt = f"{self._system_message()}\n\n{prompt}"
+            formatted_prompt = f"{msg_system}\n\n{prompt}"
             inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.device)
             input_len = inputs["input_ids"].shape[1]
             with torch.no_grad():
                 gen_out = self.model.generate(
                     **inputs,
-                    max_new_tokens=80,
+                    max_new_tokens=max_tok,
                     do_sample=False,
                     pad_token_id=self.tokenizer.pad_token_id,
                     output_scores=True,
@@ -206,20 +240,38 @@ class WorldModel:
             confidence = self._generation_confidence(gen_out.scores, generated_ids)
         parsed = self._parse_generation(generated)
 
+        if is_text:
+            next_room = parsed.get("next_room", state.room)
+            next_desc = parsed.get("next_description", state.description)
+            exit_code = parsed.get("exit_code", 1)
+            try:
+                exit_code = int(exit_code)
+            except (TypeError, ValueError):
+                exit_code = 1
+            summary = str(parsed.get("summary", ""))[:80]
+            return PredictedState(
+                level1_exit_code=exit_code,
+                level1_confidence=confidence,
+                level2_next_agent=(0, 0),
+                level2_confidence=confidence,
+                level3_output_summary=summary,
+                level3_confidence=confidence,
+                level2_text=f"Location: {next_room}.\n{next_desc}",
+                epistemic_ratio=1.0 - confidence,
+            )
+
+        # Grid state path (original logic)
         next_pos = parsed.get("next_position")
         if isinstance(next_pos, list) and len(next_pos) == 2:
             next_pos = (int(next_pos[0]), int(next_pos[1]))
         else:
             next_pos = state.agent
-
         exit_code = parsed.get("exit_code")
         try:
             exit_code = int(exit_code)
         except (TypeError, ValueError):
             exit_code = 1
-
         summary = str(parsed.get("summary", ""))[:80]
-
         return PredictedState(
             level1_exit_code=exit_code,
             level1_confidence=confidence,

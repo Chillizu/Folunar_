@@ -23,6 +23,8 @@ def run_episode(
     predictions: List[PredictedState] = []
     trajectory: List[GridState] = [state]
     total_reward = 0.0
+    epistemic_errors: list[float] = []
+    aleatoric_errors: list[float] = []
 
     done = False
     while not done:
@@ -44,6 +46,8 @@ def run_episode(
             summary = "agent reached goal"
 
         error = error_computer.decompose_error(state, action, next_state)
+        epistemic_errors.append(error.epistemic_error)
+        aleatoric_errors.append(error.aleatoric_error)
         drive_system.update(error, action, has_external_input=False, action_history=action_history)
 
         learning_module.store_experience(
@@ -71,6 +75,8 @@ def run_episode(
         "steps": state.step,
         "success": state.agent == state.goal,
         "reward": total_reward,
+        "mean_epistemic_error": sum(epistemic_errors) / len(epistemic_errors) if epistemic_errors else 0.0,
+        "mean_aleatoric_error": sum(aleatoric_errors) / len(aleatoric_errors) if aleatoric_errors else 0.0,
     }
     return trajectory, predictions, action_history, metrics
 

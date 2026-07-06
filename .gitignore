@@ -43,3 +43,4 @@ out.bin
 
 # Partial eval chunk artifacts (merge results only)
 results/phase1_partial_eval_chunk_*.json
+results/phase1_partial_eval_e3_smoke.json

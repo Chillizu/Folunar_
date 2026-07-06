@@ -157,6 +157,8 @@ def _run_agent_episode(
         "success": ep_metrics["success"],
         "revisit_rate": revisit_rate(trajectory),
         "g1": next_state_accuracy(predictions, trajectory[1:]),
+        "mean_epistemic_error": ep_metrics.get("mean_epistemic_error", 0.0),
+        "mean_aleatoric_error": ep_metrics.get("mean_aleatoric_error", 0.0),
         "trajectory": [s.agent for s in trajectory],
         "start": trajectory[0].agent,
         "goal": trajectory[0].goal,
@@ -173,12 +175,16 @@ def _aggregate(
             "mean_steps": float(max_steps),
             "revisit_rate": 0.0,
             "g1": 0.0,
+            "mean_epistemic_error": 0.0,
+            "mean_aleatoric_error": 0.0,
         }
     return {
         "success_rate": sum(e["success"] for e in episodes) / n,
         "mean_steps": sum(e["steps"] for e in episodes) / n,
         "revisit_rate": sum(e["revisit_rate"] for e in episodes) / n,
         "g1": sum(e["g1"] for e in episodes) / n,
+        "mean_epistemic_error": sum(e.get("mean_epistemic_error", 0.0) for e in episodes) / n,
+        "mean_aleatoric_error": sum(e.get("mean_aleatoric_error", 0.0) for e in episodes) / n,
     }
 
 
