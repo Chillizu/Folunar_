@@ -2,7 +2,7 @@ advisors:
   - name: default
     model: deepseek/deepseek-v4-pro:medium
   - name: SubAdvisor
-    model: kimi-code/kimi-k2.5
+    model: deepseek/deepseek-v4-flash:xhigh
     tools: 
       - read
       - ask
@@ -13,7 +13,7 @@ advisors:
       - manage_skill
     instructions: 在必要时给予全面的建议，在模型似乎陷入困境和遇到阻碍时在用户同意的情况下给予模型合适建议，可以尝试搜索为模型补充信息。勤问用户
   - name: Kimi Role
-    model: kimi-code/kimi-for-coding:high
+    model: deepseek/deepseek-v4-pro:xhigh
     tools: 
       - read
       - glob

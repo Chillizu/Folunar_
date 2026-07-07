@@ -155,7 +155,9 @@ class Perception:
 
     @staticmethod
     def render_text(state) -> str:
-        """Render a text-based state for LLM prompts."""
+        """Render a state to text for LLM prompts."""
+        if hasattr(state, "container_id"):
+            return state.to_json()
         inv = ", ".join(state.inventory) if state.inventory else "nothing"
         return (
             f"Location: {state.room.upper()}.\n"

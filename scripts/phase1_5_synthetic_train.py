@@ -21,8 +21,8 @@ from phase1_5.text_env import TextRoomEnv
 
 
 def generate_text_transitions(
-    num_walks: int = 50,
-    walk_length: int = 20,
+    num_walks: int = 200,
+    walk_length: int = 30,
     seed: int = 42,
 ) -> list[dict]:
     """Generate (state, action, next_state) triples from TextRoomEnv random walks."""
@@ -53,6 +53,7 @@ def generate_text_transitions(
             "summary": summary,
             "next_room": next_s.room,
             "next_description": next_s.description,
+            "next_inventory": ", ".join(next_s.inventory) if next_s.inventory else "nothing",
             "reward": reward,
             "victory": next_s.victory,
         })
@@ -67,8 +68,36 @@ def generate_text_transitions(
             next_s, reward, done = env.step(s, action_name)
             _append(s, action_name, next_s, reward, done)
 
+    # Deterministic: optimal path, dead-end, and loop
+    s = env.reset(seed=100)
+    for a in ["take key", "go north", "unlock chest with key"]:
+        ns, r, d = env.step(s, a)
+        _append(s, a, ns, r, d)
+        s = ns
+    s = env.reset(seed=200)
+    s.room = "hallway"
+    s.description = env._get_description("hallway")
+    s.inventory = []
+    ns, r, d = env.step(s, "unlock chest with key")
+    _append(s, "unlock chest with key", ns, r, d)
+    for _ in range(3):
+        s = env.reset(seed=300)
+        ns, r, d = env.step(s, "take key")
+        _append(s, "take key", ns, r, d)
+        ns2, r, d = env.step(ns, "go north")
+        _append(ns, "go north", ns2, r, d)
+    for _ in range(2):
+        s = env.reset(seed=400)
+        ns, r, d = env.step(s, "go north")
+        _append(s, "go north", ns, r, d)
+        ns2, _, _ = env.step(ns, "go south")
+        _append(ns, "go south", ns2, r, d)
+
+
     # Random walks for coverage (diverse inventory/description states)
-    for walk in range(num_walks):
+    # Strategy A: pure random (1/3 of walks)
+    a_limit = num_walks // 3
+    for walk in range(a_limit):
         state = env.reset(seed=seed + walk)
         for step in range(walk_length):
             action_name = rng.choice(all_actions)
@@ -78,6 +107,39 @@ def generate_text_transitions(
             if done:
                 state = env.reset(seed=seed + walk + (step + 1) * 1000)
 
+    # Strategy B: goal-biased — prefer unseen actions
+    for walk in range(a_limit, a_limit * 2):
+        state = env.reset(seed=seed + walk)
+        seen_this_walk: set[str] = set()
+        for step in range(walk_length):
+            untried = [a for a in all_actions if a not in seen_this_walk]
+            if untried:
+                action_name = rng.choice(untried)
+            else:
+                action_name = rng.choice(all_actions)
+            seen_this_walk.add(action_name)
+            next_s, reward, done = env.step(state, action_name)
+            _append(state, action_name, next_s, reward, done)
+            state = next_s
+            if done:
+                state = env.reset(seed=seed + walk + (step + 1) * 1000)
+
+    # Strategy C: repeat — same action 2-3x before switching
+    for walk in range(a_limit * 2, num_walks):
+        state = env.reset(seed=seed + walk)
+        step = 0
+        while step < walk_length:
+            action_name = rng.choice(all_actions)
+            repeats = rng.randint(2, 3)
+            repeats = min(repeats, walk_length - step)
+            for _ in range(repeats):
+                next_s, reward, done = env.step(state, action_name)
+                _append(state, action_name, next_s, reward, done)
+                state = next_s
+                step += 1
+                if done:
+                    state = env.reset(seed=seed + walk + step * 1000)
+                    break
     return data
 
 
@@ -89,8 +151,8 @@ def main():
     parser.add_argument("--batch-size", type=int, default=4, help="Batch size")
     parser.add_argument("--train-seed", type=int, default=42, help="Seed for data generation")
     parser.add_argument("--output-dir", default="checkpoints/phase1_5/text_adapter_e3", help="Output path")
-    parser.add_argument("--num-walks", type=int, default=50, help="Number of random walks")
-    parser.add_argument("--walk-length", type=int, default=20, help="Steps per random walk")
+    parser.add_argument("--num-walks", type=int, default=200, help="Number of random walks")
+    parser.add_argument("--walk-length", type=int, default=30, help="Steps per random walk")
     parser.add_argument("--stub", action="store_true", help="Smoke-test mode (no LLM)")
     args = parser.parse_args()
 

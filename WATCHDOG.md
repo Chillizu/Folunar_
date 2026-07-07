@@ -86,7 +86,12 @@ the 3 gates it passes. If none, do not create the file.
 
 ---
 
-### B4: Creating new PLAN/ARCH documents instead of updating existing ones
+### B4: Creating new PLAN/ARCH documents instead of updating existing ones [DEMOTED: Blocker → Concern]
+
+> **Update 2026-07-07 (GLM-5.2 follow-up)**: Demoted from Blocker to Concern.
+> In exploration phases, direction pivots are normal. A new focused document
+> is often clearer than appending to an outdated monolith. This rule still
+> applies during validation / write-up phases.
 
 **Trigger**: A new file matching `PLAN_*.md`, `ARCH_*.md`, or similar is
 created, OR an existing document grows by >50% without a corresponding code
@@ -163,7 +168,13 @@ cherry-picking is thin and must be explicitly defended.
 
 ---
 
-### B7: Environment-model mismatch causing zero epistemic signal
+### B7: Environment-model mismatch causing zero epistemic signal [DEMOTED: Blocker → Concern]
+
+> **Update 2026-07-07 (GLM-5.2 follow-up)**: Demoted from Blocker to Concern.
+> Hard-blocking judgment calls stifles boundary probing. The spirit of this
+> rule ("recognize when to pivot") remains, but the advisor should counsel
+> rather than block. Use the "3 Questions" framework (see end of doc) to
+> evaluate whether continued attempts are justified.
 
 **Trigger**: The primary agent trains a World Model on an environment and
 achieves near-perfect out-of-distribution accuracy (g1 > 0.90) with minimal
@@ -222,9 +233,51 @@ to abandon, even though the evidence points to environment-model mismatch.
 
 ---
 
+### B9: Anomalous results unexplained after 1 hour
+
+> **Added 2026-07-07 (GLM-5.2 follow-up)**. New Blocker rule.
+
+**Trigger**: An experiment produces an anomalous result (e.g., score >0.99
+on a hard task, 100% accuracy with minimal data, a behavior loop that
+cannot be explained by the current model of how EFE/Drive System works),
+and the agent has not provided a falsifiable explanation grounded in
+the underlying math/logic within 1 hour of observing the anomaly.
+
+**Why**: Phase 1's Grid Search showed score=0.996, steps=1.0 — likely a
+bug in goal placement or step counting — but was accepted without
+investigation. Phase 1.5 showed inventory confidence=0.999 causing a
+17-step dead loop — this was eventually explained (overconfident WM +
+weak boredom drive), but only after multiple eval cycles. Anomalies are
+often the only signal of hidden bugs or fundamental limitations. Ignoring
+them is not "moving fast" — it is building on sand.
+
+**Correct behavior**:
+- When an anomaly is observed, start a timer.
+- Within 1 hour: (1) reproduce the result, (2) inspect intermediate
+  variables, (3) either locate a bug or provide a falsifiable explanation,
+  (4) document as known-issue-with-explanation if unresolvable.
+- If the anomaly cannot be explained within 1 hour: **STOP writing code**.
+  Switch to theory-analysis mode: draw the computational graph, trace the
+  signal flow, identify where the math breaks down.
+- Do not "work around" an unexplained anomaly by adding compensating
+  code (e.g., "if score > 0.99: score = 0.5"). This is B2-level
+  data fabrication.
+- After explanation: if the anomaly reveals a bug → fix it. If it
+  reveals a fundamental limitation → document it as a project finding
+  and adjust the hypothesis.
+
+**Reference**: `CODING_AGENT_EVALUATION.md` — Problem 3 "Grid Search结果可疑未调查"
+
+---
+
 ## Concern Rules (WARN — advisor emits concern, held and re-confirmed)
 
-### C1: Lint/docs/git consuming >2 consecutive turns
+### C1: Lint/docs/git consuming >2 consecutive turns [DEMOTED: Concern → Nit]
+
+> **Update 2026-07-07 (GLM-5.2 follow-up)**: Demoted from Concern to Nit.
+> Lint and docs are the lowest priority during exploration. The advisor
+> should note them but not hold progress. This rule returns to Concern level
+> only during pre-publication / write-up phases.
 
 **Trigger**: Two or more consecutive turns are spent on ruff/pyright/mypy
 fixes, AGENTS.md/README updates, git operations (commit/push/merge), or IRC
@@ -465,6 +518,147 @@ the same misalignment.
 
 ---
 
+### C11: Measurement method inconsistent with independent ground truth [RELAXED]
+
+> **Update 2026-07-07 (GLM-5.2 follow-up)**: Relaxed for early exploration.
+> During initial exploration, perfect measurement alignment is unrealistic.
+> The rule fully applies during validation / confirmatory phases. During
+> exploration: note discrepancies, prioritize fixing, but do not block
+> progress if investigation would take >1 hour.
+
+**Trigger**: Two or more measurement methods that purport to measure the
+same construct produce discrepant results (>10x difference or opposite
+conclusions), and the agent does not investigate the discrepancy OR
+continues using the method that produces the "more favorable" result.
+
+**Why**: Phase 1.5 had this exact problem. `decompose_error()` reported
+`mean_epistemic_error=0.0` (no uncertainty detected), while the semantic
+probe showed 50% disagreement on full tuples and 40% on has-key
+predictions. The discrepancy existed because `decompose_error()` only
+checked `(room, exit_code)` — ignoring the `inventory`/`has-key`
+dimension entirely. The agent continued reporting `epistemic=0` even
+though a more careful measurement showed substantial epistemic
+uncertainty. Using a broken measurement method led to false conclusions
+about the core hypothesis.
+
+**Correct behavior**:
+- When two measurement methods disagree by >10x, STOP and investigate.
+- The investigation must: (1) examine what each method actually measures,
+  (2) identify which dimensions/metrics each includes/excludes, (3)
+  determine which method is more complete, (4) fix the incomplete one.
+- Never "average" discrepant measurements or use the one that fits your
+  hypothesis. The more complete method wins.
+- After fixing, validate that the two methods now agree within 2x.
+- **Exploration phase relaxation**: If fixing would take >1 hour, document
+  the discrepancy with a `# TODO(measurement)` and continue. Return to
+  fix before confirmatory experiments.
+
+**Reference**: `PHASE1_5_COMPLETE_EVALUATION.md` — "验证 3：decompose_error Bug" section
+
+---
+
+### C12: Agent trapped in local optimum due to overconfident predictions
+
+**Trigger**: The PEDA agent repeatedly selects the same action for ≥3
+consecutive steps despite no progress toward the goal, and investigation
+shows that the World Model assigns >0.99 confidence to the
+state-prediction for that action — creating a self-reinforcing loop where
+high confidence → low EFE → same action → same state → high confidence.
+
+**Why**: Phase 1.5 full eval showed PEDA stuck in an `inventory` loop
+for 17 consecutive steps after successfully taking the key. The model
+assigned 0.999 confidence to `inventory` predictions, making its EFE
+the lowest of all candidates. The agent had no mechanism to escape:
+boredom drive (0.1) was too weak, and epistemic bonus was zero because
+all checkpoints agreed. This is not a bug in the code — it is a
+fundamental limitation of the EFE formulation when the World Model is
+overconfident about uninformative actions.
+
+**Correct behavior**:
+- Log the confidence values per action per step. If any action has
+  confidence >0.95 for ≥3 consecutive steps, flag as "potential loop".
+- If detected: (a) temporarily boost exploration bonus for actions not
+  taken in the last 3 steps, (b) consider a "minimum epistemic floor"
+  that prevents any action's EFE from being zero, (c) document the loop
+  pattern as a known limitation.
+- Distinguish "benevolent loops" (repeated action makes progress) from
+  "trapped loops" (repeated action with no state change). Only the
+  latter require intervention.
+- This pattern is expected in early phases. Do not over-engineer
+  solutions — document and move on.
+
+**Reference**: `PHASE1_5_COMPLETE_EVALUATION.md` — "行为分析" section
+
+---
+
+### C13: Token-space prediction used when latent-space is available
+
+**Trigger**: The project has been advised (by external expert review) that
+predicting next_state in token space is statistically inefficient and
+noisy compared to latent-space prediction (JEPA route), yet the agent
+continues to refine token-space approaches without evaluating the
+alternative. OR: Phase 2 core hypothesis fails and the agent proposes
+token-space improvements (more data, larger model) without considering
+latent-space prediction.
+
+**Why**: GLM-5.2 identified JEPA (I-JEPA, V-JEPA) as a major omission.
+Token-space prediction forces LLM to model grammar, whitespace, and
+formatting — all irrelevant to environment dynamics. Latent-space
+prediction discards these "difficult-to-predict bottom-level details"
+and focuses on state representation changes. If Phase 2 fails to
+produce effective epistemic signals, continuing to optimize token-space
+prediction is a form of B8 ("just one more try" death spiral) applied
+to architecture rather than hyperparameters.
+
+**Correct behavior**:
+- Phase 2 uses token-space prediction with JSON-structured states
+  (immediate implementation cost ~30 min, significant noise reduction).
+- If Phase 2 hypothesis validation fails: BEFORE proposing token-space
+  improvements, evaluate JEPA/latent-space prediction feasibility.
+  Estimated cost: 3-5 days. This is a "Phase-level" decision, not a
+  hyperparameter tuning decision.
+- Mark `GLM5_2_RESPONSE_ANALYSIS.md` — "Action: Phase 2 failure →
+  evaluate JEPA" as a binding constraint.
+
+**Reference**: `GLM5_2_RESPONSE_ANALYSIS.md` — Q5 "JEPA 遗漏" section
+
+---
+
+### C14: Drive System claimed as theoretically valuable without controlled verification
+
+**Trigger**: The agent or project documentation describes Drive System
+(curiosity/competence/boredom/novelty) as having "independent value",
+"theoretically interesting", or "FEP-validated" without having run
+the controlled experiment: PEDA (full EFE + Drive) vs heuristic
+baseline (random priority queue + boredom penalty only). OR: the agent
+uses PEDA's behavior difference from pragmatic_only as evidence that
+Drive System works, without testing if a simpler mechanism produces
+the same difference.
+
+**Why**: GLM-5.2 identified Drive System's exploration value as a
+potential artifact — "essentially epsilon-greedy with short-term
+memory penalty." PEDA's Phase 1.5 behavior (step 1 take key vs
+pragmatic's look x20) could be explained by boredom accumulation
+alone, not by the full Drive System. Claiming theoretical value for
+an unverified mechanism is a form of C2 (process metrics as progress)
+applied to architecture claims.
+
+**Correct behavior**:
+- Drive System is an engineering safeguard ("fool-proof design"), not
+  a validated theoretical contribution until proven otherwise.
+- The controlled experiment must be run in Phase 2: implement a
+  "Heuristic Baseline" (random action selection + boredom penalty only)
+  and compare to full PEDA. If both behave similarly → Drive System
+  is confirmed as artifact. If PEDA significantly outperforms →
+  Drive System has independent value.
+- Until this experiment is run, all claims about Drive System must be
+  prefixed with "unverified" or "engineering mechanism, not theoretical
+  contribution."
+
+**Reference**: `GLM5_2_RESPONSE_ANALYSIS.md` — Q6 "Drive System 价值评估" section
+
+---
+
 ## Nit Rules (Minor — advisor emits nit, delivered immediately)
 
 ### N1: Work that could be deferred
@@ -503,6 +697,70 @@ not apply, OR acknowledge the risk and add a mitigation.
 
 ---
 
+## The "3 Questions" Framework (Added 2026-07-07)
+
+> **Source**: GLM-5.2 follow-up, Q2. Replaces the static 23-rule checklist
+> for day-to-day experimental decisions. The WATCHDOG rules (B1-B9, C1-C14,
+> N1-N3) remain as guardrails, but the primary agent should answer these 3
+> questions **before every non-trivial experiment**.
+
+**Question 1**: What specific hypothesis does this experiment falsify?
+- If the experiment cannot falsify any specific hypothesis, do not run it.
+- "Let's see what happens" is not a hypothesis.
+- Good answer: "This experiment tests whether hidden-state epistemic (JEPA
+  light) produces a stronger Spearman correlation with action selection
+  than token-space epistemic."
+
+**Question 2**: If this experiment fails, what is the most likely cause,
+  and can I confirm that cause within 2 hours?
+- If you cannot name the most likely failure mode → you don't understand
+  the experiment well enough to run it.
+- If confirming the cause would take >2 hours → the experiment is too
+  coarse; design a smaller pilot first.
+- Good answer: "If epistemic doesn't improve, most likely cause is hidden
+  states are too similar across checkpoints. I can confirm this by
+  computing pairwise cosine distances in 30 minutes."
+
+**Question 3**: Is this the first time I'm trying this approach?
+- If yes: proceed.
+- If no (N≥2): **require a written justification** (can be 2-3 sentences
+  in the commit message or a quick note) explaining why this Nth attempt
+  will succeed where previous attempts failed.
+- If the justification is "maybe this parameter will work" → the attempt
+  is not authorized (B8).
+- Good answer: "This is the 2nd attempt at hidden-state epistemic. The
+  1st failed because I used the wrong layer (layer 0 instead of last
+  layer). This attempt uses last-layer pooled hidden states, which should
+  capture semantic uncertainty."
+
+**Relationship to WATCHDOG rules**:
+- Q1 prevents B1 (no-hypothesis phase advancement) and C2 (process
+  metrics as progress).
+- Q2 prevents B8 (death spiral) by forcing early failure-mode analysis.
+- Q3 enforces B8's "written justification for 3rd attempt" rule.
+- All 3 questions together replace the need to memorize 23 rules for
+  daily decisions. The rules remain as reference for the advisor to
+  check against.
+
+---
+
+## Rule Changelog
+
+### 2026-07-07 — GLM-5.2 Follow-up Round 2
+
+| Rule | Change | Reason |
+|------|--------|--------|
+| B4 | Blocker → Concern | Exploration-phase pivots are normal; new focused docs are clearer |
+| B7 | Blocker → Concern | Hard-blocking judgment calls stifles boundary probing |
+| C1 | Concern → Nit | Lint is lowest priority during exploration |
+| C11 | Relaxed (exploration) | Perfect measurement alignment unrealistic in early exploration |
+| B9 | **New Blocker** | Anomalous results must be explained within 1 hour |
+| "3 Questions" | **New framework** | Dynamic decision framework replacing static rules for daily use |
+| C13 | Added | Token-space vs latent-space prediction evaluation |
+| C14 | Added | Drive System artifact verification requirement |
+
+---
+
 ## Self-Check Reminder (for the advisor itself)
 
 The advisor must NOT:
@@ -528,3 +786,14 @@ until a genuinely new issue appears.
 - `PROMPT_DECISION.md` — 30-min decision task (0.10 train-fraction or Phase 1.5)
 - `PROMPT_PHASE1_5_TRAIN.md` — Phase 1.5 text World Model training task
 - `PHASE1_5_SETUP_REPORT.md` — Phase 1.5 environment setup report
+- `PHASE1_5_COMPLETE_EVALUATION.md` — evaluation of the Phase 1.5 complete report
+- `PHASE1_5_ITERATION2_EVALUATION.md` — evaluation of Iteration 2 (decompose_error fix + data augmentation)
+- `PROMPT_PHASE1_5_NEXT.md` — task prompt for the decompose_error fix + data augmentation iteration
+- `PROMPT_PHASE2_START.md` — task prompt for Phase 2 infrastructure (busybox sandbox)
+- `GLM5_2_BRIEF.md` — technical brief for external expert consultation (GLM-5.2)
+- `GLM5_2_PROMPT.md` — complete prompt ready to paste to GLM-5.2 (round 1)
+- `GLM5_2_RESPONSE.md` — GLM-5.2's round 1 response (7 questions answered)
+- `GLM5_2_RESPONSE_ANALYSIS.md` — upstream analysis of GLM-5.2 round 1 with action items
+- `GLM5_2_FOLLOWUP_PROMPT.md` — follow-up prompt (round 2, 4 questions)
+- `GLM5_2_FOLLOWUP_RESPONSE.md` — GLM-5.2's round 2 response (4 questions answered)
+- `GLM5_2_FOLLOWUP_ANALYSIS.md` — upstream analysis of GLM-5.2 round 2 with action items

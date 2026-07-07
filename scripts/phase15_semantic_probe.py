@@ -29,6 +29,10 @@ def _parse_fields(exit_code: int, text: str) -> tuple:
         has_key = False
     elif "carrying:" in tl and "key" in tl.split("carrying:")[1].split("\n")[0]:
         has_key = True
+    elif "inventory: nothing" in tl:
+        has_key = False
+    elif "inventory:" in tl and "key" in tl.split("inventory:")[1].split("\n")[0]:
+        has_key = True
     elif "take the key" in tl or "have the key" in tl or "key is already" in tl:
         has_key = True
     else:

@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from phase1.grid_env import GridWorld, Perception
 from phase1.types import Action, ErrorVector, Experience, GridState, PredictedState
+from phase2.sandbox_env import SandboxState
 
 # Optional heavy dependencies. The LLM path is enabled when they are installed and
 # a model is available; otherwise the deterministic stub path is used.
@@ -136,7 +137,7 @@ class WorldModel:
         return (
             "You predict what happens next in a text adventure game. "
             "Given a state description and action, output exactly one JSON object with "
-            "next_room, next_description, exit_code, and summary.\n"
+            "next_room, next_description, next_inventory, exit_code, and summary.\n"
             "exit_code rules: 0 = action succeeded, 1 = action failed or invalid, 2 = game completed.\n\n"
             "Example:\n"
             "State:\n"
@@ -146,16 +147,33 @@ class WorldModel:
             'Goal: Find the treasure.\n'
             "Action: take key\n"
             '{"next_room": "study", "next_description": "You take the key from the desk.", '
-            '"exit_code": 0, "summary": "you take the key"}'
+            '"next_inventory": "key", "exit_code": 0, "summary": "you take the key"}'
+        )
+
+    def _sandbox_system_message(self) -> str:
+        """System instruction for Linux sandbox state prediction."""
+        return (
+            "You predict how a Linux shell state changes after a command. "
+            "The state is a JSON object with cwd, files, last_command, last_exit_code, last_output. "
+            "Given a state and a command, output exactly one JSON object with "
+            "cwd, files, last_command, last_exit_code, last_output, exit_code, and summary.\n"
+            "exit_code rules: 0 = command succeeded, 1 = command failed, 2 = task completed.\n\n"
+            "Example:\n"
+            'State: {"cwd": "/sandbox", "files": ["hello.txt", "docs", "data"], "last_command": "", "last_exit_code": 0, "last_output": "", "step": 0}\n'
+            "Action: ls\n"
+            '{"cwd": "/sandbox", "files": ["hello.txt", "docs", "data"], "last_command": "ls", "last_exit_code": 0, "last_output": "hello.txt\\ndocs\\ndata", "exit_code": 0, "summary": "listed files"}'
         )
 
     def _build_text_prompt(self, state, action: Optional[Action]) -> str:
         from phase1.grid_env import Perception as P
-        if hasattr(state, "room"):
-            state_text = P.render_text(state)
-        else:
-            state_text = str(state)
-        action_text = action.name if action else "NONE"
+        state_text = P.render_text(state)
+        action_text = action if isinstance(action, str) else (action.name if action else "NONE")
+        if hasattr(state, "container_id"):
+            return (
+                f"State: {state_text}\n"
+                f"Action: {action_text}\n"
+                "Predict cwd, files, last_command, last_exit_code, last_output, exit_code, and summary as JSON:"
+            )
         return (
             f"State:\n{state_text}\n"
             f"Action: {action_text}\n"
@@ -195,14 +213,15 @@ class WorldModel:
         return float(sum(probs)) / len(probs)
 
     def _llm_predict(self, state, action: Optional[Action]) -> PredictedState:
-        is_text = hasattr(state, "room")  # TextState has .room, GridState has .agent
+        is_sandbox = hasattr(state, "container_id")
+        is_text = hasattr(state, "room") or is_sandbox
         prompt = self._build_text_prompt(state, action) if is_text else self._build_prompt(state, action)
-        msg_system = self._text_system_message() if is_text else self._system_message()
+        msg_system = self._sandbox_system_message() if is_sandbox else (self._text_system_message() if hasattr(state, "room") else self._system_message())
+        max_tok = 200 if is_sandbox else (120 if is_text else 80)
         messages = [
             {"role": "system", "content": msg_system},
             {"role": "user", "content": prompt},
         ]
-        max_tok = 120 if is_text else 80
         if self.tokenizer.chat_template is not None:
             input_ids = self._extract_input_ids(
                 self.tokenizer.apply_chat_template(
@@ -240,9 +259,29 @@ class WorldModel:
             confidence = self._generation_confidence(gen_out.scores, generated_ids)
         parsed = self._parse_generation(generated)
 
+        if is_sandbox:
+            exit_code = parsed.get("exit_code", 1)
+            try:
+                exit_code = int(exit_code)
+            except (TypeError, ValueError):
+                exit_code = 1
+            summary = str(parsed.get("summary", ""))[:80]
+            pred_json = {k: parsed.get(k, "") for k in ("cwd", "files", "last_command", "last_exit_code", "last_output")}
+            l2_text = json.dumps(pred_json, ensure_ascii=False)
+            return PredictedState(
+                level1_exit_code=exit_code,
+                level1_confidence=confidence,
+                level2_next_agent=(0, 0),
+                level2_confidence=confidence,
+                level3_output_summary=summary,
+                level3_confidence=confidence,
+                level2_text=l2_text,
+                epistemic_ratio=1.0 - confidence,
+            )
         if is_text:
             next_room = parsed.get("next_room", state.room)
             next_desc = parsed.get("next_description", state.description)
+            next_inv = str(parsed.get("next_inventory", "nothing"))
             exit_code = parsed.get("exit_code", 1)
             try:
                 exit_code = int(exit_code)
@@ -256,10 +295,9 @@ class WorldModel:
                 level2_confidence=confidence,
                 level3_output_summary=summary,
                 level3_confidence=confidence,
-                level2_text=f"Location: {next_room}.\n{next_desc}",
+                level2_text=f"Location: {next_room}.\n{next_desc}\nInventory: {next_inv}.",
                 epistemic_ratio=1.0 - confidence,
             )
-
         # Grid state path (original logic)
         next_pos = parsed.get("next_position")
         if isinstance(next_pos, list) and len(next_pos) == 2:
@@ -292,6 +330,7 @@ class WorldModel:
             elif action.name in ("go south", "south") and state.room == "hallway":
                 pred_room = "study"
             exit_code = 2 if state.victory else 0
+            inv_str = ", ".join(state.inventory) if state.inventory else "nothing"
             return PredictedState(
                 level1_exit_code=exit_code,
                 level1_confidence=1.0,
@@ -299,7 +338,7 @@ class WorldModel:
                 level2_confidence=1.0,
                 level3_output_summary=f"you {action.name}",
                 level3_confidence=1.0,
-                level2_text=f"Location: {pred_room}.\n{state.description}",
+                level2_text=f"Location: {pred_room}.\n{state.description}\nInventory: {inv_str}.",
                 epistemic_ratio=0.0,
             )
 
@@ -348,6 +387,22 @@ class WorldModel:
         for _ in range(horizon):
             pred = self.predict(current_state, action)
             trajectory.append(pred)
+            if hasattr(current_state, "container_id"):
+                try:
+                    j = json.loads(pred.level2_text) if pred.level2_text else {}
+                except (json.JSONDecodeError, TypeError):
+                    j = {}
+                current_state = SandboxState(
+                    container_id=current_state.container_id,
+                    cwd=j.get("cwd", current_state.cwd),
+                    files=j.get("files", current_state.files),
+                    last_command=j.get("last_command", ""),
+                    last_exit_code=j.get("last_exit_code", 0),
+                    last_output=j.get("last_output", "")[:500],
+                    step_count=current_state.step_count + 1,
+                    max_steps=current_state.max_steps,
+                )
+                continue
             if hasattr(current_state, "room"):
                 # TextState: maintain text fields, update room from prediction
                 next_room = current_state.room
@@ -400,16 +455,18 @@ class WorldModel:
             if text_mode:
                 next_room = ex.get("next_room", "")
                 next_desc = ex.get("next_description", "")
+                next_inv = ex.get("next_inventory", "nothing")
                 target = json.dumps({
                     "next_room": next_room,
                     "next_description": next_desc,
+                    "next_inventory": next_inv,
                     "exit_code": exit_code,
                     "summary": summary,
                 }, ensure_ascii=False)
                 user_content = (
                     f"State:\n{state_text}\n"
                     f"Action: {action_text}\n"
-                    "Predict next_room, next_description, exit_code, and summary as JSON:"
+                    "Predict next_room, next_description, next_inventory, exit_code, and summary as JSON:"
                 )
                 msg_system = self._text_system_message()
             else:
@@ -567,6 +624,8 @@ class EnsembleErrorComputer:
 
     @staticmethod
     def _actual_exit_code(state, actual) -> int:
+        if hasattr(actual, "container_id"):
+            return actual.last_exit_code if actual.last_exit_code else 0
         if hasattr(actual, "room"):
             return 2 if actual.victory else 0
         if actual.agent == actual.goal:
@@ -585,19 +644,70 @@ class EnsembleErrorComputer:
     def decompose_error(self, state, action: Optional[Action], actual) -> ErrorVector:
         predictions = self._predictions_for(state, action)
         actual_exit = self._actual_exit_code(state, actual)
-
         # TextState path
+        # SandboxState path
+        if hasattr(actual, "container_id"):
+            n = len(predictions)
+            pred_exits = [p.level1_exit_code for p in predictions]
+            pred_files = []
+            for p in predictions:
+                try:
+                    j = json.loads(p.level2_text) if p.level2_text else {}
+                    pred_files.append(j.get("files", []))
+                except (json.JSONDecodeError, TypeError):
+                    pred_files.append([])
+            actual_files = actual.files or []
+            level1_error = sum(1 for e in pred_exits if e != actual_exit) / n if n else 0
+            level2_errors = []
+            for pf in pred_files:
+                overlap = len(set(pf) & set(actual_files))
+                total = max(len(set(pf) | set(actual_files)), 1)
+                level2_errors.append(1.0 - overlap / total)
+            mean_deviation = sum(level2_errors) / n if n else 0
+            if n > 1:
+                pw = 0.0
+                c = 0
+                for i in range(n):
+                    for j in range(i + 1, n):
+                        d = (1.0 if pred_exits[i] != pred_exits[j] else 0.0)
+                        d += (1.0 if set(pred_files[i]) != set(pred_files[j]) else 0.0)
+                        pw += d
+                        c += 1
+                ev = (pw / c) / 2.0 if c else 0.0
+            else:
+                ev = 0.0
+            return ErrorVector(
+                total_error=mean_deviation + ev,
+                level1_error=level1_error,
+                level2_error=mean_deviation,
+                level3_error=0.0,
+                epistemic_error=ev,
+                aleatoric_error=max(0.0, mean_deviation - ev),
+                ensemble_variance=ev,
+            )
         if hasattr(actual, "room"):
             n = len(predictions)
             pred_exits = [p.level1_exit_code for p in predictions]
             pred_rooms = []
+            pred_has_keys = []
             for p in predictions:
                 r = "unknown"
-                if p.level2_text and "Location: " in p.level2_text:
-                    r = p.level2_text.split("\n")[0].replace("Location: ", "").strip().rstrip(".")
+                has_key = False
+                if p.level2_text:
+                    if "Location: " in p.level2_text:
+                        r = p.level2_text.split("\n")[0].replace("Location: ", "").strip().rstrip(".")
+                    for line in p.level2_text.split("\n"):
+                        if line.startswith("Inventory:"):
+                            inv_part = line.replace("Inventory:", "").strip().rstrip(".")
+                            has_key = "key" in inv_part and inv_part != "nothing"
                 pred_rooms.append(r)
+                pred_has_keys.append(has_key)
+            actual_has_key = "key" in (actual.inventory or [])
             level1_error = sum(1 for e in pred_exits if e != actual_exit) / n if n else 0
-            level2_errors = [0.0 if r == actual.room else 1.0 for r in pred_rooms]
+            level2_errors = [
+                (0.0 if r == actual.room else 1.0) + (0.0 if hk == actual_has_key else 1.0)
+                for r, hk in zip(pred_rooms, pred_has_keys)
+            ]
             mean_deviation = sum(level2_errors) / n if n else 0
             if n > 1:
                 pw = 0.0
@@ -606,9 +716,10 @@ class EnsembleErrorComputer:
                     for j in range(i + 1, n):
                         d = (1.0 if pred_exits[i] != pred_exits[j] else 0.0)
                         d += (1.0 if pred_rooms[i] != pred_rooms[j] else 0.0)
+                        d += (1.0 if pred_has_keys[i] != pred_has_keys[j] else 0.0)
                         pw += d
                         c += 1
-                ev = pw / c if c else 0.0
+                ev = (pw / c) / 3.0 if c else 0.0
             else:
                 ev = 0.0
             return ErrorVector(
