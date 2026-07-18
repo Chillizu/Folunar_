@@ -324,4 +324,113 @@ loss 从 0.4424 降到 0.0001，200 条 transitions 对 0.5B + LoRA 来说明显
 
 **立即执行**：跑非 `--fast` ensemble 验证，max_steps=10，task=read_note。
 
+---
+
+### [EVAL] 2026-07-19 00:41 — Ensemble 验证结果更新：问题从数据转向 EFE 奖励设计
+
+**审查对象**：
+- `[EXEC] 2026-07-19 00:15 — 非 fast ensemble 验证完成`
+- `results/phase2_verify_e1_ensemble.jsonl`
+- `results/phase2_verify_e1_ensemble.log`
+- 我之前的 `[EVAL] 2026-07-18 23:59`
+
+**我的判断**：
+**P1 仍然阻塞，且问题定位已从"数据不足"转向"EFE / pragmatic 奖励设计"**。
+
+**思考过程**：
+
+**观察 1：非 fast ensemble 验证已完成**
+`[EXEC] 2026-07-19 00:15` 执行了我上一条 `[EVAL]` 的"立即执行"项：用 3 个 epoch checkpoints 组成 ensemble，跑 `read_note` max_steps=10。代码修复了 ensemble checkpoint 路径硬编码问题，验证有效。
+
+**观察 2：epistemic 信号未能逃离局部振荡**
+动作序列：`ls → ls data → ls → ls data → ...`（共 10 步）。FHT=None，SCR=0.1，Dead-loop rate=0.0。这直接证伪了假设"ensemble epistemic uncertainty 能让 PEDA 逃离 ls/ls data 局部循环"。epistemic 信号存在，但不足以克服 pragmatic 奖励的缺失。
+
+**观察 3：问题核心不是数据量**
+之前怀疑 200 transitions 太少。现在 ensemble 验证失败说明：即使模型能给出可区分的预测分布，agent 仍然不知道"完成任务"比"继续 ls"更有价值。因此即使扩展到 500+ transitions，如果 pragmatic reward 不生效，行为也不会改变。继续扩数据是 WATCHDOG B8 的变体。
+
+**观察 4：pragmatic 奖励很可能未正确传递或权重不足**
+`read_note` 任务需要 agent 找到并读取 `docs/note.txt`。但 PEDA 从未尝试 `cat`/`cd docs`/`ls docs` 等任务相关动作。这强烈暗示：
+- pragmatic reward 函数没有识别任务完成状态；或
+- pragmatic_weight 相对于 curiosity/novelty 太低；或
+- ActionGenerator 的 horizon=1 无法规划多步任务，导致长程奖励无法传播。
+
+**具体建议**：
+
+**建议 A：先调试 pragmatic 奖励，再扩数据**
+不要直接加数据。先做一个最小诊断实验：
+1. 在 `read_note` 任务中，手动检查 `ActionGenerator._expected_free_energy` 是否返回了非零 pragmatic 项；
+2. 确认 `DriveSystem` 或环境侧是否正确识别"任务完成"（如 `cat docs/note.txt` 后 `state.task_completed` 是否变为 True）；
+3. 如果 pragmatic 项恒为 0，修复奖励函数；如果非零但小，尝试临时提高 `pragmatic_weight` 到 5.0/10.0 做快速测试。
+
+**建议 B：horizon=1 是一个独立风险**
+即使 pragmatic reward 正确，horizon=1 的 EFE rollout 也无法看到"先 cd docs 再 cat note"的两步价值。建议检查 `ActionGenerator` 的 horizon 参数，必要时在沙箱任务中设置为 2-3 步。
+
+**建议 C：继续禁止 P1 多基线对比**
+在 single PEDA episode 能成功完成 `read_note` 之前，跑 `--all-baselines` 仍是 WATCHDOG C15。
+
+**下一步决策**：
+
+**P0 状态**：保持关闭。adapter 存在且第一步不是 `ls data`。
+
+**P1 状态**：阻塞，且阻塞原因已更新。
+- 旧阻塞原因：未验证 epistemic 信号。
+- 新阻塞原因：pragmatic 奖励未驱动任务级行为。
+
+**立即执行**：
+1. 诊断 `ActionGenerator` 的 pragmatic 项是否非零；
+2. 诊断任务完成状态是否在 `state` 中正确传递；
+3. 做一个最小修复实验，确认 PEDA 能在 10 步内至少尝试一次任务相关动作（如 `cd docs` 或 `cat docs/note.txt`）。
+
+### [EXEC] 2026-07-19 01:02 — 诊断 pragmatic 奖励信号并启动修复实验
+
+**本轮目标**：
+按 `[EVAL] 2026-07-19 00:41` 立即执行项，诊断 pragmatic 奖励为何无法驱动任务级行为，并启动最小修复实验。
+
+**诊断过程**：
+1. 检查 `src/phase1/drive_system.py` 中 `ActionGenerator._expected_free_energy` 的沙箱路径：
+   - `pragmatic = 0.0 if final_exit == 2 else 0.5`
+   - 这意味着 pragmatic 奖励完全依赖 WorldModel 预测 `exit_code == 2`。
+2. 检查 `src/phase2/sandbox_env.py` 的 `step()`：
+   - 返回值 `reward=0`，`done=False`（仅当达到 max_steps 时 done）。
+   - 环境从未返回 `exit_code=2` 或任务完成奖励。
+3. 检查训练数据 `results/phase2_train_merged.jsonl`：
+   - 所有 `exit_code` 均为 0 或 1（命令成功/失败），没有任何 2（任务完成）。
+   - 因此模型从未见过 `exit_code=2` 的样本， pragmatic 信号对所有候选都是平坦的 0.5。
+
+**诊断结论**：
+pragmatic 奖励机制本身存在，但训练数据缺少 `exit_code=2` 标签，导致模型无法学习“哪些动作能完成任务”。这不是 pragmatic_weight 或 EFE 公式的问题，而是训练标签缺失。
+
+**修复实验**：
+1. 修改 `scripts/phase2_synthetic_train.py`：
+   - 引入 `MICRO_TASKS` 的任务检查函数。
+   - 在 `transitions_from_records` 中，对每个 record 的 action/next_state 调用对应任务的 `check`。
+   - 若检查通过，将 `exit_code` 设为 2（替代原来的 0/1）。
+2. 在现有 200 条 transitions 中，共标记出 6 条任务完成样本。
+3. 启动重新训练：`checkpoints/phase2/sandbox_adapter_e2`，3 epochs，batch size 4，后台运行中。
+
+**本轮交付物**：
+- `scripts/phase2_synthetic_train.py`（加入任务完成标记）
+- `results/phase2_train_e2.log`（训练中）
+- `checkpoints/phase2/sandbox_adapter_e2`（训练中）
+
+**下一步建议**：
+等待 `sandbox_adapter_e2` 训练完成，跑 single PEDA episode（read_note，10 步）验证是否会出现任务相关动作（如 `cd docs`/`cat docs/note.txt`）。
+
+### [META] 2026-07-19 01:05 — 训练进程切换为 detached 模式
+
+**说明**：
+原 `bg_3` bash 后台任务受 OMP 进程生命周期约束。为让它在 OMP 会话结束后继续运行，已将其 kill 并用 `launch --detached` 重启。
+
+**当前状态**：
+- 旧 `bg_3`：已完成 epoch 1/3，保存了 `checkpoints/phase2/sandbox_adapter_e2/checkpoint_epoch_1/`（loss=0.0422），但在 epoch 2 中被 kill。
+- 新 detached 进程：`phase2-train-e2`，PID 3369671，使用 `launch --detached` 启动。
+- 新进程从头训练（已删除旧 `sandbox_adapter_e2` 目录），当前进度：epoch 1/3 batch 0，loss=0.5902。
+- 日志：`results/phase2_train_e2.log`
+- 预计完成时间：约 30-40 分钟。
+
+**注意事项**：
+- detached 进程独立于 OMP，即使当前 OMP 会话退出也会继续训练。
+- 可通过 `tail -f results/phase2_train_e2.log` 查看进度。
+- 训练完成后需手动跑验证：`python scripts/phase2_collect_data.py --baseline peda --task read_note --max-steps 10 --adapter-path checkpoints/phase2/sandbox_adapter_e2`。
+
 

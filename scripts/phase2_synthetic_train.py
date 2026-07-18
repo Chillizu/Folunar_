@@ -31,13 +31,50 @@ def load_jsonl(path: Path) -> list[dict]:
     return records
 
 
+def _goal_predicate_read_note(state, action, next_state) -> bool:
+    return "secret key" in next_state.last_output or (action and "cat docs/note" in action)
+
+def _goal_predicate_count_lines(state, action, next_state) -> bool:
+    return "3" in next_state.last_output and "lines" in next_state.last_output.lower()
+
+def _goal_predicate_hello(state, action, next_state) -> bool:
+    return "hello" in next_state.last_output.lower() and (action and "hello" in action)
+
+def _goal_predicate_find_secret(state, action, next_state) -> bool:
+    return "secret" in next_state.last_output.lower()
+
+def _goal_predicate_create_file(state, action, next_state) -> bool:
+    return "test_dir" in (next_state.files if hasattr(next_state, "files") else [])
+
+MICRO_TASKS = [
+    {"id": "read_note", "goal": "Read docs/note.txt", "check": _goal_predicate_read_note},
+    {"id": "count_lines", "goal": "Count lines in data/lines.txt", "check": _goal_predicate_count_lines},
+    {"id": "read_hello", "goal": "Read hello.txt", "check": _goal_predicate_hello},
+    {"id": "find_secret", "goal": "Find files containing 'secret'", "check": _goal_predicate_find_secret},
+    {"id": "create_file", "goal": "Create test_dir", "check": _goal_predicate_create_file},
+]
+
+
 def transitions_from_records(records: list[dict]) -> list[dict]:
     """Flatten per-baseline JSONL records into (s,a,s') training examples."""
     examples: list[dict] = []
     for rec in records:
+        task_id = rec.get("task", "")
+        task = next((t for t in MICRO_TASKS if t["id"] == task_id), None)
         for step in rec.get("records", []):
             if not step.get("action"):
                 continue
+            # Mark task completion with exit_code=2 so pragmatic reward can learn it.
+            exit_code = step["exit_code"]
+            if task is not None:
+                fake_ns = type("obj", (object,), {
+                    "last_output": step.get("output", ""),
+                    "last_exit_code": step.get("exit_code", 0),
+                    "files": step.get("next_files", []),
+                    "cwd": step.get("next_cwd", ""),
+                })()
+                if task["check"](None, step["action"], fake_ns):
+                    exit_code = 2
             examples.append({
                 "state_text": json.dumps({
                     "cwd": step["cwd"],
@@ -47,11 +84,11 @@ def transitions_from_records(records: list[dict]) -> list[dict]:
                     "last_output": "",
                 }, ensure_ascii=False),
                 "action_name": step["action"],
-                "exit_code": step["exit_code"],
+                "exit_code": exit_code,
                 "summary": f"executed {step['action']}",
                 "next_cwd": step["next_cwd"],
                 "next_files": step["next_files"],
-                "next_last_exit_code": step["exit_code"],
+                "next_last_exit_code": exit_code,
                 "next_last_output": step["output"],
             })
     return examples
