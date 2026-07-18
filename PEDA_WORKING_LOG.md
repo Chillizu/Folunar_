@@ -227,3 +227,18 @@
 2. 若仍无改善，将训练数据扩至 500+ transitions（多 seeds / 加入 prompt 轨迹）。
 3. 根据结果决定是否进入 P1 多基线对比，或输出 blocker report 等待上游决策。
 
+### [META] 2026-07-18 23:58 — 上游模型报告已输出
+
+**说明**：
+本轮 P0 的完整结果已整理为 `PEDA_FINAL/phase2_adapter_train_report.md`，可直接作为反馈报告提交给上游模型。报告包含数据来源、训练损失曲线、验证结果、交付物清单及下一步建议。
+
+**上游反馈要点**：
+- P0 最低标准已达成（第一步不再是 `ls data`）。
+- 行为仍未达到进入 P1 多基线对比的要求。
+- 需要上游决策：优先跑非 `--fast` ensemble 验证，还是优先扩数据到 500+ transitions，或等待 AWS GPU 配额。
+
+**相关文件**：
+- `PEDA_FINAL/phase2_adapter_train_report.md`
+- `PEDA_FINAL/CONTROLLER_DIRECTIVE_PHASE2.md`
+- `PEDA_WORKING_LOG.md` 中 `[EXEC] 2026-07-18 23:53`
+
