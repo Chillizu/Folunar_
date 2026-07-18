@@ -76,16 +76,40 @@ python scripts/phase2_collect_data.py \
 - `results/phase2_train.log` — 训练日志
 - `results/phase2_verify_e1.jsonl` — 验证结果
 
+## 非 `--fast` Ensemble 验证（补充）
+
+### 运行命令
+
+```bash
+python scripts/phase2_collect_data.py \
+  --baseline peda \
+  --task read_note \
+  --max-steps 10 \
+  --adapter-path checkpoints/phase2/sandbox_adapter_e1 \
+  --output results/phase2_verify_e1_ensemble.jsonl
+```
+
+### 结果
+
+- 动作序列：`ls → ls data → ls → ls data → ls → ls data → ls → ls data → ls → ls data`
+- FHT=None，SCR=0.1，Dead-loop rate=0.0
+- 每步 select≈10.5s，10 步共 106s
+
+### 分析
+
+- **epistemic 信号未产生逃离效果**：ensemble 已加载 3 个 epoch checkpoints，但 PEDA 仍在 `ls` 与 `ls data` 之间振荡。
+- 这说明问题不在于数据量从 200 扩到 500 的边际收益，而在于 EFE 奖励设计或任务完成信号未能引导 agent 选择 `cat docs/note.txt` 等推进动作。
+
 ## 下一步建议
 
-1. **跑非 fast 模式验证**：加载 ensemble checkpoints，观察 epistemic 信号是否能让 PEDA 逃离局部循环。
-2. **增加训练数据**：将 random/heuristic 各扩展到 10+ seeds，或加入 prompt-driven 轨迹，达到 500+ transitions。
-3. **任务奖励调试**：确认 pragmatic 奖励是否正确反映 `read_note` 等任务的完成状态。
-4. **报告至上游模型**：将本报告作为 Phase 2 P0 完成证据，同时指出行为仍不足以进入 P1 多基线对比。
+1. **调试 pragmatic / 任务奖励信号**：确认 `read_note` 任务完成时 reward 是否被正确计算并传入 EFE。
+2. **检查 `ActionGenerator` 规划能力**：当前 `max_candidates=3, horizon=1` 可能无法支撑多步任务规划。
+3. **修复奖励信号后再扩数据**：在 EFE 能区分探索与任务推进之前，单纯增加数据量收益有限。
+4. 若奖励信号修复后仍无改善，输出 `PEDA_FINAL/phase2_blocker_report.md` 等待上游决策。
 
 ## 参考
 
 - `PEDA_FINAL/CONTROLLER_DIRECTIVE_PHASE2.md`
-- `PEDA_WORKING_LOG.md` 中 `[EVAL] 2026-07-18 22:15:13`
+- `PEDA_WORKING_LOG.md` 中 `[EVAL] 2026-07-18 22:15:13` 与 `[EXEC] 2026-07-19 00:15`
 - `scripts/phase2_synthetic_train.py`
 - `scripts/phase2_collect_data.py`

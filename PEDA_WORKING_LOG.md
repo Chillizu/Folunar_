@@ -242,3 +242,86 @@
 - `PEDA_FINAL/CONTROLLER_DIRECTIVE_PHASE2.md`
 - `PEDA_WORKING_LOG.md` 中 `[EXEC] 2026-07-18 23:53`
 
+### [EXEC] 2026-07-19 00:15 — 非 fast ensemble 验证完成
+
+**本轮目标**：
+按 `[EVAL] 2026-07-18 23:59` 的立即执行项，跑非 `--fast` ensemble 验证，确认 epistemic 信号是否能让 PEDA 逃离 `ls/ls data` 振荡。
+
+**实际做了什么**：
+- 修复 `scripts/phase2_collect_data.py`：`_build_ag` 的 ensemble checkpoint 路径从硬编码 `checkpoints/phase1_5/text_adapter_e4` 改为使用 `--adapter-path` 参数。
+- 运行命令：`python scripts/phase2_collect_data.py --baseline peda --task read_note --max-steps 10 --adapter-path checkpoints/phase2/sandbox_adapter_e1`。
+- 3 个 epoch checkpoints（checkpoint_epoch_1/2/3）已组成 ensemble 并参与 EFE 计算。
+
+**验证结果**：
+- 动作序列：`ls → ls data → ls → ls data → ls → ls data → ls → ls data → ls → ls data`
+- FHT=None，SCR=0.1，Dead-loop rate=0.0
+- 每步 select≈10.5s，10 步共 106s
+- **epistemic 信号未能使 PEDA 逃离局部振荡**。
+
+**项目进展**：
+- P0 保持关闭，adapter 已保存。
+- P1 仍然阻塞：ensemble 验证失败说明问题不在数据量（至少不是 200 vs 500 的量级差异），而在 EFE 奖励设计或任务奖励信号。
+
+**本轮交付物**：
+- `scripts/phase2_collect_data.py`（ensemble checkpoint 路径修复）
+- `results/phase2_verify_e1_ensemble.jsonl`
+- `results/phase2_verify_e1_ensemble.log`
+
+**下一步建议**：
+1. 调试 EFE / pragmatic 奖励：确认 `read_note` 任务完成时 pragmatic reward 是否被正确传递。
+2. 检查 `ActionGenerator` 的 horizon=1 是否导致无法规划多步任务。
+3. 若 pragmatic 信号确实太弱，尝试提高 `pragmatic_weight` 或改用更明确的任务奖励函数。
+4. 在修复奖励信号后再扩展数据重新训练。
+---
+
+### [EVAL] 2026-07-18 23:59 — P0 完成度评估与 P1 门槛判断
+
+**审查对象**：
+- `PEDA_FINAL/phase2_adapter_train_report.md`
+- `results/phase2_verify_e1.log`
+- `results/phase2_verify_e1.jsonl`
+- `checkpoints/phase2/sandbox_adapter_e1/`
+- `[EXEC] 2026-07-18 23:53` 与 `[EXEC] 2026-07-18 23:25`
+
+**我的判断**：
+**P0 最低标准通过，但不建议进入 P1**。adapter 已存在且第一步从 `ls data` 变为 `ls`，但 PEDA 仍未展现出任务级规划能力。
+
+**思考过程**：
+
+**观察 1：P0 最低标准已达成**
+`results/phase2_verify_e1.log` 显示第一步 action 为 `ls`，不再是 `ls data`。这证明在沙箱数据上训练 adapter 是有效的：模型至少学会了第一步不要重复进入 data 目录。`checkpoints/phase2/sandbox_adapter_e1/` 已保存完整 adapter 与 3 个中间 checkpoint，交付物齐全。
+
+**观察 2：5 步内任务仍未完成，且出现新循环模式**
+PEDA 在 5 步内的动作序列是 `ls → ls data → ls → ls data → ls`。这不是死循环（dead_loop_rate=0.0），但属于同一小命令集合内的无效振荡。FHT=None，SCR=0.2，说明 agent 仍未找到 `cat docs/note.txt` 或类似任务推进动作。这提示 pragmatic 奖励或 EFE 中的任务完成信号仍然太弱。
+
+**观察 3：训练损失极低，存在过拟合风险**
+loss 从 0.4424 降到 0.0001，200 条 transitions 对 0.5B + LoRA 来说明显不足。模型可能记住了训练轨迹中的局部模式（如"当前目录有 data 就 ls data"），而不是学到通用状态转移。报告本身也指出了这一点。
+
+**观察 4：验证使用了 `--fast` 模式，未检验 epistemic 信号**
+`phase2_collect_data.py` 默认 `--fast` 会跳过 ensemble checkpoints。因此本轮验证无法回答"epistemic uncertainty 是否能让 PEDA 逃离局部循环"这个关键问题。控制器指令中的 P0 成功标准只要求"第一步不是 `ls data`"。但要进入 P1，必须确认 epistemic 信号有效。
+
+**观察 5：推理速度过慢**
+每步 select 耗时约 10.8 秒，5 步共 54 秒。即使进入 P1，100 步 × 多基线 × 多任务的实验也会非常昂贵。这是后续 scaling 的隐形成本，但当前不阻塞 P1 决策。
+
+**具体建议**：
+
+**建议 A：先跑非 `--fast` ensemble 验证**
+在扩大数据之前，先用 3 个 epoch checkpoints 组成 ensemble，跑 single PEDA episode。如果 epistemic 信号能让 agent 逃离 `ls/ls data` 振荡并尝试 `cat` 类动作，则 P1 有希望。如果仍然失败，说明问题不在数据量，而在 EFE 奖励设计或任务奖励信号。
+
+**建议 B：扩展数据到 500+ transitions 作为备选**
+如果 ensemble 验证无效，再扩展 random/heuristic/prompt 轨迹到 500+ transitions。当前 200 条确实太少。
+
+**建议 C：不要进入 P1 多基线对比**
+在 single PEDA episode 能稳定推进任务之前，跑 `--all-baselines` 仍然是 WATCHDOG C15 的变体：用未准备好的 WM 做假设验证。
+
+**下一步决策**：
+
+**P0 状态**：关闭。最低成功标准达成，adapter 已保存。
+
+**P1 状态**：阻塞。必须满足以下任一条件才能进入：
+- 非 `--fast` ensemble 验证下，PEDA 在 10 步内成功完成 `read_note` 至少一次；或
+- 数据扩展到 500+ transitions 并重新训练后，single episode 行为明显改善。
+
+**立即执行**：跑非 `--fast` ensemble 验证，max_steps=10，task=read_note。
+
+

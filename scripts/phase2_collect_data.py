@@ -54,13 +54,14 @@ MICRO_TASKS = [
 
 # ── Baseline runners ──────────────────────────────────────────────
 
-def _build_ag(wm, pragmatic_only=False, use_fast=False):
+def _build_ag(wm, pragmatic_only=False, use_fast=False, ckpt_dir=None):
     ec = EnsembleErrorComputer(wm)
-    ckpt_dir = Path("checkpoints/phase1_5/text_adapter_e4")
+    if ckpt_dir is None:
+        ckpt_dir = Path("checkpoints/phase1_5/text_adapter_e4")
     if use_fast:
         ec.checkpoints = []  # smoke test: skip ensemble loading
     else:
-        ec.checkpoints = sorted(ckpt_dir.glob("checkpoint_epoch_*"))[:3]
+        ec.checkpoints = sorted(Path(ckpt_dir).glob("checkpoint_epoch_*"))[:3]
     ds = HomeostaticDriveSystem(DRIVE_WEIGHTS)
     ag = ActionGenerator(wm, error_computer=ec, drive_system=ds,
                          pragmatic_only=pragmatic_only,
@@ -103,8 +104,8 @@ def _run_agent(sb, state, agent_fn, max_steps: int, task_id: str, baseline: str)
     return steps, state
 
 
-def run_peda(sb, wm, max_steps, task_id, use_fast=False):
-    ag = _build_ag(wm, pragmatic_only=False, use_fast=use_fast)
+def run_peda(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None):
+    ag = _build_ag(wm, pragmatic_only=False, use_fast=use_fast, ckpt_dir=ckpt_dir)
     state = sb.reset()
     def agent_fn(state, action_history):
         cands = generate_sandbox_candidates(state)
@@ -113,8 +114,8 @@ def run_peda(sb, wm, max_steps, task_id, use_fast=False):
     return _run_agent(sb, state, agent_fn, max_steps, task_id, "peda")
 
 
-def run_pragmatic(sb, wm, max_steps, task_id, use_fast=False):
-    ag = _build_ag(wm, pragmatic_only=True, use_fast=use_fast)
+def run_pragmatic(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None):
+    ag = _build_ag(wm, pragmatic_only=True, use_fast=use_fast, ckpt_dir=ckpt_dir)
     state = sb.reset()
     def agent_fn(state, action_history):
         cands = generate_sandbox_candidates(state)
@@ -222,10 +223,10 @@ def compute_metrics(steps, task_id):
 
 # ── Main ───────────────────────────────────────────────────────────
 
-def run_one(sb, wm, baseline_name, task_id, max_steps, use_fast=False):
+def run_one(sb, wm, baseline_name, task_id, max_steps, use_fast=False, ckpt_dir=None):
     fn = BASELINE_FNS[baseline_name]
     if baseline_name in ("peda", "pragmatic"):
-        steps, final_state = fn(sb, wm, max_steps, task_id, use_fast=use_fast)
+        steps, final_state = fn(sb, wm, max_steps, task_id, use_fast=use_fast, ckpt_dir=ckpt_dir)
     else:
         steps, final_state = fn(sb, wm, max_steps, task_id)
     metrics = compute_metrics(steps, task_id)
@@ -268,7 +269,7 @@ def main():
         for tk in tasks:
             print(f"[phase2] {bl}/{tk} (max_steps={args.max_steps}) ...", flush=True)
             t0 = time.time()
-            result = run_one(sb, wm, bl, tk, args.max_steps, use_fast=args.fast)
+            result = run_one(sb, wm, bl, tk, args.max_steps, use_fast=args.fast, ckpt_dir=args.adapter_path)
             elapsed = time.time() - t0
             m = result["metrics"]
             print(f"  -> steps={m['steps']} fht={m['fht']} scr={m['scr']} dl={m['dead_loop_rate']} [{elapsed:.0f}s]", flush=True)
