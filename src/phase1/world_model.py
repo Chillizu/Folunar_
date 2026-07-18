@@ -42,8 +42,23 @@ class WorldModel:
         lora_alpha: int = 32,
         lora_dropout: float = 0.05,
         adapter_path: Optional[str] = None,
+        openai_base_url: Optional[str] = None,
     ):
         self.model_name = model_name or self.DEFAULT_MODEL
+        self.openai_base_url = openai_base_url or os.environ.get("OPENAI_BASE_URL")
+        self.openai_client = None
+        if self.openai_base_url:
+            try:
+                from openai import OpenAI
+                self.openai_client = OpenAI(base_url=self.openai_base_url, api_key="dummy")
+                self.mode = "llm"
+                self.device = "cpu"
+                self.model = None
+                self.tokenizer = None
+                print(f"[WorldModel] OpenAI backend enabled: {self.openai_base_url}")
+                return
+            except Exception as exc:
+                print(f"[WorldModel] Failed to initialize OpenAI client: {exc}; falling back to local model.")
         if _LLM_DEPS_AVAILABLE and device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = device or "cpu"
@@ -69,6 +84,8 @@ class WorldModel:
                 self.mode = "stub"
                 return
 
+        if self.openai_client is not None:
+            return
         if not _LLM_DEPS_AVAILABLE:
             print("[WorldModel] transformers/peft not installed; falling back to deterministic stub.")
             self.mode = "stub"
@@ -212,16 +229,27 @@ class WorldModel:
             probs.append(torch.softmax(score, dim=-1)[0, token_id].item())
         return float(sum(probs)) / len(probs)
 
-    def _llm_predict(self, state, action: Optional[Action]) -> PredictedState:
-        is_sandbox = hasattr(state, "container_id")
-        is_text = hasattr(state, "room") or is_sandbox
-        prompt = self._build_text_prompt(state, action) if is_text else self._build_prompt(state, action)
-        msg_system = self._sandbox_system_message() if is_sandbox else (self._text_system_message() if hasattr(state, "room") else self._system_message())
-        max_tok = 200 if is_sandbox else (120 if is_text else 80)
-        messages = [
-            {"role": "system", "content": msg_system},
-            {"role": "user", "content": prompt},
-        ]
+    def generate_text(self, messages: List[Dict[str, str]], max_new_tokens: int = 80) -> tuple[str, float]:
+        """Generate text using either local transformers model or OpenAI-compatible backend."""
+        if self.openai_client is not None:
+            try:
+                resp = self.openai_client.chat.completions.create(
+                    model=self.model_name,
+                    messages=messages,
+                    max_tokens=max_new_tokens,
+                    temperature=0.0,
+                )
+                text = resp.choices[0].message.content or ""
+                # Use logprobs if available; otherwise fixed placeholder
+                conf = 0.8
+                if resp.choices[0].logprobs and resp.choices[0].logprobs.content:
+                    conf = float(sum(lp.logprob for lp in resp.choices[0].logprobs.content) / len(resp.choices[0].logprobs.content))
+                    conf = max(0.0, min(1.0, conf))
+                return text, conf
+            except Exception as exc:
+                print(f"[WorldModel] OpenAI backend failed: {exc}; falling back to local model if available.")
+        if self.model is None or self.tokenizer is None:
+            return "", 0.0
         if self.tokenizer.chat_template is not None:
             input_ids = self._extract_input_ids(
                 self.tokenizer.apply_chat_template(
@@ -229,10 +257,12 @@ class WorldModel:
                 )
             ).to(self.device)
             input_len = input_ids.shape[1]
+            attention_mask = torch.ones_like(input_ids)
             with torch.no_grad():
                 gen_out = self.model.generate(
                     input_ids,
-                    max_new_tokens=max_tok,
+                    attention_mask=attention_mask,
+                    max_new_tokens=max_new_tokens,
                     do_sample=False,
                     pad_token_id=self.tokenizer.pad_token_id,
                     output_scores=True,
@@ -242,13 +272,13 @@ class WorldModel:
             generated = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
             confidence = self._generation_confidence(gen_out.scores, generated_ids)
         else:
-            formatted_prompt = f"{msg_system}\n\n{prompt}"
-            inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.device)
+            formatted_prompt = "\n\n".join([m.get("content", "") for m in messages])
+            inputs = self.tokenizer(formatted_prompt, return_tensors="pt", padding=True).to(self.device)
             input_len = inputs["input_ids"].shape[1]
             with torch.no_grad():
                 gen_out = self.model.generate(
                     **inputs,
-                    max_new_tokens=max_tok,
+                    max_new_tokens=max_new_tokens,
                     do_sample=False,
                     pad_token_id=self.tokenizer.pad_token_id,
                     output_scores=True,
@@ -257,6 +287,19 @@ class WorldModel:
             generated_ids = gen_out.sequences[0, input_len:]
             generated = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
             confidence = self._generation_confidence(gen_out.scores, generated_ids)
+        return generated, confidence
+
+    def _llm_predict(self, state, action: Optional[Action]) -> PredictedState:
+        is_sandbox = hasattr(state, "container_id")
+        is_text = hasattr(state, "room") or is_sandbox
+        prompt = self._build_text_prompt(state, action) if is_text else self._build_prompt(state, action)
+        msg_system = self._sandbox_system_message() if is_sandbox else (self._text_system_message() if hasattr(state, "room") else self._system_message())
+        max_tok = 80 if is_sandbox else (120 if is_text else 80)
+        messages = [
+            {"role": "system", "content": msg_system},
+            {"role": "user", "content": prompt},
+        ]
+        generated, confidence = self.generate_text(messages, max_tok)
         parsed = self._parse_generation(generated)
 
         if is_sandbox:
@@ -436,11 +479,13 @@ class WorldModel:
         batch_size: int = 4,
         checkpoint_dir: Optional[Path] = None,
         text_mode: bool = False,
+        sandbox_mode: bool = False,
     ) -> None:
         """Batch fine-tune the LoRA adapter on (state, action) -> next-state examples.
 
         text_mode=True uses text-environment prompt/target format (next_room/next_description)
         instead of grid format (next_position).
+        sandbox_mode=True uses Linux sandbox state prediction format.
         """
         if self.mode == "stub" or self.model is None:
             return
@@ -452,7 +497,27 @@ class WorldModel:
             exit_code = int(ex.get("exit_code", 0))
             summary = str(ex.get("summary", ""))
 
-            if text_mode:
+            # Auto-detect sandbox from data keys if not explicitly requested
+            if not sandbox_mode and ("next_cwd" in ex or "next_files" in ex):
+                sandbox_mode = True
+
+            if sandbox_mode:
+                target = json.dumps({
+                    "cwd": ex.get("next_cwd", ex.get("cwd", "")),
+                    "files": ex.get("next_files", ex.get("files", [])),
+                    "last_command": action_text,
+                    "last_exit_code": int(ex.get("next_last_exit_code", exit_code)),
+                    "last_output": ex.get("next_last_output", ""),
+                    "exit_code": exit_code,
+                    "summary": summary,
+                }, ensure_ascii=False)
+                user_content = (
+                    f"State: {state_text}\n"
+                    f"Action: {action_text}\n"
+                    "Predict cwd, files, last_command, last_exit_code, last_output, exit_code, and summary as JSON:"
+                )
+                msg_system = self._sandbox_system_message()
+            elif text_mode:
                 next_room = ex.get("next_room", "")
                 next_desc = ex.get("next_description", "")
                 next_inv = ex.get("next_inventory", "nothing")
@@ -496,23 +561,24 @@ class WorldModel:
                 {"role": "system", "content": msg_system},
                 {"role": "user", "content": user_content},
             ]
+            max_length = 384 if sandbox_mode else 256
             if self.tokenizer.chat_template is not None:
                 prompt_input_ids = self._extract_input_ids(
                     self.tokenizer.apply_chat_template(
-                        messages, add_generation_prompt=True, return_tensors="pt", max_length=256, truncation=True
+                        messages, add_generation_prompt=True, return_tensors="pt", max_length=max_length, truncation=True
                     )
                 ).squeeze(0)
                 full_messages = messages + [{"role": "assistant", "content": target}]
                 full_input_ids = self._extract_input_ids(
                     self.tokenizer.apply_chat_template(
-                        full_messages, add_generation_prompt=False, return_tensors="pt", max_length=256, truncation=True
+                        full_messages, add_generation_prompt=False, return_tensors="pt", max_length=max_length, truncation=True
                     )
                 ).squeeze(0)
             else:
                 prompt = f"{msg_system}\n\n{user_content}"
                 full = f"{prompt}{target}{self.tokenizer.eos_token}"
-                prompt_input_ids = self.tokenizer(prompt, return_tensors="pt", max_length=256, truncation=True)["input_ids"].squeeze(0)
-                full_input_ids = self.tokenizer(full, return_tensors="pt", max_length=256, truncation=True)["input_ids"].squeeze(0)
+                prompt_input_ids = self.tokenizer(prompt, return_tensors="pt", max_length=max_length, truncation=True)["input_ids"].squeeze(0)
+                full_input_ids = self.tokenizer(full, return_tensors="pt", max_length=max_length, truncation=True)["input_ids"].squeeze(0)
             examples.append((prompt_input_ids, full_input_ids))
 
         if not examples:
