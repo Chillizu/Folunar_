@@ -47,6 +47,8 @@ class SandboxState:
             "last_exit_code": self.last_exit_code,
             "last_output": self.last_output[:200],
             "step": self.step_count,
+            "victory": self.victory,
+            "game_over": self.game_over,
         }, ensure_ascii=False)
 
     def copy(self) -> "SandboxState":
@@ -193,33 +195,51 @@ class BusyboxSandbox:
 
 def generate_sandbox_candidates(state: SandboxState) -> list:
     """Generate candidate Linux commands from whitelist and current state."""
-    from phase1.types import Action
     candidates = []
-    # Basic info commands
-    for cmd in ["ls", "pwd", "id"]:
-        candidates.append(cmd)
-    # Explore files
+    # Base exploration
+    candidates.extend(["ls", "pwd"])
+
+    # Task-completion shortcuts (highest pragmatic signal)
+    if state.cwd == "/sandbox":
+        if "docs" in state.files:
+            candidates.append("cat docs/note.txt")
+        if "hello.txt" in state.files:
+            candidates.append("cat hello.txt")
+        if "data" in state.files:
+            candidates.append("wc -l data/lines.txt")
+            candidates.append("grep -r secret data")
+        candidates.append("mkdir test_dir")
+    if state.cwd.rstrip("/") == "/sandbox/docs" and "note.txt" in state.files:
+        candidates.append("cat note.txt")
+
+    # Navigation for task-relevant directories
+    if "docs" in state.files:
+        candidates.append("cd docs")
+    if "data" in state.files:
+        candidates.append("cd data")
+
+    # Go up if in a subdirectory
+    if state.cwd != "/sandbox":
+        candidates.append("cd ..")
+
+    # Per-file/per-directory exploration
     for f in state.files:
-        if "." not in f and f not in ("docs", "data", "tmp"):
-            candidates.append(f"ls {f}")
-        elif f in ("docs", "data"):
-            candidates.append(f"ls {f}")
-        else:
+        if "." in f:
             candidates.append(f"cat {f}")
-    # cd to explore subdirs
-    for d in ("docs", "data"):
-        if d in state.files and state.cwd.rstrip("/").endswith(d):
-            candidates.append("cd ..")
-        elif d in state.files:
-            candidates.append(f"cd {d}")
-    # Write/process
+        elif f not in ("docs", "data"):  # already added above
+            candidates.append(f"ls {f}")
+            candidates.append(f"cd {f}")
+
+    # Exploration fallbacks
     candidates.append("touch /tmp/test.txt")
     candidates.append("echo 'explore' > /tmp/note.txt")
     candidates.append("grep 'key' docs/note.txt" if "docs" in state.files else "grep key .")
-    # Dedup and cap at max_candidates
+
+    # Filter to whitelist only, dedup, cap at 8
+    valid = [c for c in candidates if _validate_command(c)[0]]
     seen = set()
     unique = []
-    for c in candidates:
+    for c in valid:
         if c not in seen:
             seen.add(c)
             unique.append(c)

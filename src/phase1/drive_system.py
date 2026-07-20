@@ -127,6 +127,7 @@ class ActionGenerator:
         latency_budget_ms: float = 3000.0,
         pragmatic_only: bool = False,
         pragmatic_weight: float = 3.0,
+        goal_predicate=None,
     ):
         self.world_model = world_model
         self.error_computer = error_computer
@@ -136,6 +137,7 @@ class ActionGenerator:
         self.latency_budget_ms = latency_budget_ms
         self.pragmatic_only = pragmatic_only
         self.pragmatic_weight = pragmatic_weight
+        self.goal_predicate = goal_predicate
 
     def _load_latency_ms(self) -> float:
         if self.LATENCY_CONFIG.exists():
@@ -157,8 +159,28 @@ class ActionGenerator:
         if hasattr(state, "room") or hasattr(state, "container_id"):
             pragmatic = 0.0
             if trajectory:
-                final_exit = trajectory[-1].level1_exit_code
-                pragmatic = 0.0 if final_exit == 2 else 0.5
+                if self.goal_predicate is not None:
+                    # Task-specific goal check using predicted next state
+                    pred = trajectory[-1]
+                    fake_ns = type("obj", (object,), {
+                        "last_output": pred.level3_output_summary or "",
+                        "last_exit_code": pred.level1_exit_code,
+                        "files": [],
+                        "cwd": "",
+                    })()
+                    try:
+                        pred_json = json.loads(pred.level2_text or "{}")
+                        fake_ns.last_output = str(pred_json.get("last_output", pred.level3_output_summary or ""))
+                        fake_ns.last_exit_code = int(pred_json.get("last_exit_code", pred.level1_exit_code))
+                        fake_ns.files = list(pred_json.get("files", []))
+                        fake_ns.cwd = str(pred_json.get("cwd", ""))
+                    except Exception:
+                        pass
+                    goal_met = self.goal_predicate(state, candidate_action, fake_ns)
+                    pragmatic = 0.0 if goal_met else 0.5
+                else:
+                    final_exit = trajectory[-1].level1_exit_code
+                    pragmatic = 0.0 if final_exit == 2 else 0.5
             if self.pragmatic_only:
                 return pragmatic * self.pragmatic_weight
             epistemic = 0.0
@@ -190,6 +212,11 @@ class ActionGenerator:
             ratio = p.epistemic_ratio if p.epistemic_ratio is not None else 0.5
             epistemic += (1.0 - p.level2_confidence) * ratio * (0.9 ** i)
         base_efe = epistemic + pragmatic * self.pragmatic_weight
+        # ConfidencePenalty: penalize actions with avg confidence > 0.95 to prevent dead loops
+        if trajectory and not self.pragmatic_only:
+            avg_conf = sum(p.level1_confidence for p in trajectory) / len(trajectory)
+            if avg_conf > 0.95:
+                base_efe += 0.3 * (avg_conf - 0.95)
         return self.drive_system.apply_to_efe(
             base_efe, trajectory, action_history, candidate_action=candidate_action
         )

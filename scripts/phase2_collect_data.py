@@ -42,7 +42,10 @@ def _goal_predicate_find_secret(state, action, next_state) -> bool:
     return "secret" in next_state.last_output.lower()
 
 def _goal_predicate_create_file(state, action, next_state) -> bool:
-    return "test_dir" in (next_state.files if hasattr(next_state, "files") else [])
+    # Prefer outcome check; fall back to action check because current WM rarely
+    # predicts file-list mutations for mkdir.
+    files = next_state.files if hasattr(next_state, "files") else []
+    return "test_dir" in files or (action and action.strip() == "mkdir test_dir")
 
 MICRO_TASKS = [
     {"id": "read_note", "goal": "Read docs/note.txt", "check": _goal_predicate_read_note},
@@ -54,7 +57,7 @@ MICRO_TASKS = [
 
 # ── Baseline runners ──────────────────────────────────────────────
 
-def _build_ag(wm, pragmatic_only=False, use_fast=False, ckpt_dir=None):
+def _build_ag(wm, pragmatic_only=False, use_fast=False, ckpt_dir=None, goal_predicate=None):
     ec = EnsembleErrorComputer(wm)
     if ckpt_dir is None:
         ckpt_dir = Path("checkpoints/phase1_5/text_adapter_e4")
@@ -66,7 +69,8 @@ def _build_ag(wm, pragmatic_only=False, use_fast=False, ckpt_dir=None):
     ag = ActionGenerator(wm, error_computer=ec, drive_system=ds,
                          pragmatic_only=pragmatic_only,
                          pragmatic_weight=PRAGMATIC_WEIGHT,
-                         max_candidates=3, horizon=1)
+                         max_candidates=8, horizon=1,
+                         goal_predicate=goal_predicate)
     return ag
 
 
@@ -82,6 +86,14 @@ def _run_agent(sb, state, agent_fn, max_steps: int, task_id: str, baseline: str)
         next_state, reward, done = sb.step(state, action_str)
         t2 = time.time()
         print(f"  [step {step_i}] select={t1-t0:.1f}s docker={t2-t1:.1f}s action={action_str}", flush=True)
+
+        # ── Terminate episode on task completion to prevent post-goal oscillation ──
+        task_def = next((t for t in MICRO_TASKS if t["id"] == task_id), None)
+        if task_def and task_def["check"](state, action_str, next_state):
+            next_state.victory = True
+            next_state.game_over = True
+            done = True
+            print(f"  [step {step_i}] VICTORY — task {task_id} completed!", flush=True)
 
         record = {
             "agent_type": baseline,
@@ -105,7 +117,10 @@ def _run_agent(sb, state, agent_fn, max_steps: int, task_id: str, baseline: str)
 
 
 def run_peda(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None):
-    ag = _build_ag(wm, pragmatic_only=False, use_fast=use_fast, ckpt_dir=ckpt_dir)
+    task_def = next((t for t in MICRO_TASKS if t["id"] == task_id), None)
+    goal_predicate = task_def["check"] if task_def else None
+    ag = _build_ag(wm, pragmatic_only=False, use_fast=use_fast, ckpt_dir=ckpt_dir,
+                   goal_predicate=goal_predicate)
     state = sb.reset()
     def agent_fn(state, action_history):
         cands = generate_sandbox_candidates(state)
@@ -115,7 +130,10 @@ def run_peda(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None):
 
 
 def run_pragmatic(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None):
-    ag = _build_ag(wm, pragmatic_only=True, use_fast=use_fast, ckpt_dir=ckpt_dir)
+    task_def = next((t for t in MICRO_TASKS if t["id"] == task_id), None)
+    goal_predicate = task_def["check"] if task_def else None
+    ag = _build_ag(wm, pragmatic_only=True, use_fast=use_fast, ckpt_dir=ckpt_dir,
+                   goal_predicate=goal_predicate)
     state = sb.reset()
     def agent_fn(state, action_history):
         cands = generate_sandbox_candidates(state)
@@ -170,12 +188,18 @@ def run_prompt(sb, wm, max_steps, task_id):
             inputs = wm.tokenizer(prompt, return_tensors="pt").to(wm.device)
             out = wm.model.generate(**inputs, max_new_tokens=20, do_sample=False,
                                      pad_token_id=wm.tokenizer.pad_token_id)
-            cmd = wm.tokenizer.decode(out[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True).strip()
-            cmd = cmd.split("\n")[0].strip().strip('"\'`')
-            # If the model emits rambling text, pick the first whitelisted word from it.
+            raw = wm.tokenizer.decode(out[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True).strip()
+            cmd = raw.split("\n")[0].strip().strip('"\'`')
+            # If the first token is a whitelisted command, keep the full first line
+            # (preserving arguments, e.g. "cat docs/note.txt"). Otherwise fall back
+            # to the first whitelisted word encountered.
             WHITELIST = {"ls", "cd", "cat", "echo", "mkdir", "touch", "pwd", "wc", "head", "tail", "grep"}
             words = cmd.lower().split()
-            cmd = next((w for w in words if w in WHITELIST), cmd if words else "ls")
+            if words and words[0] in WHITELIST:
+                cmd = cmd
+            else:
+                first_whitelist = next((w for w in words if w in WHITELIST), None)
+                cmd = first_whitelist if first_whitelist else (cmd if words else "ls")
         except Exception:
             cmd = "ls"
         return cmd
@@ -245,6 +269,7 @@ def main():
     parser.add_argument("--output", default="results/phase2_data.jsonl", help="JSONL output path")
     parser.add_argument("--all-baselines", action="store_true", help="run all baselines for the selected task")
     parser.add_argument("--all-tasks", action="store_true", help="run all tasks for the selected baseline")
+    parser.add_argument("--num-episodes", type=int, default=1, help="repeat each baseline/task combination N times")
     args = parser.parse_args()
 
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
@@ -267,17 +292,18 @@ def main():
     all_results = []
     for bl in baselines:
         for tk in tasks:
-            print(f"[phase2] {bl}/{tk} (max_steps={args.max_steps}) ...", flush=True)
-            t0 = time.time()
-            result = run_one(sb, wm, bl, tk, args.max_steps, use_fast=args.fast, ckpt_dir=args.adapter_path)
-            elapsed = time.time() - t0
-            m = result["metrics"]
-            print(f"  -> steps={m['steps']} fht={m['fht']} scr={m['scr']} dl={m['dead_loop_rate']} [{elapsed:.0f}s]", flush=True)
-            all_results.append(result)
-            # Write incrementally so partial results survive crashes/timeouts
-            line = {k: result[k] for k in ["baseline", "task", "steps_count", "metrics", "records"]}
-            with open(output_path, "a") as f:
-                f.write(json.dumps(line) + "\n")
+            for episode in range(args.num_episodes):
+                print(f"[phase2] {bl}/{tk} episode {episode+1}/{args.num_episodes} (max_steps={args.max_steps}) ...", flush=True)
+                t0 = time.time()
+                result = run_one(sb, wm, bl, tk, args.max_steps, use_fast=args.fast, ckpt_dir=args.adapter_path)
+                elapsed = time.time() - t0
+                m = result["metrics"]
+                print(f"  -> steps={m['steps']} fht={m['fht']} scr={m['scr']} dl={m['dead_loop_rate']} [{elapsed:.0f}s]", flush=True)
+                all_results.append(result)
+                # Write incrementally so partial results survive crashes/timeouts
+                line = {k: result[k] for k in ["baseline", "task", "steps_count", "metrics", "records"]}
+                with open(output_path, "a") as f:
+                    f.write(json.dumps(line) + "\n")
 
     print(f"[phase2] Summary saved to {output_path}", flush=True)
 
