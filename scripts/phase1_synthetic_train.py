@@ -75,6 +75,9 @@ def generate_synthetic_transitions(num_configs: int = 20, samples_per_config: in
                     "next_state_text": str(next_state.agent),
                     "exit_code": exit_code,
                     "summary": summary,
+                    "agent": list(pos),
+                    "goal": list(goal),
+                    "obstacles": [list(o) for o in obstacles],
                 })
     return data
 
@@ -88,7 +91,10 @@ def main():
     parser.add_argument("--learning-rate", type=float, default=2e-4)
     parser.add_argument("--num-configs", type=int, default=20, help="Number of random goal/position configurations to generate.")
     parser.add_argument("--samples-per-config", type=int, default=None)
+    parser.add_argument("--train-fraction", type=float, default=0.5, help="Fraction of grid cells to use for training (0-1).")
+    parser.add_argument("--split-seed", type=int, default=42, help="Seed for selecting known cells.")
     parser.add_argument("--output-adapter", default="checkpoints/phase1/synthetic_adapter")
+    parser.add_argument("--stub", action="store_true", help="Smoke-test mode: generate manifest/checkpoints without loading a real LLM.")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -111,22 +117,76 @@ def main():
         )
         print(f"[synthetic_train] Generated {len(data)} synthetic transitions.")
 
+        # Deterministic cell-level split.
+        cells = [(x, y) for x in range(5) for y in range(5)]
+        num_train_cells = max(1, min(int(len(cells) * args.train_fraction), len(cells)))
+        split_rng = random.Random(args.split_seed)
+        known_cells = split_rng.sample(cells, k=num_train_cells)
+        known_cells_set = {tuple(c) for c in known_cells}
+        train_data = [ex for ex in data if tuple(ex["agent"]) in known_cells_set]
+        if not train_data:
+            raise RuntimeError(
+                f"train_fraction={args.train_fraction} produced zero training transitions; increase fraction or configs."
+            )
+        print(f"[synthetic_train] known_cells={len(known_cells)}; train_data={len(train_data)} transitions.")
+
+        trained_pairs = [
+            {
+                "agent": ex["agent"],
+                "goal": ex["goal"],
+                "obstacles": ex["obstacles"],
+                "action": ex["action_name"],
+            }
+            for ex in train_data
+        ]
+        manifest = {
+            "train_fraction": args.train_fraction,
+            "split_seed": args.split_seed,
+            "num_cells": len(known_cells),
+            "known_cells": [list(c) for c in known_cells],
+            "all_cells": [list(c) for c in cells],
+            "trained_pairs": trained_pairs,
+        }
+        output_path.mkdir(parents=True, exist_ok=True)
+        manifest_path = output_path / "trained_manifest.json"
+        manifest_path.write_text(json.dumps(manifest, indent=2))
+        print(f"[synthetic_train] Manifest saved to {manifest_path}")
+
         print(f"[synthetic_train] Loading model {args.model}...")
-        wm = WorldModel(model_name=args.model, device=args.device, use_stub=False)
-        if wm.mode == "stub" or wm.model is None:
+        use_stub = args.stub or os.environ.get("FOLUNAR_STUB_MODEL", "0") == "1"
+        wm = WorldModel(model_name=args.model, device=args.device, use_stub=use_stub)
+        if not use_stub and (wm.mode == "stub" or wm.model is None):
             raise RuntimeError("WorldModel failed to load real LLM")
 
+        if use_stub:
+            print("[synthetic_train] STUB mode: skipping real LoRA training; generating manifest/checkpoints.")
+
         print(f"[synthetic_train] Training LoRA adapter for {args.epochs} epoch(s)...")
-        wm.lora_finetune(
-            data,
-            epochs=args.epochs,
-            learning_rate=args.learning_rate,
-            batch_size=args.batch_size,
-        )
+        if use_stub:
+            # In stub mode lora_finetune is a no-op; create placeholder checkpoints so the
+            # eval pipeline can still discover ensemble directories.
+            for epoch in range(1, args.epochs + 1):
+                epoch_ckpt = output_path / f"checkpoint_epoch_{epoch}"
+                epoch_ckpt.mkdir(parents=True, exist_ok=True)
+                (epoch_ckpt / "stub_checkpoint.json").write_text(json.dumps({"epoch": epoch, "mode": "stub"}))
+                print(f"[synthetic_train] saved stub checkpoint {epoch_ckpt}")
+        else:
+            wm.lora_finetune(
+                train_data,
+                epochs=args.epochs,
+                learning_rate=args.learning_rate,
+                batch_size=args.batch_size,
+                checkpoint_dir=output_path,
+            )
+
+        if use_stub:
+            print("[synthetic_train] STUB mode: skipping adapter save.")
+        else:
+            output_path.mkdir(parents=True, exist_ok=True)
+            print(f"[synthetic_train] Saving adapter to {output_path}...")
+            wm.model.save_pretrained(output_path)
 
         output_path.mkdir(parents=True, exist_ok=True)
-        print(f"[synthetic_train] Saving adapter to {output_path}...")
-        wm.model.save_pretrained(output_path)
         (output_path / "training_info.json").write_text(json.dumps({
             "model": args.model,
             "epochs": args.epochs,
@@ -135,6 +195,10 @@ def main():
             "num_configs": args.num_configs,
             "samples_per_config": args.samples_per_config,
             "transitions": len(data),
+            "train_fraction": args.train_fraction,
+            "split_seed": args.split_seed,
+            "manifest_path": "trained_manifest.json",
+            "stub": use_stub,
             "seed": args.seed,
             "success": True,
             "finished_at": datetime.datetime.now().isoformat(),

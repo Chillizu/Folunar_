@@ -300,10 +300,28 @@ class TestActionGenerator:
         assert isinstance(action, Action)
         assert action.name in ("UP", "DOWN", "LEFT", "RIGHT")
 
-    def test_select_action_all_candidates_considered(self, stub_wm, stub_computer, drive):
-        """Select action should return a candidate from the provided list."""
-        gen = ActionGenerator(stub_wm, stub_computer, drive)
+    def test_compute_efe_pragmatic_only_returns_distance_term(self, stub_wm, stub_computer, drive, sample_trajectory):
+        """Pragmatic-only baseline must ignore epistemic and drive adjustments."""
+        gen = ActionGenerator(stub_wm, stub_computer, drive, pragmatic_only=True, pragmatic_weight=3.0)
         state = GridState(agent=(2, 2), goal=(4, 4), width=5, height=5)
-        candidates = [Action("UP"), Action("RIGHT")]
-        action = gen.select_action(state, [], candidates)
-        assert action.name in ("UP", "RIGHT")
+        efe = gen.compute_efe(state, sample_trajectory, [], candidate_action=UP_ACTION)
+        # Final predicted cell is (4,2); Manhattan distance to (4,4) is 2; max dist is 8.
+        assert efe == pytest.approx(0.25 * 3.0)
+
+    def test_compute_efe_pragmatic_only_differs_from_peda(self, stub_wm, stub_computer, drive, sample_trajectory):
+        """PEDA EFE includes epistemic/drive terms; pragmatic-only does not."""
+        state = GridState(agent=(2, 2), goal=(4, 4), width=5, height=5)
+        gen_peda = ActionGenerator(stub_wm, stub_computer, drive, pragmatic_only=False, pragmatic_weight=3.0)
+        gen_prag = ActionGenerator(stub_wm, stub_computer, drive, pragmatic_only=True, pragmatic_weight=3.0)
+        efe_peda = gen_peda.compute_efe(state, sample_trajectory, [], candidate_action=UP_ACTION)
+        efe_prag = gen_prag.compute_efe(state, sample_trajectory, [], candidate_action=UP_ACTION)
+        assert efe_peda != pytest.approx(efe_prag)
+
+    def test_compute_efe_pragmatic_weight_scales(self, stub_wm, stub_computer, drive, sample_trajectory):
+        """The pragmatic weight should linearly scale the pragmatic-only EFE."""
+        state = GridState(agent=(2, 2), goal=(4, 4), width=5, height=5)
+        gen_half = ActionGenerator(stub_wm, stub_computer, drive, pragmatic_only=True, pragmatic_weight=1.5)
+        gen_full = ActionGenerator(stub_wm, stub_computer, drive, pragmatic_only=True, pragmatic_weight=3.0)
+        efe_half = gen_half.compute_efe(state, sample_trajectory, [], candidate_action=UP_ACTION)
+        efe_full = gen_full.compute_efe(state, sample_trajectory, [], candidate_action=UP_ACTION)
+        assert efe_full == pytest.approx(efe_half * 2.0)

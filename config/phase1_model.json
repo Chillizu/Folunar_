@@ -1,5 +1,5 @@
 {
-  "model": "Qwen/Qwen2.5-0.5B-Instruct",
-  "median_ms": 4825.4,
-  "p95_ms": 6672.5
+  "model": "stub",
+  "median_ms": 100.0,
+  "p95_ms": 100.0
 }

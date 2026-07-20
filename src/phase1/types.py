@@ -22,14 +22,15 @@ class Action:
 
 @dataclass
 class PredictedState:
-    level1_exit_code: int  # 0=success, 1=wall, 2=goal
+    level1_exit_code: int  # 0=success/moved, 1=fail/wall, 2=goal/victory
     level1_confidence: float
-    level2_next_agent: Tuple[int, int]  # predicted next position
+    level2_next_agent: Tuple[int, int]  # predicted next position (grid); (0,0) sentinel for text
     level2_confidence: float
     level3_output_summary: str  # e.g., "agent moved up"
     level3_confidence: float
     # fraction of total uncertainty that is epistemic (ensemble variance / total uncertainty)
     epistemic_ratio: float = 0.5
+    level2_text: str = ""  # predicted next state description (text envs)
 
 
 @dataclass

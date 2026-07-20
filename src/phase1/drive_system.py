@@ -11,14 +11,19 @@ from phase1.types import Action, DriveTerms, DriveWeights, GridState, PredictedS
 from phase1.world_model import EnsembleErrorComputer, WorldModel
 
 
-def _action_entropy(action_history: List[Action], window: int = 50) -> float:
+def _action_name(action) -> str:
+    """Extract action name from Action object or string."""
+    return action if isinstance(action, str) else (action.name if action else "unknown")
+
+
+def _action_entropy(action_history, window: int = 50) -> float:
     """Shannon entropy (nats) over the recent action distribution."""
     recent = action_history[-window:] if len(action_history) > window else action_history
     if not recent:
         return 0.0
     counts = {}
     for a in recent:
-        counts[a.name] = counts.get(a.name, 0) + 1
+        counts[_action_name(a)] = counts.get(_action_name(a), 0) + 1
     total = len(recent)
     entropy = 0.0
     for count in counts.values():
@@ -93,7 +98,7 @@ class HomeostaticDriveSystem:
         diversity_bonus = 0.0
         if candidate_action is not None:
             recent = action_history[-10:] if len(action_history) > 10 else action_history
-            if not any(a.name == candidate_action.name for a in recent):
+            if not any(_action_name(a) == _action_name(candidate_action) for a in recent):
                 diversity_bonus = 0.2
 
         external_info_potential = 0.0
@@ -120,6 +125,8 @@ class ActionGenerator:
         horizon: int = 2,
         max_candidates: int = 4,
         latency_budget_ms: float = 3000.0,
+        pragmatic_only: bool = False,
+        pragmatic_weight: float = 3.0,
     ):
         self.world_model = world_model
         self.error_computer = error_computer
@@ -127,6 +134,8 @@ class ActionGenerator:
         self.horizon = horizon
         self.max_candidates = max_candidates
         self.latency_budget_ms = latency_budget_ms
+        self.pragmatic_only = pragmatic_only
+        self.pragmatic_weight = pragmatic_weight
 
     def _load_latency_ms(self) -> float:
         if self.LATENCY_CONFIG.exists():
@@ -139,15 +148,34 @@ class ActionGenerator:
 
     def compute_efe(
         self,
-        state: GridState,
+        state,
         trajectory: List[PredictedState],
         action_history: List[Action],
         candidate_action: Optional[Action] = None,
     ) -> float:
-        epistemic = 0.0
-        for i, p in enumerate(trajectory):
-            ratio = p.epistemic_ratio if p.epistemic_ratio is not None else 0.5
-            epistemic += (1.0 - p.level2_confidence) * ratio * (0.9 ** i)
+        # TextState path: pragmatic = distance to victory (0 if predicted win, else 0.5)
+        if hasattr(state, "room") or hasattr(state, "container_id"):
+            pragmatic = 0.0
+            if trajectory:
+                final_exit = trajectory[-1].level1_exit_code
+                pragmatic = 0.0 if final_exit == 2 else 0.5
+            if self.pragmatic_only:
+                return pragmatic * self.pragmatic_weight
+            epistemic = 0.0
+            for i, p in enumerate(trajectory):
+                ratio = p.epistemic_ratio if p.epistemic_ratio is not None else 0.5
+                epistemic += (1.0 - p.level2_confidence) * ratio * (0.9 ** i)
+            base_efe = epistemic + pragmatic * self.pragmatic_weight
+            # ConfidencePenalty: penalize actions with avg confidence > 0.95 to prevent dead loops
+            if trajectory and not self.pragmatic_only:
+                avg_conf = sum(p.level1_confidence for p in trajectory) / len(trajectory)
+                if avg_conf > 0.95:
+                    base_efe += 0.3 * (avg_conf - 0.95)
+            return self.drive_system.apply_to_efe(
+                base_efe, trajectory, action_history, candidate_action=candidate_action
+            )
+
+        # GridState path (original logic)
         pragmatic = 0.0
         if trajectory and state.goal is not None:
             final = trajectory[-1].level2_next_agent
@@ -155,7 +183,13 @@ class ActionGenerator:
                 dist = abs(final[0] - state.goal[0]) + abs(final[1] - state.goal[1])
                 max_dist = max(1, (state.width - 1) + (state.height - 1))
                 pragmatic = dist / max_dist
-        base_efe = epistemic + pragmatic * 3.0
+        if self.pragmatic_only:
+            return pragmatic * self.pragmatic_weight
+        epistemic = 0.0
+        for i, p in enumerate(trajectory):
+            ratio = p.epistemic_ratio if p.epistemic_ratio is not None else 0.5
+            epistemic += (1.0 - p.level2_confidence) * ratio * (0.9 ** i)
+        base_efe = epistemic + pragmatic * self.pragmatic_weight
         return self.drive_system.apply_to_efe(
             base_efe, trajectory, action_history, candidate_action=candidate_action
         )

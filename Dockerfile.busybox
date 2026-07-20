@@ -1,0 +1,6 @@
+FROM busybox:latest
+WORKDIR /sandbox
+RUN mkdir -p docs tmp data && \
+    echo "hello world" > hello.txt && \
+    echo "secret key: 12345" > docs/note.txt && \
+    printf "line1\nline2\nline3\n" > data/lines.txt
