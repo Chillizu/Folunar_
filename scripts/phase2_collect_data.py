@@ -43,7 +43,9 @@ def _goal_predicate_find_secret(state, action, next_state) -> bool:
 
 def _goal_predicate_create_file(state, action, next_state) -> bool:
     # Prefer outcome check; fall back to action check because current WM rarely
-    # predicts file-list mutations for mkdir.
+    # predicts file-list mutations for mkdir. Note: the read-only sandbox root
+    # prevents actual directory creation, so the action check is the only
+    # practical completion signal under C5 (--read-only).
     files = next_state.files if hasattr(next_state, "files") else []
     return "test_dir" in files or (action and action.strip() == "mkdir test_dir")
 
