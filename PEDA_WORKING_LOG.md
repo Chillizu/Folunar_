@@ -1456,3 +1456,55 @@ Decision: **Fix is approved and applied.** Proceed to tune post-completion behav
 **禁止**：
 - 不要在没有 GPU 的情况下强行跑大规模重训。
 - 不要隐瞒 create_file 的动作回退机制。
+
+---
+
+## Phase 2 GPU 训练与终评
+
+### [EXEC] 2026-07-26 — AWS GPU e3 训练与最终评估
+
+**环境**：
+- AWS g4dn.xlarge (T4 16GB)，on-demand，us-east-1b
+- DL AMI (PyTorch 2.11, NVIDIA 595.71.05, CUDA 13.2)
+- 总耗时 ~4.5h，费用 ~$2.40
+
+**做了什么**：
+
+1. **e3 训练** (checkpoints/phase2/sandbox_adapter_e3/)
+   - 数据：phase2_train_merged_v2.jsonl (610 eps, 10,040 transitions)
+   - Qwen2.5-0.5B-Instruct + LoRA, batch_size=1, 3 epochs
+   - loss: 0.0103 -> 0.0088 -> 0.0087；~2h15m
+
+2. **L1/L2/L3 对比**
+   - e2 held-out: L1=1.000 PASS, L2=0.900 PASS, L3=0.550 PASS
+   - e2 OOD: L1=1.000 PASS, L2=0.900 PASS, L3=0.400 FAIL (-0.10)
+   - e3 held-out: L1=0.833 FAIL, L2=0.333 FAIL, L3=0.133 FAIL
+   - e3 OOD: L1=0.600 FAIL, L2=0.500 FAIL, L3=0.033 FAIL
+
+3. **PEDA 5-ep/task 评估** (e2 adapter)
+   - read_note/count_lines/read_hello/find_secret: FHT=0.00, SCR=1.00, all 1-step
+   - 20/20 episodes 全部一次完成
+
+**关键发现**：
+
+1. **数据质量 > 数量**：e3 (10,040 random+heuristic) 退化。random 数据任务完成信号稀疏，模型学到不预测完成。e2 (200 curated) 信号更纯。
+
+2. **PEDA 可靠完成 4/5 任务**：max_candidates=8 + goal_predicate 使候选集包含完成动作。但机制是动作可见性，非预测误差探索。
+
+3. **create_file 受 read-only 限制**：安全基线阻止目录创建。设计取舍，非 bug。
+
+4. **OOD L3 差 0.10**：e2 OOD L3=0.400。同分布布局 (/sandbox/docs) vs OOD (/sandbox/project/...) 不同。
+
+**v1.1 达标总览**：
+- Phase 2a (10,000+): PASS
+- Phase 2b (L1/L2/L3 held-out): PASS
+- OOD L1/L2: PASS
+- OOD L3: FAIL (0.400, need 0.500)
+- 安全基线: PASS
+- PEDA 多任务: PASS (20/20, FHT=0)
+- create_file: LIMIT (read-only)
+- epistemic 探索: OPEN
+
+**交付物**：
+- S3: phase2/sandbox_adapter_e2/, phase2/sandbox_adapter_e3/
+- S3: phase2/results/peda_e2_*.jsonl, e2_*.json, e3_*.json
