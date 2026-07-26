@@ -659,6 +659,221 @@ applied to architecture claims.
 
 ---
 
+### C15: Running hypothesis-validation experiments with an untrained World Model
+
+**Trigger**: The agent runs multi-baseline comparisons or any experiment
+framed as "validating the core hypothesis" using a World Model or LoRA
+adapter that has not been trained or fine-tuned on the target
+environment/task. OR: the agent runs such an experiment and interprets
+the results as evidence for/against PEDA's architecture.
+
+**Why**: Phase 2 ran `--all-baselines` using `checkpoints/phase1_5/text_adapter_e4`
+(an adapter trained only on the 2-room TextRoomEnv). The busybox sandbox
+uses a completely different JSON-structured state representation and
+command dynamics. All five baselines produced SCR=0.2 and null FHT,
+because the World Model had no usable sandbox knowledge. The run
+consumed compute but produced no valid signal about PEDA's architecture.
+
+**Correct behavior**:
+- Before running baseline comparisons or hypothesis-validation
+  experiments, confirm the World Model has been trained on data from
+  the target environment.
+- A run with an untrained WM is allowed ONLY if explicitly labeled as
+  a "smoke test" or "code-path validation". The results must NOT be
+  used to draw conclusions about PEDA, the Drive System, or EFE.
+- If the target environment is new, the first experiments must be
+  data-collection and World Model training, not agent evaluation.
+
+**Reference**: `PEDA_WORKING_LOG.md` — `[EVAL] 2026-07-18 22:15:13 — Phase 2 基线运行评估`
+
+### C16: Action candidate set lacks task-completion shortcut
+
+**Trigger**: `generate_*_candidates` returns candidate actions for PEDA,
+but none of the candidates can directly satisfy the current task goal
+when the state makes such an action applicable (e.g., `read_note` task
+with `/sandbox` cwd and `docs` directory present, but `cat docs/note.txt`
+is not in the candidate set).
+
+**Why**: Phase 2 e1/e2 diagnosis showed that without a direct
+completion candidate, the pragmatic term in EFE is flat (all candidates
+receive the same pragmatic value of 0.5). PEDA then selects actions
+based on epistemic/diversity terms alone, which can trap it in
+oscillations (`ls ↔ ls data`, or worse, `id ↔ ls` where `id` fails
+with exit_code=1). The agent chases prediction-error variance from
+failing or uninformative actions instead of progressing toward the goal.
+
+**Correct behavior**:
+- Verify that the candidate set always includes at least one action
+  that can directly complete the task from the current state, when
+  such an action is valid.
+- In the sandbox: from `/sandbox`, include `cat docs/note.txt` when
+  `docs` is present; from `/sandbox/docs`, include `cat note.txt` when
+  `note.txt` is present; similarly for other micro-tasks.
+- Do not include non-whitelisted commands (e.g., `id`) in the candidate
+  set purely to "increase diversity" — they create artificial
+  prediction-error signals that mislead the agent.
+- When a candidate fix is applied, run a negative-control experiment
+  with the old candidate set to confirm the fix is causal, not an
+  artifact of more training or randomness.
+
+**Reference**: `PEDA_WORKING_LOG.md` — `[EXEC] 2026-07-20 — Phase 2 P1 blocker fix executed and verified`
+
+### C17: Phase 2 World Model L1/L2/L3 accuracy not measured on held-out test set before declaring P1 gate passed
+
+**Trigger**: The agent declares Phase 2 P1 gate passed, or treats Phase 2
+as validated, without having measured the World Model's three-level
+prediction accuracy on a held-out test set that was not used during
+training or candidate-fix tuning.
+
+**Why**: The v1.1 architecture plan defines clear targets for the World
+Model: Level 1 (exit code) ≥ 90%, Level 2 (filesystem delta) ≥ 70%,
+Level 3 (output summary) ≥ 50%. The P1 blocker fix only proved that
+`read_note` can be completed when the candidate set includes a direct
+completion action. It did not prove that the World Model predicts
+exit codes, filesystem changes, or output summaries accurately. Without
+measuring L1/L2/L3 on held-out data, the agent risks declaring P1 passed
+based on a single cherry-picked task trajectory.
+
+**Correct behavior**:
+- Before declaring P1 gate passed, collect or designate a held-out
+  test set of (state, action, next_state) transitions from the sandbox
+  that was not used during training or candidate-set debugging.
+- Report L1 accuracy (exit code exact match), L2 accuracy (filesystem
+  delta structured match), and L3 accuracy (output summary semantic
+  match, e.g., SBERT cosine > 0.7) on this held-out set.
+- The minimum thresholds for P1 gate pass are: L1 ≥ 0.90, L2 ≥ 0.70,
+  L3 ≥ 0.50. If any threshold is not met, P1 gate is NOT passed.
+- Post-completion oscillation (C18) must also be resolved before P1
+  gate pass.
+
+**Reference**: `PEDA架构设计与开发计划书_v1.1.docx` — 3.3.3 "分层预测体系"
+
+### C18: Post-completion oscillation not addressed before declaring Phase 2 P1 gate passed
+
+**Trigger**: PEDA completes a task (e.g., `read_note` FHT=0) but then
+continues to alternate between the task-completion action and trivial
+actions (`cat docs/note.txt ↔ ls`) for the remaining steps, and the
+agent declares P1 gate passed without implementing a stop-on-completion,
+boredom-penalty, or episode-termination mechanism.
+
+**Why**: A gate declaration means the system is ready for scaled data
+collection and full Phase 2b validation. If the agent cannot terminate
+or move on after completing a task, every successful episode will
+waste steps and pollute the training data with post-completion loops.
+This is not a cosmetic issue — it blocks reliable data collection.
+
+**Correct behavior**:
+- Implement one of: (a) explicit stop-on-completion when the goal
+  predicate is satisfied, (b) a strong boredom penalty that pushes the
+  agent away from repeated actions after completion, or (c) a task
+  reset that starts a new episode after completion.
+- Verify that PEDA no longer oscillates after completing `read_note`.
+- Document the chosen mechanism in `PEDA_WORKING_LOG.md` and update the
+  relevant gate status only after verification.
+
+**Reference**: `PEDA_WORKING_LOG.md` — `[EVAL] 2026-07-20 — P1 status: blocker cleared, gate not yet fully passed`
+
+### C19: Phase 1.5 deviation from v1.1 plan not documented
+
+**Trigger**: The v1.1 architecture plan specified Phase 1.5 as a
+TextWorld-based go/no-go gate with success thresholds (WM prediction
+accuracy > 60%, 3-step task completion > 30%). The actual project
+implemented a custom lightweight text environment instead of TextWorld
+(due to Python 3.14 incompatibility), collected only 113 training
+samples, and did not meet the v1.1 thresholds before moving to Phase 2.
+This deviation was not documented with the required (1) what changed,
+(2) why, (3) risk analysis, and (4) mitigation plan.
+
+**Why**: Phase 1.5 was explicitly added to v1.1 to bridge the gap
+between Grid World and Linux sandbox. Replacing it with a custom
+environment and reduced validation is a significant deviation (C10).
+Without a deviation report, future reviews cannot tell whether the
+decision was justified, and the agent may forget that core hypothesis
+validation remains incomplete.
+
+**Correct behavior**:
+- Produce a deviation report `PEDA_FINAL/phase1_5_deviation_report.md`
+  (or a concise section in `PEDA_WORKING_LOG.md`) covering the four
+  points above.
+- The report must state clearly that Phase 1.5 did NOT fully validate
+  the v1.1 thresholds; its value was infrastructure + behavioral
+  difference signal, not hypothesis confirmation.
+- If Phase 1.5 is revisited to meet the original thresholds, update
+  the report.
+
+**Reference**: `PEDA架构设计与开发计划书_v1.1.docx` — "Phase 1.5（新增）"; `PEDA_FINAL/phase1_5_complete_report.md`
+
+### C20: Feature extension before core hypothesis validation
+
+**Trigger**: The agent adds new tasks, modules, sandbox features, or
+environment capabilities before the core hypothesis (prediction-error-driven
+exploration produces measurable behavioral difference from pragmatic-only
+baseline) has been experimentally tested.
+
+**Why**: Phase 1's gap report explicitly identified that the hypothesis was
+never validated. Phase 2's task-completion success is driven by
+action-visibility + goal-predicate, not epistemic signal. Adding complexity
+before validating the core mechanism risks building on an unverified
+foundation — the exact Folunar_ pattern of declaring features "implemented"
+without testing whether they work.
+
+**Correct behavior**: Complete Phase 3 (epistemic vs pragmatic controlled
+experiment) before any new feature. If the experiment yields a negative
+result, document it per RESEARCH_CHARTER — a negative result is a valid
+contribution. Do not compensate by adding features to "make it work."
+
+**Reference**: `PEDA_FINAL/RESEARCH_CHARTER.md`, `PEDA_FINAL/archive/phase1/phase1_gap_report.md`
+
+---
+
+### C21: Declaring PEDA as "running" without closed self-training loop
+
+**Trigger**: The agent describes Phase 2 as "PEDA running in the sandbox"
+or implies that the current collect_data.py eval mode constitutes the full
+PEDA mechanism, when in fact LearningModule (experience buffer + auto-lora-
+finetune + saturation detection) is entirely absent from Phase 2's runtime.
+
+**Why**: The Phase 1 run_episode() implements a complete PEDA loop: predict
+→ execute → decompose error → update drives → store experience → auto-finetune.
+Phase 2's _run_agent() implements only: predict → execute → record. This is
+an evaluation scaffold, not the PEDA mechanism. Confiating the two
+misrepresents project status.
+
+**Correct behavior**: Distinguish between "eval mode" (fixed adapter,
+single-pass data collection) and "runtime mode" (adapter evolves via
+LearningModule during episodes). Only refer to the latter as PEDA running.
+Phase 4 (Self-Training Loop Closure) explicitly targets this gap.
+
+**Reference**: `src/phase1/run.py:12-81` (Phase 1 run_episode),
+`scripts/phase2_collect_data.py:_run_agent()` (Phase 2 degraded loop)
+
+---
+
+### C22: Environment complexity exceeding World Model capacity
+
+**Trigger**: The agent proposes expanding the sandbox (more files,
+directories, tools) without first verifying that the World Model can
+handle the increased state space — or without a plan to upgrade the
+model alongside the environment.
+
+**Why**: The 0.5B Qwen model with 65 training transitions already
+operates near its saturation point: it acts as a pattern matcher, not
+a reasoner (L3=0.550 held-out, 0.400 OOD). Adding Python interpreter
+or network access would expand the state space by orders of magnitude
+without a corresponding increase in model capacity, resulting in
+perpetually high epistemic error that cannot be resolved — not
+exploration, but chaos.
+
+**Correct behavior**: Each sandbox expansion (v3→v4→v5) must be paired
+with an evaluation of WM adequacy. Use the partial-training methodology
+to test whether the WM can learn the new state transitions. If not,
+upgrade the model (1.5B→7B) before further expansion.
+
+**Reference**: Phase 5 (Sandbox Expansion) in engineering plan, v2 GM
+generalization results (L3 drop from 0.550 to 0.400)
+
+---
+
 ## Nit Rules (Minor — advisor emits nit, delivered immediately)
 
 ### N1: Work that could be deferred
@@ -746,6 +961,20 @@ not apply, OR acknowledge the risk and add a mitigation.
 
 ## Rule Changelog
 
+### 2026-07-20 — Phase 2 Re-organization
+
+| Rule | Change | Reason |
+|------|--------|--------|
+| C17 | **New Concern** | P1 gate pass requires measured World Model L1/L2/L3 accuracy on held-out data, per v1.1 architecture plan |
+| C18 | **New Concern** | Post-completion oscillation (`cat docs/note.txt ↔ ls`) must be resolved before P1 gate pass |
+| C19 | **New Concern** | Skipping Phase 1.5 requires a documented deviation report |
+
+### 2026-07-20 — Phase 2 Candidate-Generation Fix
+
+| Rule | Change | Reason |
+|------|--------|--------|
+| C16 | **New Concern** | Phase 2 e1/e2 diagnosis showed that missing task-completion candidates (`cat docs/note.txt`) flattens pragmatic reward and drives prediction-error-chasing oscillations; old candidates included non-whitelisted `id` which created misleading epistemic signal |
+
 ### 2026-07-07 — GLM-5.2 Follow-up Round 2
 
 | Rule | Change | Reason |
@@ -758,6 +987,7 @@ not apply, OR acknowledge the risk and add a mitigation.
 | "3 Questions" | **New framework** | Dynamic decision framework replacing static rules for daily use |
 | C13 | Added | Token-space vs latent-space prediction evaluation |
 | C14 | Added | Drive System artifact verification requirement |
+| C15 | Added | Running hypothesis-validation experiments with an untrained World Model |
 
 ---
 

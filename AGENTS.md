@@ -12,8 +12,8 @@ This document is a living guide for AI assistants. It inherits the global `AGENT
 
 ## Project Overrides (Priority Over Global Rules)
 
-- **Subagent 调用**: 除非用户明确要求，否则不自说自话启动。用户说"用 subagent"或"分发"时才用 `task` 工具。其余情况自行处理。
-- **No emoji, concise Chinese/English prose, and a `Ciallo~~` greeting in every assistant response.**
+- **Subagent 调用**: 推荐使用 subagent 分担工作，但在调用前需向用户提问确认是否同意。用户同意后方可用 `task` 工具分发。
+- **编排优先**: 主要做分析、设计合约、分解任务。确认用户同意分发后，再拆为独立切片交付 subagent。
 - **Before destructive actions** (deleting files, rewriting history, force-pushing, changing core data formats), ask the user. Routine code edits and tests do not need explicit permission.
 - **Git dual-tree:** frequent small commits and pushes on both `dev` and `main`. Milestone work squash-merged to `main`. Never force-push.
 - **编排优先**: 主要做分析、设计合约、分解任务。用户要求分发时才用 subagent 执行。
@@ -148,7 +148,8 @@ ruff check src tests
 
 ## Agent Collaboration Rules
 
-- **Subagents:** only when user explicitly asks. 用户说"用 subagent"、"分发"、"fan out" 时才用。其余自行处理。
-- **Main agent:** owns architecture decisions, cross-file synthesis, and final verification. Analyses before acting.
+- **Subagents: 积极调用。** 主要工作通过 subagent 完成。主模型只做编排——分析需求、设计合约、拆解任务、审核结果。
+- **调用流程**：分析范围 → 写合约（`local://` 文件，含 Target/Change/Acceptance）→ 分发给 subagent → 等待完成 → 检查交付物 → 合并报告。
+- **Main agent:** owns architecture decisions, cross-file synthesis, contract design, and final verification. Does NOT write code or run long experiments directly.
 - **Coordination:** if multiple subagents touch the same file, use IRC to coordinate before editing.
 - **Verify before yielding:** run the specific test or scenario that exercises your change; do not rely on "it compiles" or lint-only checks.
