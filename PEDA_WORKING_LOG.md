@@ -1532,3 +1532,34 @@ Decision: **Fix is approved and applied.** Proceed to tune post-completion behav
 - `sandbox_env.py` 增加 `start_cwd` 参数
 - 阻因：CPU 推理 0.5B 模型太慢（冷启动 ~176s，每次调用 ~3s），Grid World 实验可行（1-2s/调用）
 - 需 GPU 才能跑完整 N>=10 对照实验
+
+## Phase 3 Sandbox N=20 Confirmatory Experiment — 2026-07-27
+
+### [EXEC] 2026-07-27 — Phase 3 N=20 Confirmatory Experiment Completed
+
+**Hardware**: AWS g4dn.xlarge (T4 GPU, 4 vCPU, 16 GB RAM) — ~5h total run time
+
+**Data**: `results/phase3_sandbox_n20/*.jsonl` (80 episodes total, 20 per condition)
+
+**Key Results**:
+
+| Condition | N | Mean Steps | vs PEDA known | vs Pragmatic known | vs Pragmatic unknown |
+|-----------|---|-----------|---------------|---------------------|----------------------|
+| PEDA known | 20 | 6.8 | — | — | — |
+| PEDA unknown | 20 | **7.2** | p=0.4792 | — | p=**0.0043**, d=1.00 |
+| Pragmatic known | 20 | 7.2 | p=0.6959 | — | — |
+| Pragmatic unknown | 20 | **10.0** | p=0.0672 | p=0.0115, d=0.82 | — |
+
+**Crossover interaction**: p=**0.0008** — significant
+
+**Driver analysis**: /sandbox/projects environment
+- PEDA 2.0 vs Pragmatic 10.0 steps, p=0.0013
+- PEDA gains vs pragmatic concentrated in environments requiring multi-step exploration
+
+**Verdict**: First statistically-significant evidence for the core hypothesis (prediction-error-driven exploration yields faster learning in unknown environments than pure pragmatic reward).
+
+**All 80 episodes**: 100% success rate — no failures or aborts
+
+**Files committed**:
+- `results/phase3_sandbox_n20/*.jsonl` — raw episode data
+- `PEDA_WORKING_LOG.md` — this entry
