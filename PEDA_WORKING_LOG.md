@@ -1508,3 +1508,27 @@ Decision: **Fix is approved and applied.** Proceed to tune post-completion behav
 **交付物**：
 - S3: phase2/sandbox_adapter_e2/, phase2/sandbox_adapter_e3/
 - S3: phase2/results/peda_e2_*.jsonl, e2_*.json, e3_*.json
+
+
+## Phase 2 再评估 — 2026-07-27
+
+### [FINDING] held-out 评估揭示 v1→v2 泛化失败
+
+**e2 adapter（最佳：v1 沙箱 L1=1.000）在 sandbox v2 新目录上**：
+- L1=0.800（未达 0.90）
+- L2=0.686（未达 0.70）
+- L3=0.229（未达 0.50）
+- read_note 任务：所有基线 0% 成功率
+
+**结论**：Phase 2 的"成功"声明（L1=1.000, 20/20 多任务完成）仅在 v1 沙箱（4 目录）上成立。v2 沙箱（7 目录）上 WM 不泛化。Phase 2 实质上是**沙箱基建 + 数据管道**，不是 PEDA 运行。
+
+### [FIX] C18 任务完成后振荡修复
+
+`scripts/phase2_collect_data.py:_run_agent()` 增加 `game_over` 提前退出守卫（line 105-108）。5 场景 smoke test 全通过。
+
+### [STATUS] Phase 3 代码就绪，硬件阻塞
+
+- 4 个实验脚本就绪：`scripts/phase3_*.py`
+- `sandbox_env.py` 增加 `start_cwd` 参数
+- 阻因：CPU 推理 0.5B 模型太慢（冷启动 ~176s，每次调用 ~3s），Grid World 实验可行（1-2s/调用）
+- 需 GPU 才能跑完整 N>=10 对照实验

@@ -187,29 +187,57 @@ From `PROMPT_PHASE2_START.md`:
 > Phase 2 uses microtasks (5-10 steps) rather than 20-step long episodes
 > Goal: 1000+ unique samples per collection session, not 10000
 
-### 5.4 Phase 2 Net Contribution
+### 5.4 Held-Out Evaluation (2026-07-26) — CRITICAL RE-EVALUATION
+
+**Test**: e2 adapter (best: L1=1.000 on v1 sandbox) evaluated on sandbox v2 OOD directories (logs/, projects/, README.txt).
+
+| Level | Target | Held-Out | Threshold Met? |
+|-------|--------|----------|----------------|
+| L1 (Exit code) | >= 0.90 | **0.800** | FAIL |
+| L2 (Filesystem delta) | >= 0.70 | **0.686** | FAIL |
+| L3 (Output summary) | >= 0.50 | **0.229** | FAIL |
+
+**Conclusion**: WM does NOT generalize to new directory layouts. The claimed Phase 2 success metrics (L1=1.000, L2=0.900, L3=0.550) are **specific to v1 sandbox (4 directories)** and do not hold on v2 sandbox (7 directories). read_note task: 0% success rate across all baselines on v2 sandbox, contradicting the earlier "1-step completion" claim which was only valid on v1.
+
+### 5.5 Multi-Baseline Evaluation (2026-07-26)
+
+| Baseline | read_hello | read_note |
+|----------|-----------|-----------|
+| PEDA | 80% (2.8 steps) | 0% (10.0 steps) |
+| Pragmatic-only | 100% (1.0 steps) | 0% (10.0 steps, 80% revisit) |
+| Random | 100% (3.0 steps) | 0% (10.0 steps) |
+
+**Finding**: Pragmatic outperforms PEDA on read_hello. All baselines fail read_note on v2 sandbox. The e2 adapter's task-completion ability is sandbox-layout-dependent.
+
+### 5.6 Phase 2 Net Contribution (Revised)
 
 | Contribution | Confidence |
 |-------------|------------|
-| Docker sandbox secure and operational | High |
+| Docker sandbox v1 + v2 operational | High |
 | JSON-structured state reduces aleatoric noise | High |
-| PEDA ≠ Pragmatic confirmed (2/2) | High |
-| Light JEPA hidden-state epistemic (infrastructure built) | Medium (pending empirical validation) |
-| Core hypothesis still unvalidated — environment too simple | Confirmed |
+| Data quality > quantity proven (e2 200 curated > e3 10k random) | High |
+| C18 post-completion oscillation fix (game_over guard) | High |
+| PEDA ≠ Pragmatic confirmed (Phase 1.5 Text World) | High |
+| **WM does NOT generalize v1→v2 sandbox** | **Confirmed (new)** |
+| **Core hypothesis still unvalidated** | **Confirmed** |
 
 ---
 
 ## 6. Phase 3: Epistemic Validation [NOW]
+
+**Status**: Code ready, hardware blocked (needs GPU). Scripts at `scripts/phase3_*.py`.
 
 ### 6.1 Experimental Design
 
 Following the recommendation from `PHASE1_EVALUATION.md` Section 6 (Option A):
 
 **Method**:
-1. Train WM on **half** the state-action space (e.g., 12 of 25 grid cells × 4 actions = 48 of 96 possible transitions)
+1. Train WM on **half** the state-action space of Grid World
 2. The other half constitutes "unknown region" with predictable WM uncertainty
-3. Evaluate from unknown-region start states with goal in known vs unknown regions
+3. Evaluate from unknown-region start states
 4. Compare PEDA (full EFE) vs Pragmatic-only (EFE with epistemic term zeroed)
+
+**Why Grid World, not Sandbox**: CPU inference with Qwen2.5-0.5B-Instruct in sandbox takes ~176s cold start + ~3s per call, making 40-episode experiment impractical (60-120h). Grid World inference is 1-2s per call, experiment feasible in ~30-60min. The core hypothesis question is identical in both environments.
 
 **Controlled variables**:
 - Same pragmatic_weight = 3.0 for both agents
@@ -227,6 +255,16 @@ From `PHASE1_PARTIAL_EVALUATION.md`:
 | goal_known | pragmatic_only | 1.000 | 3.0 | 0.000 | 1.000 |
 | goal_unknown | PEDA | 1.000 | **2.0** | 0.000 | 0.500 |
 | goal_unknown | pragmatic_only | 0.000 | **20.0** | **0.905** | 1.000 |
+
+### 6.3 Hardware Status
+
+| Item | Status |
+|------|--------|
+| Scripts | 4 scripts ready (`scripts/phase3_*.py`) |
+| Adapter | `checkpoints/phase1/partial_adapter_real_25_e3` |
+| start_cwd support | Added to `sandbox_env.py` and `phase2_collect_data.py` |
+| CPU feasibility | FAIL — too slow for sandbox, feasible for Grid World |
+| GPU needed | Yes — estimated 10-30 min for full Grid World experiment |
 
 **Interpretation**:
 - goal_known: Both agents identical (fairness check PASS — PEDA not magically better)

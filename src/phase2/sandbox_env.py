@@ -13,7 +13,7 @@ from typing import List, Optional, Tuple
 
 
 # Allowlist: only these commands are executable.
-WHITELIST = {"ls", "cd", "cat", "echo", "mkdir", "touch", "pwd", "wc", "head", "tail", "grep"}
+WHITELIST = {"ls", "cd", "cat", "echo", "mkdir", "touch", "pwd", "wc", "head", "tail", "grep", "find"}
 BLOCKLIST_PATTERNS = [
     re.compile(r"\brm\b"), re.compile(r"\bmv\b"), re.compile(r"\bcp\b"),
     re.compile(r"\bchmod\b"), re.compile(r"\bchown\b"), re.compile(r"\bdd\b"),
@@ -22,8 +22,8 @@ BLOCKLIST_PATTERNS = [
     re.compile(r"\bshutdown\b"), re.compile(r"\breboot\b"),
 ]
 
-DOCKER_IMAGE = "peda-sandbox"
-WHITELIST_HELP = "Whitelisted: ls, cd, cat, echo, mkdir, touch, pwd, wc, head, tail, grep"
+DOCKER_IMAGE = "peda-sandbox:v2"
+WHITELIST_HELP = "Whitelisted: ls, cd, cat, echo, mkdir, touch, pwd, wc, head, tail, grep, find"
 
 
 @dataclass
@@ -115,14 +115,21 @@ class BusyboxSandbox:
             self._container_id = result.stdout.strip()
         return self._container_id
 
-    def reset(self, seed: Optional[int] = None) -> SandboxState:
-        """Stop current container and start a fresh one."""
+    def reset(self, seed: Optional[int] = None, start_cwd: Optional[str] = None) -> SandboxState:
+        """Stop current container and start a fresh one. Optionally start in start_cwd."""
         self.close()
         cid = self._ensure_container()
-        files = _list_files(cid, "/sandbox")
+        target_cwd = start_cwd if start_cwd else "/sandbox"
+        if start_cwd and start_cwd != "/sandbox":
+            # Navigate to target cwd and update file listing
+            subprocess.run(
+                ["docker", "exec", "-w", "/sandbox", cid, "sh", "-c", f"cd {start_cwd}"],
+                capture_output=True, text=True, timeout=5,
+            )
+        files = _list_files(cid, target_cwd)
         return SandboxState(
             container_id=cid,
-            cwd="/sandbox",
+            cwd=target_cwd,
             files=files,
             step_count=0,
         )
@@ -194,48 +201,79 @@ class BusyboxSandbox:
         self.close()
 
 def generate_sandbox_candidates(state: SandboxState) -> list:
-    """Generate candidate Linux commands from whitelist and current state."""
+    """Generate candidate Linux commands from whitelist and current state.
+
+    v2: enriched sandbox with 7 dirs, 14 files. Candidate strategy:
+    1. Always: ls, pwd
+    2. Navigation: cd into visible subdirs; cd .. if in subdir
+    3. File ops: cat for text files; head/tail for larger ones; wc for counts
+    4. Content search: grep for keywords in interesting locations
+    5. Cap at 12 candidates.
+    """
     candidates = []
-    # Base exploration
+    cwd = state.cwd.rstrip("/")
+    files = state.files
+
+    # ── Always available ──
     candidates.extend(["ls", "pwd"])
 
-    # Task-completion shortcuts (highest pragmatic signal)
-    if state.cwd == "/sandbox":
-        if "docs" in state.files:
-            candidates.append("cat docs/note.txt")
-        if "hello.txt" in state.files:
-            candidates.append("cat hello.txt")
-        if "data" in state.files:
-            candidates.append("wc -l data/lines.txt")
-            candidates.append("grep -r secret data")
-        candidates.append("mkdir test_dir")
-    if state.cwd.rstrip("/") == "/sandbox/docs" and "note.txt" in state.files:
-        candidates.append("cat note.txt")
-
-    # Navigation for task-relevant directories
-    if "docs" in state.files:
-        candidates.append("cd docs")
-    if "data" in state.files:
-        candidates.append("cd data")
-
-    # Go up if in a subdirectory
-    if state.cwd != "/sandbox":
+    # ── cd .. when in a subdirectory ──
+    if cwd != "/sandbox":
         candidates.append("cd ..")
 
-    # Per-file/per-directory exploration
-    for f in state.files:
-        if "." in f:
-            candidates.append(f"cat {f}")
-        elif f not in ("docs", "data"):  # already added above
-            candidates.append(f"ls {f}")
+    # ── Navigation: cd into each visible directory ──
+    KNOWN_DIRS = {"docs", "data", "logs", "projects", "tmp"}
+    for f in files:
+        if f in KNOWN_DIRS:
             candidates.append(f"cd {f}")
+        elif f == "app" and cwd.endswith("/projects"):
+            candidates.append("cd app")
+        elif f == "lib" and cwd.endswith("/projects"):
+            candidates.append("cd lib")
 
-    # Exploration fallbacks
-    candidates.append("touch /tmp/test.txt")
+    # ── File reading: cat for small files ──
+    SMALL_FILES = {"README.txt", "hello.txt", "note.txt", "changelog.txt",
+                   "manual.txt", "config.ini", "test.py"}
+    for f in files:
+        if f in SMALL_FILES:
+            candidates.append(f"cat {f}")
+
+    # ── Structured data exploration ──
+    if "numbers.txt" in files:
+        candidates.append("cat numbers.txt")
+        candidates.append("head -n 3 numbers.txt")
+    if "users.csv" in files:
+        candidates.append("cat users.csv")
+        candidates.append("head -n 1 users.csv")
+        candidates.append("wc -l users.csv")
+    if "lines.txt" in files:
+        candidates.append("cat lines.txt")
+        candidates.append("wc -l lines.txt")
+    if "access.log" in files or cwd.endswith("/logs"):
+        candidates.append("cat access.log" if "access.log" in files else "cat logs/access.log")
+        candidates.append("head -n 5 access.log" if "access.log" in files else "head -n 5 logs/access.log")
+        candidates.append("wc -l access.log" if "access.log" in files else "wc -l logs/access.log")
+    if "error.log" in files or cwd.endswith("/logs"):
+        candidates.append("grep ERROR error.log" if "error.log" in files else "grep ERROR logs/error.log")
+    if "main.py" in files:
+        candidates.append("cat main.py")
+    if "utils.py" in files:
+        candidates.append("cat utils.py")
+
+    # ── Content search across directories ──
+    candidates.append("grep -r secret .")
+    candidates.append("grep -r ERROR .")
+    candidates.append("grep -r v2 .")
+    candidates.append("grep -r admin .")
+
+    # ── find command (new in v2 whitelist) ──
+    candidates.append("find . -name '*.txt'")
+    candidates.append("find . -name '*.log'")
+
+    # ── General exploration ──
     candidates.append("echo 'explore' > /tmp/note.txt")
-    candidates.append("grep 'key' docs/note.txt" if "docs" in state.files else "grep key .")
 
-    # Filter to whitelist only, dedup, cap at 8
+    # Filter to whitelist only, dedup, cap at 12
     valid = [c for c in candidates if _validate_command(c)[0]]
     seen = set()
     unique = []
@@ -243,4 +281,4 @@ def generate_sandbox_candidates(state: SandboxState) -> list:
         if c not in seen:
             seen.add(c)
             unique.append(c)
-    return unique[:8]
+    return unique[:12]

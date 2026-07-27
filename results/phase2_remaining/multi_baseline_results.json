@@ -1,0 +1,141 @@
+{
+  "metadata": {
+    "description": "Phase 2 Slice C: Multi-baseline evaluation on sandbox v2",
+    "max_steps": 10,
+    "episodes_per_condition": 5,
+    "total_episodes": 30,
+    "adapter": "checkpoints/phase2/sandbox_adapter_e2/",
+    "model": "Qwen2.5-0.5B-Instruct",
+    "max_candidates": 5
+  },
+  "conditions": {
+    "peda/read_hello": {
+      "baseline": "peda",
+      "task": "read_hello",
+      "success_rate": 0.8,
+      "mean_steps": 2.8,
+      "mean_scr": 0.84,
+      "mean_revisit_rate": 0.0,
+      "total_episodes": 5,
+      "successes": 4
+    },
+    "peda/read_note": {
+      "baseline": "peda",
+      "task": "read_note",
+      "success_rate": 0.0,
+      "mean_steps": 10.0,
+      "mean_scr": 0.22,
+      "mean_revisit_rate": 0.0,
+      "total_episodes": 5,
+      "successes": 0
+    },
+    "pragmatic/read_hello": {
+      "baseline": "pragmatic",
+      "task": "read_hello",
+      "success_rate": 1.0,
+      "mean_steps": 1.0,
+      "mean_scr": 1.0,
+      "mean_revisit_rate": 0.0,
+      "total_episodes": 5,
+      "successes": 5
+    },
+    "pragmatic/read_note": {
+      "baseline": "pragmatic",
+      "task": "read_note",
+      "success_rate": 0.0,
+      "mean_steps": 10.0,
+      "mean_scr": 0.1,
+      "mean_revisit_rate": 0.8,
+      "total_episodes": 5,
+      "successes": 0
+    },
+    "random/read_hello": {
+      "baseline": "random",
+      "task": "read_hello",
+      "success_rate": 1.0,
+      "mean_steps": 3.0,
+      "mean_scr": 0.333,
+      "mean_revisit_rate": 0.0,
+      "total_episodes": 5,
+      "successes": 5
+    },
+    "random/read_note": {
+      "baseline": "random",
+      "task": "read_note",
+      "success_rate": 0.0,
+      "mean_steps": 10.0,
+      "mean_scr": 0.2,
+      "mean_revisit_rate": 0.0,
+      "total_episodes": 5,
+      "successes": 0
+    }
+  },
+  "summary_table": [
+    {
+      "baseline": "peda",
+      "task": "read_hello",
+      "success_rate": 0.8,
+      "mean_steps": 2.8,
+      "mean_scr": 0.84,
+      "revisit_rate": 0.0,
+      "total_episodes": 5
+    },
+    {
+      "baseline": "pragmatic",
+      "task": "read_hello",
+      "success_rate": 1.0,
+      "mean_steps": 1.0,
+      "mean_scr": 1.0,
+      "revisit_rate": 0.0,
+      "total_episodes": 5
+    },
+    {
+      "baseline": "random",
+      "task": "read_hello",
+      "success_rate": 1.0,
+      "mean_steps": 3.0,
+      "mean_scr": 0.333,
+      "revisit_rate": 0.0,
+      "total_episodes": 5
+    },
+    {
+      "baseline": "peda",
+      "task": "read_note",
+      "success_rate": 0.0,
+      "mean_steps": 10.0,
+      "mean_scr": 0.22,
+      "revisit_rate": 0.0,
+      "total_episodes": 5
+    },
+    {
+      "baseline": "pragmatic",
+      "task": "read_note",
+      "success_rate": 0.0,
+      "mean_steps": 10.0,
+      "mean_scr": 0.1,
+      "revisit_rate": 0.8,
+      "total_episodes": 5
+    },
+    {
+      "baseline": "random",
+      "task": "read_note",
+      "success_rate": 0.0,
+      "mean_steps": 10.0,
+      "mean_scr": 0.2,
+      "revisit_rate": 0.0,
+      "total_episodes": 5
+    }
+  ],
+  "comparison": {
+    "read_note": {
+      "peda": 0.0,
+      "pragmatic": 0.0,
+      "random": 0.0
+    },
+    "read_hello": {
+      "peda": 0.8,
+      "pragmatic": 1.0,
+      "random": 1.0
+    }
+  }
+}

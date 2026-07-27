@@ -42,19 +42,40 @@ def _goal_predicate_find_secret(state, action, next_state) -> bool:
     return "secret" in next_state.last_output.lower()
 
 def _goal_predicate_create_file(state, action, next_state) -> bool:
-    # Prefer outcome check; fall back to action check because current WM rarely
-    # predicts file-list mutations for mkdir. Note: the read-only sandbox root
-    # prevents actual directory creation, so the action check is the only
-    # practical completion signal under C5 (--read-only).
     files = next_state.files if hasattr(next_state, "files") else []
     return "test_dir" in files or (action and action.strip() == "mkdir test_dir")
 
+# ── v2 micro-tasks (enriched sandbox) ──
+def _goal_predicate_count_users(state, action, next_state) -> bool:
+    """wc -l data/users.csv → output should be '5 data/users.csv'"""
+    out = next_state.last_output
+    return ("5" in out and "users" in out) or (action and "wc -l" in action and "users" in action)
+
+def _goal_predicate_find_errors(state, action, next_state) -> bool:
+    return "2" in next_state.last_output or "ERROR" in next_state.last_output
+
+def _goal_predicate_read_changelog(state, action, next_state) -> bool:
+    return "v2" in next_state.last_output.lower() or "v1" in next_state.last_output.lower()
+
+def _goal_predicate_find_admin(state, action, next_state) -> bool:
+    return "alice" in next_state.last_output.lower() or "admin" in next_state.last_output.lower()
+
+def _goal_predicate_count_logs(state, action, next_state) -> bool:
+    out = next_state.last_output
+    return ("3" in out and "access" in out) or (action and "wc -l" in action and "access" in action)
+
 MICRO_TASKS = [
-    {"id": "read_note", "goal": "Read docs/note.txt", "check": _goal_predicate_read_note},
-    {"id": "count_lines", "goal": "Count lines in data/lines.txt", "check": _goal_predicate_count_lines},
-    {"id": "read_hello", "goal": "Read hello.txt", "check": _goal_predicate_hello},
-    {"id": "find_secret", "goal": "Find files containing 'secret'", "check": _goal_predicate_find_secret},
-    {"id": "create_file", "goal": "Create test_dir", "check": _goal_predicate_create_file},
+    {"id": "read_note",     "goal": "Read docs/note.txt",          "check": _goal_predicate_read_note},
+    {"id": "count_lines",   "goal": "Count lines in data/lines.txt","check": _goal_predicate_count_lines},
+    {"id": "read_hello",    "goal": "Read hello.txt",              "check": _goal_predicate_hello},
+    {"id": "find_secret",   "goal": "Find files with 'secret'",    "check": _goal_predicate_find_secret},
+    {"id": "create_file",   "goal": "Create test_dir",             "check": _goal_predicate_create_file},
+    # v2
+    {"id": "count_users",   "goal": "Count users in users.csv",    "check": _goal_predicate_count_users},
+    {"id": "find_errors",   "goal": "Count errors in error.log",   "check": _goal_predicate_find_errors},
+    {"id": "read_changelog","goal": "Read docs/changelog.txt",     "check": _goal_predicate_read_changelog},
+    {"id": "find_admin",    "goal": "Find admin user in CSV",      "check": _goal_predicate_find_admin},
+    {"id": "count_logs",    "goal": "Count lines in access.log",   "check": _goal_predicate_count_logs},
 ]
 
 # ── Baseline runners ──────────────────────────────────────────────
@@ -71,7 +92,7 @@ def _build_ag(wm, pragmatic_only=False, use_fast=False, ckpt_dir=None, goal_pred
     ag = ActionGenerator(wm, error_computer=ec, drive_system=ds,
                          pragmatic_only=pragmatic_only,
                          pragmatic_weight=PRAGMATIC_WEIGHT,
-                         max_candidates=8, horizon=1,
+                         max_candidates=5, horizon=1,
                          goal_predicate=goal_predicate)
     return ag
 
@@ -81,6 +102,11 @@ def _run_agent(sb, state, agent_fn, max_steps: int, task_id: str, baseline: str)
     steps = []
     action_history = []
     for step_i in range(max_steps):
+        # ── Early termination if already in terminal state (defense-in-depth) ──
+        if state.game_over:
+            print(f"  [step {step_i}] Already in terminal state (game_over=True) — breaking immediately", flush=True)
+            break
+
         t0 = time.time()
         action = agent_fn(state, action_history)
         t1 = time.time()
@@ -118,12 +144,12 @@ def _run_agent(sb, state, agent_fn, max_steps: int, task_id: str, baseline: str)
     return steps, state
 
 
-def run_peda(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None):
+def run_peda(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None, start_cwd=None):
     task_def = next((t for t in MICRO_TASKS if t["id"] == task_id), None)
     goal_predicate = task_def["check"] if task_def else None
     ag = _build_ag(wm, pragmatic_only=False, use_fast=use_fast, ckpt_dir=ckpt_dir,
                    goal_predicate=goal_predicate)
-    state = sb.reset()
+    state = sb.reset(start_cwd=start_cwd)
     def agent_fn(state, action_history):
         cands = generate_sandbox_candidates(state)
         # select_action expects List[Action]; cands are strings
@@ -131,12 +157,12 @@ def run_peda(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None):
     return _run_agent(sb, state, agent_fn, max_steps, task_id, "peda")
 
 
-def run_pragmatic(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None):
+def run_pragmatic(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None, start_cwd=None):
     task_def = next((t for t in MICRO_TASKS if t["id"] == task_id), None)
     goal_predicate = task_def["check"] if task_def else None
     ag = _build_ag(wm, pragmatic_only=True, use_fast=use_fast, ckpt_dir=ckpt_dir,
                    goal_predicate=goal_predicate)
-    state = sb.reset()
+    state = sb.reset(start_cwd=start_cwd)
     def agent_fn(state, action_history):
         cands = generate_sandbox_candidates(state)
         return ag.select_action(state, action_history, cands)
