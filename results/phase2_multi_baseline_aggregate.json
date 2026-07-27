@@ -1,0 +1,18 @@
+{
+  "random": {
+    "episodes": 300,
+    "fht_sum": 60,
+    "fht_count": 60,
+    "scr_sum": 54.00000000000014,
+    "dl_sum": 24.00000000000007,
+    "steps_sum": 4920
+  },
+  "heuristic": {
+    "episodes": 300,
+    "fht_sum": 60,
+    "fht_count": 60,
+    "scr_sum": 65.99999999999993,
+    "dl_sum": 0.0,
+    "steps_sum": 4920
+  }
+}

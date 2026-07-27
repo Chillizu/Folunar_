@@ -1,0 +1,36 @@
+{
+  "training_data": {
+    "file": "results/phase2_v2_full.jsonl",
+    "count": 65,
+    "source": "merged known_wrapped (40) + wrapped_unknown_test (25)"
+  },
+  "adapter": {
+    "path": "checkpoints/phase2/sandbox_adapter_v2_full/",
+    "num_runs": 65,
+    "num_transitions": 65,
+    "loss_epoch1": 0.2683,
+    "loss_epoch2": 0.089,
+    "loss_epoch3": 0.0312,
+    "training_completed": true
+  },
+  "held_out": {
+    "l1": 0.7,
+    "l2": 0.8067,
+    "l3": 0.0,
+    "passed": false,
+    "train_size": 55,
+    "test_size": 10,
+    "note": "L1=0.70 (exit_code accuracy, target=0.90) — 3/10 failures: 2 cd exit_code mismatches, 1 JSON parse error. L3=0.00 because summary field missing from training data. L2=0.8067 passes target=0.70"
+  },
+  "smoke_test": {
+    "task": "read_note",
+    "success": false,
+    "steps": 10,
+    "max_steps": 10,
+    "completed_goal": false,
+    "action_pattern": "oscillation between cd data / cat config.ini / cd ..",
+    "finding": "Agent loads adapter and generates actions, but oscillates. Never discovers docs/note.txt. Classic PEDA oscillation problem — addressed by Fix B."
+  },
+  "verdict": "FAIL",
+  "summary": "Adapter training succeeds (loss 0.27→0.09→0.03). Held-out validation shows L1=0.70 (needs 0.90) and L3=0.0 (missing summary field in data). Smoke test fails due to oscillation (Fix B scope). The adapter itself is well-trained; the failure modes are (1) generalization gap for exit_code prediction, (2) missing training signal for summary/output prediction, and (3) PEDA oscillation during search (Fix B)."
+}

@@ -23,60 +23,13 @@ from phase1.types import DriveWeights
 from phase1.world_model import WorldModel, EnsembleErrorComputer
 from phase1.drive_system import ActionGenerator, HomeostaticDriveSystem
 from phase2.sandbox_env import BusyboxSandbox, generate_sandbox_candidates
+from phase2.run import SandboxLearningModule, run_peda_episode
+from phase2.tasks import MICRO_TASKS
+
 
 # ── Drive config (grid-search top-1) ──────────────────────────────
 DRIVE_WEIGHTS = DriveWeights(curiosity=0.1, competence=2.0, boredom=0.1, novelty=2.0)
 PRAGMATIC_WEIGHT = 3.0
-
-# ── Micro-tasks ────────────────────────────────────────────────────
-def _goal_predicate_read_note(state, action, next_state) -> bool:
-    return "secret key" in next_state.last_output or (action and "cat docs/note" in action)
-
-def _goal_predicate_count_lines(state, action, next_state) -> bool:
-    return "3" in next_state.last_output and "lines" in next_state.last_output
-
-def _goal_predicate_hello(state, action, next_state) -> bool:
-    return "hello" in next_state.last_output
-
-def _goal_predicate_find_secret(state, action, next_state) -> bool:
-    return "secret" in next_state.last_output.lower()
-
-def _goal_predicate_create_file(state, action, next_state) -> bool:
-    files = next_state.files if hasattr(next_state, "files") else []
-    return "test_dir" in files or (action and action.strip() == "mkdir test_dir")
-
-# ── v2 micro-tasks (enriched sandbox) ──
-def _goal_predicate_count_users(state, action, next_state) -> bool:
-    """wc -l data/users.csv → output should be '5 data/users.csv'"""
-    out = next_state.last_output
-    return ("5" in out and "users" in out) or (action and "wc -l" in action and "users" in action)
-
-def _goal_predicate_find_errors(state, action, next_state) -> bool:
-    return "2" in next_state.last_output or "ERROR" in next_state.last_output
-
-def _goal_predicate_read_changelog(state, action, next_state) -> bool:
-    return "v2" in next_state.last_output.lower() or "v1" in next_state.last_output.lower()
-
-def _goal_predicate_find_admin(state, action, next_state) -> bool:
-    return "alice" in next_state.last_output.lower() or "admin" in next_state.last_output.lower()
-
-def _goal_predicate_count_logs(state, action, next_state) -> bool:
-    out = next_state.last_output
-    return ("3" in out and "access" in out) or (action and "wc -l" in action and "access" in action)
-
-MICRO_TASKS = [
-    {"id": "read_note",     "goal": "Read docs/note.txt",          "check": _goal_predicate_read_note},
-    {"id": "count_lines",   "goal": "Count lines in data/lines.txt","check": _goal_predicate_count_lines},
-    {"id": "read_hello",    "goal": "Read hello.txt",              "check": _goal_predicate_hello},
-    {"id": "find_secret",   "goal": "Find files with 'secret'",    "check": _goal_predicate_find_secret},
-    {"id": "create_file",   "goal": "Create test_dir",             "check": _goal_predicate_create_file},
-    # v2
-    {"id": "count_users",   "goal": "Count users in users.csv",    "check": _goal_predicate_count_users},
-    {"id": "find_errors",   "goal": "Count errors in error.log",   "check": _goal_predicate_find_errors},
-    {"id": "read_changelog","goal": "Read docs/changelog.txt",     "check": _goal_predicate_read_changelog},
-    {"id": "find_admin",    "goal": "Find admin user in CSV",      "check": _goal_predicate_find_admin},
-    {"id": "count_logs",    "goal": "Count lines in access.log",   "check": _goal_predicate_count_logs},
-]
 
 # ── Baseline runners ──────────────────────────────────────────────
 
@@ -143,18 +96,23 @@ def _run_agent(sb, state, agent_fn, max_steps: int, task_id: str, baseline: str)
             break
     return steps, state
 
-
 def run_peda(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None, start_cwd=None):
     task_def = next((t for t in MICRO_TASKS if t["id"] == task_id), None)
     goal_predicate = task_def["check"] if task_def else None
     ag = _build_ag(wm, pragmatic_only=False, use_fast=use_fast, ckpt_dir=ckpt_dir,
                    goal_predicate=goal_predicate)
-    state = sb.reset(start_cwd=start_cwd)
     def agent_fn(state, action_history):
         cands = generate_sandbox_candidates(state)
-        # select_action expects List[Action]; cands are strings
         return ag.select_action(state, action_history, cands)
-    return _run_agent(sb, state, agent_fn, max_steps, task_id, "peda")
+    # Full PEDA loop with LearningModule
+    ec = ag.error_computer
+    ds = ag.drive_system
+    lm = SandboxLearningModule(wm, ec, buffer_size=100, update_interval=50)
+    steps, final_state, _metrics = run_peda_episode(
+        sb, wm, ec, ds, lm, agent_fn, max_steps, task_id,
+        start_cwd=start_cwd,
+    )
+    return steps, final_state
 
 
 def run_pragmatic(sb, wm, max_steps, task_id, use_fast=False, ckpt_dir=None, start_cwd=None):

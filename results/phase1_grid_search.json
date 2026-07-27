@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-07-04T08:59:13.233480",
+  "timestamp": "2026-07-19T01:21:23.591693",
   "model": "Qwen/Qwen2.5-1.5B-Instruct",
   "stub": true,
-  "phase_a_episodes": 2,
+  "phase_a_episodes": 5,
   "phase_b_episodes": 10,
   "top_k": 20,
   "top_5": [
     {
       "weights": {
-        "curiosity": 0.1,
-        "competence": 2.0,
+        "curiosity": 1.0,
+        "competence": 0.1,
         "boredom": 0.1,
         "novelty": 2.0
       },
@@ -21,10 +21,10 @@
     },
     {
       "weights": {
-        "curiosity": 1.0,
-        "competence": 0.1,
-        "boredom": 2.0,
-        "novelty": 0.5
+        "curiosity": 2.0,
+        "competence": 1.0,
+        "boredom": 0.5,
+        "novelty": 1.0
       },
       "score": 0.9796,
       "success_rate": 1.0,
@@ -34,9 +34,9 @@
     },
     {
       "weights": {
-        "curiosity": 1.0,
+        "curiosity": 2.0,
         "competence": 0.1,
-        "boredom": 1.0,
+        "boredom": 0.5,
         "novelty": 2.0
       },
       "score": 0.9704,
@@ -47,10 +47,10 @@
     },
     {
       "weights": {
-        "curiosity": 0.1,
-        "competence": 1.0,
-        "boredom": 1.0,
-        "novelty": 0.1
+        "curiosity": 0.5,
+        "competence": 0.5,
+        "boredom": 0.5,
+        "novelty": 0.5
       },
       "score": 0.9776,
       "success_rate": 1.0,
@@ -60,10 +60,10 @@
     },
     {
       "weights": {
-        "curiosity": 0.5,
-        "competence": 1.0,
+        "curiosity": 1.0,
+        "competence": 2.0,
         "boredom": 0.5,
-        "novelty": 1.0
+        "novelty": 0.5
       },
       "score": 0.9764,
       "success_rate": 1.0,

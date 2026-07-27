@@ -68,6 +68,18 @@ def main():
         help="Number of evaluation episodes (default: 100).",
     )
     parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=50,
+        help="Maximum steps per episode (default: 50).",
+    )
+    parser.add_argument(
+        "--latency-budget",
+        type=float,
+        default=3000.0,
+        help="Latency budget in ms for ActionGenerator (default: 3000.0).",
+    )
+    parser.add_argument(
         "--drive-config",
         type=str,
         default="config/phase1_default_drives.json",
@@ -135,7 +147,7 @@ def main():
     # ----------------------------------------------------------------
     # Environment and models
     # ----------------------------------------------------------------
-    env = GridWorld(width=5, height=5, max_steps=50)
+    env = GridWorld(width=5, height=5, max_steps=args.max_steps)
     wm = WorldModel(model_name=model_name_arg, use_stub=use_stub, adapter_path=adapter_path_arg)
     ec = EnsembleErrorComputer(wm, num_checkpoints=5)
     ds = HomeostaticDriveSystem(
@@ -147,7 +159,7 @@ def main():
         )
     )
     lm = LearningModule(wm, ec, buffer_size=1000, update_interval=500)
-    ag = ActionGenerator(wm, ec, ds, horizon=2, max_candidates=max_candidates_arg, latency_budget_ms=3000.0)
+    ag = ActionGenerator(wm, ec, ds, horizon=2, max_candidates=max_candidates_arg, latency_budget_ms=args.latency_budget)
 
     # ----------------------------------------------------------------
     # Run evaluation episodes

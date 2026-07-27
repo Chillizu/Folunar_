@@ -1,0 +1,1 @@
+{"baseline": "pragmatic", "task": "read_note", "steps_count": 5, "metrics": {"fht": null, "scr": 0.2, "dead_loop_rate": 0.6, "steps": 5}}

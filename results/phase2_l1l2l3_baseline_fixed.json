@@ -1,0 +1,11 @@
+{
+  "total": 20,
+  "l1": 1.0,
+  "l2": 1.0,
+  "l3": 0.75,
+  "l1_pass": true,
+  "l2_pass": true,
+  "l3_pass": true,
+  "train_count": 160,
+  "test_count": 20
+}

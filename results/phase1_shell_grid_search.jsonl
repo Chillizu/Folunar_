@@ -1,0 +1,20 @@
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 0, "seed": 0, "weights": {"curiosity": 1.0, "competence": 0.1, "boredom": 0.1, "novelty": 2.0}, "success": true, "steps": 4, "reward": 0.85, "trajectory": [[0, 4], [1, 4], [1, 3], [2, 3], [2, 2]], "goal": [2, 2], "actions": ["RIGHT", "UP", "RIGHT", "UP"]}
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 0, "seed": 1, "weights": {"curiosity": 1.0, "competence": 0.1, "boredom": 0.1, "novelty": 2.0}, "success": true, "steps": 4, "reward": 0.85, "trajectory": [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4]], "goal": [0, 4], "actions": ["DOWN", "DOWN", "DOWN", "DOWN"]}
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 1, "seed": 100, "weights": {"curiosity": 2.0, "competence": 1.0, "boredom": 0.5, "novelty": 1.0}, "success": true, "steps": 5, "reward": 0.8, "trajectory": [[2, 1], [2, 2], [1, 2], [1, 3], [1, 4], [0, 4]], "goal": [0, 4], "actions": ["DOWN", "LEFT", "DOWN", "DOWN", "LEFT"]}
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 1, "seed": 101, "weights": {"curiosity": 2.0, "competence": 1.0, "boredom": 0.5, "novelty": 1.0}, "success": true, "steps": 5, "reward": 0.8, "trajectory": [[1, 0], [2, 0], [2, 1], [3, 1], [3, 2], [3, 3]], "goal": [3, 3], "actions": ["RIGHT", "DOWN", "RIGHT", "DOWN", "DOWN"]}
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 2, "seed": 200, "weights": {"curiosity": 2.0, "competence": 0.1, "boredom": 0.5, "novelty": 2.0}, "success": true, "steps": 2, "reward": 0.95, "trajectory": [[1, 0], [0, 0], [0, 1]], "goal": [0, 1], "actions": ["LEFT", "DOWN"]}
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 2, "seed": 201, "weights": {"curiosity": 2.0, "competence": 0.1, "boredom": 0.5, "novelty": 2.0}, "success": true, "steps": 3, "reward": 0.9, "trajectory": [[1, 4], [0, 4], [0, 3], [0, 2]], "goal": [0, 2], "actions": ["LEFT", "UP", "UP"]}
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 3, "seed": 300, "weights": {"curiosity": 0.5, "competence": 0.5, "boredom": 0.5, "novelty": 0.5}, "success": true, "steps": 1, "reward": 1.0, "trajectory": [[2, 4], [3, 4]], "goal": [3, 4], "actions": ["RIGHT"]}
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 3, "seed": 301, "weights": {"curiosity": 0.5, "competence": 0.5, "boredom": 0.5, "novelty": 0.5}, "success": true, "steps": 3, "reward": 0.9, "trajectory": [[0, 3], [0, 2], [1, 2], [2, 2]], "goal": [2, 2], "actions": ["UP", "RIGHT", "RIGHT"]}
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 4, "seed": 400, "weights": {"curiosity": 1.0, "competence": 2.0, "boredom": 0.5, "novelty": 0.5}, "success": true, "steps": 6, "reward": 0.75, "trajectory": [[4, 1], [4, 2], [3, 2], [3, 3], [2, 3], [2, 4], [1, 4]], "goal": [1, 4], "actions": ["DOWN", "LEFT", "DOWN", "LEFT", "DOWN", "LEFT"]}
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"config_idx": 4, "seed": 401, "weights": {"curiosity": 1.0, "competence": 2.0, "boredom": 0.5, "novelty": 0.5}, "success": true, "steps": 1, "reward": 1.0, "trajectory": [[3, 1], [3, 0]], "goal": [3, 0], "actions": ["UP"]}

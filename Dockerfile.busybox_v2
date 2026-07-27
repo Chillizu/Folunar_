@@ -1,0 +1,33 @@
+FROM busybox:latest
+WORKDIR /sandbox
+
+# ── Root files ──
+RUN echo "Welcome to PEDA Sandbox v2" > README.txt && \
+    echo "hello world" > hello.txt
+
+# ── docs/ ──
+RUN mkdir -p docs && \
+    echo "secret key: 12345" > docs/note.txt && \
+    echo "PEDA User Manual\nVersion 2.0\nCommands: ls, cd, cat, grep, wc, head, tail, echo" > docs/manual.txt && \
+    echo "v1.0: Initial release\nv1.1: Bug fixes\nv2.0: New features" > docs/changelog.txt
+
+# ── data/ ──
+RUN mkdir -p data && \
+    printf "line1\nline2\nline3\n" > data/lines.txt && \
+    printf "42\n17\n99\n3\n55\n" > data/numbers.txt && \
+    printf "[server]\nhost=localhost\nport=8080\n\n[log]\nlevel=info\n" > data/config.ini && \
+    printf "id,name,role\n1,alice,admin\n2,bob,user\n3,carol,user\n4,dave,guest\n" > data/users.csv
+
+# ── logs/ ──
+RUN mkdir -p logs && \
+    printf "2026-07-26 10:00:01 GET /index 200\n2026-07-26 10:00:02 GET /api 404\n2026-07-26 10:00:03 POST /submit 201\n" > logs/access.log && \
+    printf "ERROR: timeout after 30s\nWARN: retry attempt 3\nERROR: connection refused on port 8080\n" > logs/error.log
+
+# ── projects/ ──
+RUN mkdir -p projects/app projects/lib && \
+    printf "# PEDA App\nprint('hello')\nfor i in range(3):\n    print(i)\n" > projects/app/main.py && \
+    printf "# Unit tests\nassert 1+1==2\nassert 'peda'.upper()=='PEDA'\n" > projects/app/test.py && \
+    printf "def add(a,b): return a+b\ndef multiply(a,b): return a*b\n" > projects/lib/utils.py
+
+# ── tmp (tmpfs at runtime) ──
+RUN mkdir -p tmp

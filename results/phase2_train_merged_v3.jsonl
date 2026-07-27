@@ -1,0 +1,22 @@
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "wc -l data/lines.txt", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "3 data/lines.txt"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "cat docs/note.txt", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "secret key: 12345"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "cat hello.txt", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "hello world"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "ls", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "data\ndocs\nhello.txt\ntmp"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "cd docs", "next_cwd": "/sandbox/docs", "next_files": ["note.txt"], "exit_code": 0, "output": ""}
+{"cwd": "/sandbox/docs", "files": ["note.txt"], "action": "cat note.txt", "next_cwd": "/sandbox/docs", "next_files": ["note.txt"], "exit_code": 0, "output": "secret key: 12345"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "ls data", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "lines.txt"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "cat /sandbox/docs/note.txt", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "secret key: 12345"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "ls docs", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "note.txt"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "pwd", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "/sandbox"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "cd data", "next_cwd": "/sandbox/data", "next_files": ["lines.txt"], "exit_code": 0, "output": ""}
+{"cwd": "/sandbox/data", "files": ["lines.txt"], "action": "wc -l lines.txt", "next_cwd": "/sandbox/data", "next_files": ["lines.txt"], "exit_code": 0, "output": "3 lines.txt"}
+{"cwd": "/sandbox/data", "files": ["lines.txt"], "action": "ls", "next_cwd": "/sandbox/data", "next_files": ["lines.txt"], "exit_code": 0, "output": "lines.txt"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "grep -r secret .", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "./docs/note.txt:secret key: 12345"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "grep secret docs/note.txt", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "secret key: 12345"}
+{"cwd": "/sandbox/docs", "files": ["note.txt"], "action": "grep secret note.txt", "next_cwd": "/sandbox/docs", "next_files": ["note.txt"], "exit_code": 0, "output": "secret key: 12345"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "grep -r secret /sandbox", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "/sandbox/docs/note.txt:secret key: 12345"}
+{"cwd": "/sandbox", "files": ["data", "docs", "hello.txt", "tmp"], "action": "grep -r secret docs", "next_cwd": "/sandbox", "next_files": ["data", "docs", "hello.txt", "tmp"], "exit_code": 0, "output": "docs/note.txt:secret key: 12345"}
+{"cwd": "/sandbox/docs", "files": ["note.txt"], "action": "ls", "next_cwd": "/sandbox/docs", "next_files": ["note.txt"], "exit_code": 0, "output": "note.txt"}
+{"cwd": "/sandbox/docs", "files": ["note.txt"], "action": "pwd", "next_cwd": "/sandbox/docs", "next_files": ["note.txt"], "exit_code": 0, "output": "/sandbox/docs"}
+{"cwd": "/sandbox/docs", "files": ["note.txt"], "action": "echo 'explore' > /tmp/note.txt", "next_cwd": "/sandbox/docs", "next_files": ["note.txt"], "exit_code": 0, "output": ""}
+{"cwd": "/sandbox/docs", "files": ["note.txt"], "action": "grep key .", "next_cwd": "/sandbox/docs", "next_files": ["note.txt"], "exit_code": 1, "output": ""}

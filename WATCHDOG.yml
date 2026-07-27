@@ -1,20 +1,11 @@
-advisors: 
+advisors:
   - name: default
-    model: deepseek/deepseek-v4-pro:medium
-  - name: SubAdvisor
-    model: deepseek/deepseek-v4-flash:xhigh
-    tools: 
-      - read
-      - ask
-      - glob
-      - grep
-      - web_search
-      - learn
-      - manage_skill
-    instructions: 在必要时给予全面的建议，在模型似乎陷入困境和遇到阻碍时在用户同意的情况下给予模型合适建议，可以尝试搜索为模型补充信息。勤问用户
+    model: opencode-go/deepseek-v4-flash:high
+    instructions: 请注意提醒且强调主模型积极在低思考高执行任务/会产生大量无用上下文的任务上积极使用subagent
+    enabled: false
   - name: Kimi Role
-    model: deepseek/deepseek-v4-pro:xhigh
-    tools: 
+    model: deepseek/deepseek-v4-flash:high
+    tools:
       - read
       - glob
       - grep

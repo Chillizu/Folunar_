@@ -1,0 +1,12 @@
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:  31%|███       | 89/290 [00:00<00:00, 849.66it/s]Loading weights:  67%|██████▋   | 195/290 [00:00<00:00, 966.31it/s]Loading weights: 100%|██████████| 290/290 [00:00<00:00, 1043.58it/s]
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"seed": 0, "variant": "peda_adapter", "mode": "peda", "use_adapter": true, "obstacles": [[2, 1], [2, 2], [2, 3]], "success": true, "steps": 2, "reward": 0.95, "trajectory": [[3, 2], [3, 1], [3, 0]], "goal": [3, 0], "actions": ["UP", "UP"], "mean_epistemic_error": 0.0, "mean_aleatoric_error": 0.0}
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights: 100%|██████████| 290/290 [00:00<00:00, 4883.91it/s]
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"seed": 1, "variant": "peda_adapter", "mode": "peda", "use_adapter": true, "obstacles": [[2, 1], [2, 2], [2, 3]], "success": true, "steps": 1, "reward": 1.0, "trajectory": [[0, 3], [0, 4]], "goal": [0, 4], "actions": ["DOWN"], "mean_epistemic_error": 0.0, "mean_aleatoric_error": 0.0}
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights: 100%|██████████| 290/290 [00:00<00:00, 4825.23it/s]
+[WorldModel] Loaded adapter from checkpoints/phase1/partial_adapter_real_25_e3
+{"seed": 3, "variant": "peda_adapter", "mode": "peda", "use_adapter": true, "obstacles": [[2, 1], [2, 2], [2, 3]], "success": true, "steps": 2, "reward": 0.95, "trajectory": [[0, 3], [1, 3], [1, 2]], "goal": [1, 2], "actions": ["RIGHT", "UP"], "mean_epistemic_error": 0.0, "mean_aleatoric_error": 0.0}

@@ -1,9 +1,1 @@
-[
-  {
-    "curiosity": 0.1,
-    "competence": 2.0,
-    "boredom": 0.1,
-    "novelty": 2.0
-  }
-]
-
+[{"curiosity": 0.5, "competence": 0.5, "boredom": 0.5, "novelty": 0.5}]

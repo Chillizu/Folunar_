@@ -1,0 +1,10 @@
+{"seed": 0, "mode": "peda", "success": true, "steps": 4, "reward": 0.85, "trajectory": [[0, 4], [0, 3], [1, 3], [1, 2], [2, 2]], "goal": [2, 2], "actions": ["UP", "RIGHT", "UP", "RIGHT"]}
+{"seed": 1, "mode": "peda", "success": true, "steps": 4, "reward": 0.85, "trajectory": [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4]], "goal": [0, 4], "actions": ["DOWN", "DOWN", "DOWN", "DOWN"]}
+{"seed": 2, "mode": "peda", "success": true, "steps": 6, "reward": 0.75, "trajectory": [[4, 3], [4, 2], [3, 2], [3, 1], [2, 1], [1, 1], [0, 1]], "goal": [0, 1], "actions": ["UP", "LEFT", "UP", "LEFT", "LEFT", "LEFT"]}
+{"seed": 3, "mode": "peda", "success": true, "steps": 3, "reward": 0.9, "trajectory": [[0, 0], [0, 1], [1, 1], [1, 2]], "goal": [1, 2], "actions": ["DOWN", "RIGHT", "DOWN"]}
+{"seed": 4, "mode": "peda", "success": true, "steps": 4, "reward": 0.85, "trajectory": [[3, 0], [3, 1], [2, 1], [2, 2], [1, 2]], "goal": [1, 2], "actions": ["DOWN", "LEFT", "DOWN", "LEFT"]}
+{"seed": 5, "mode": "peda", "success": true, "steps": 4, "reward": 0.85, "trajectory": [[3, 0], [3, 1], [3, 2], [3, 3], [3, 4]], "goal": [3, 4], "actions": ["DOWN", "DOWN", "DOWN", "DOWN"]}
+{"seed": 6, "mode": "peda", "success": true, "steps": 1, "reward": 1.0, "trajectory": [[4, 3], [3, 3]], "goal": [3, 3], "actions": ["LEFT"]}
+{"seed": 7, "mode": "peda", "success": true, "steps": 4, "reward": 0.85, "trajectory": [[0, 2], [0, 1], [1, 1], [1, 0], [2, 0]], "goal": [2, 0], "actions": ["UP", "RIGHT", "UP", "RIGHT"]}
+{"seed": 8, "mode": "peda", "success": true, "steps": 2, "reward": 0.95, "trajectory": [[0, 1], [0, 2], [1, 2]], "goal": [1, 2], "actions": ["DOWN", "RIGHT"]}
+{"seed": 9, "mode": "peda", "success": true, "steps": 4, "reward": 0.85, "trajectory": [[1, 1], [1, 2], [2, 2], [2, 3], [2, 4]], "goal": [2, 4], "actions": ["DOWN", "RIGHT", "DOWN", "DOWN"]}

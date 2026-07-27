@@ -365,6 +365,28 @@ class WorldModel:
 
     def _stub_predict(self, state: GridState, action: Optional[Action]) -> PredictedState:
         """Deterministic grid-rule predictor for dependency-free testing."""
+        # SandboxState stub (Phase 2) — needed for BusyboxSandbox integration
+        if hasattr(state, "container_id"):
+            action_str = action if isinstance(action, str) else (action.name if action else "none")
+            pred_json = {
+                "cwd": state.cwd,
+                "files": list(state.files),
+                "last_command": action_str,
+                "last_exit_code": 0,
+                "last_output": f"[stub] executed: {action_str}",
+            }
+            exit_code = 2 if getattr(state, "victory", False) else 0
+            summary = f"stub: {action_str}"
+            return PredictedState(
+                level1_exit_code=exit_code,
+                level1_confidence=1.0,
+                level2_next_agent=(0, 0),
+                level2_confidence=1.0,
+                level3_output_summary=summary,
+                level3_confidence=1.0,
+                level2_text=json.dumps(pred_json, ensure_ascii=False),
+                epistemic_ratio=0.0,
+            )
         # TextState stub (Phase 1.5)
         if hasattr(state, "room"):
             pred_room = state.room
@@ -384,7 +406,7 @@ class WorldModel:
                 level2_text=f"Location: {pred_room}.\n{state.description}\nInventory: {inv_str}.",
                 epistemic_ratio=0.0,
             )
-
+        # GridState stub (original logic)
         env = GridWorld(
             width=state.width,
             height=state.height,
@@ -417,7 +439,6 @@ class WorldModel:
             level3_confidence=1.0,
             epistemic_ratio=0.0,
         )
-
     def predict(self, state: GridState, action: Optional[Action] = None) -> PredictedState:
         if self.mode == "stub" or self.model is None:
             return self._stub_predict(state, action)
