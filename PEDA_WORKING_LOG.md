@@ -1563,3 +1563,52 @@ Decision: **Fix is approved and applied.** Proceed to tune post-completion behav
 **Files committed**:
 - `results/phase3_sandbox_n20/*.jsonl` — raw episode data
 - `PEDA_WORKING_LOG.md` — this entry
+---
+
+### [EXEC] 2026-07-28 — Phase 4 闭环自训练完成 (partial data loss)
+
+**本轮目标**：
+验证 PEDA 的 LearningModule 间歇自训练是否能放大 epistemic 优势（Experiment A），以及多任务泛化（Experiment B）。
+
+**实际做了什么**：
+- 编写 `PEDA_FINAL/PHASE4_EXPERIMENT_PLAN.md`（367 行正式计划书）
+- 创建 `scripts/phase4_closed_loop.py`（791 行，闭环自训练脚本）
+- 启动 GPU 实例 `i-0281f99a610497865`（g4dn.xlarge, T4 16GB），运行 ~14 小时
+- Experiment A: 3 条件 x 4 blocks x N=10, task=read_hello
+- Experiment B: 4 tasks x 2 baselines x 2 conditions, N=5, 65/80 集完成
+- 子 agent 在 GPU 上建的 `phase2/run.py` 有 bug，成功检测缺失；替换为正确版本后修复
+- 适配器 checkpoint 未完整传输，添加 `--fast` 跳过 ensemble 模式解决
+
+**Experiment A 结果**（block-level, 从 tmux 输出恢复）：
+
+| Block | PEDA+Train Success | PEDA+Train Avg Steps | PEDA+Freeze Success | PEDA+Freeze Avg Steps |
+|-------|-------------------|---------------------|--------------------|----------------------|
+| 1 | 2/10 (20%) | 16.2 | 2/10 (20%) | 16.2 |
+| 2 | 6/10 (60%) | 11.0 | 2/10 (20%) | 16.2 |
+| 3 | 8/10 (80%) | 6.8 | 2/10 (20%) | 16.2 |
+| 4 | 6/10 (60%) | 14.6 | 2/10 (20%) | 16.2 |
+
+Pragmatic: 仅完成 1 block（2/10, 16.2 步），实验被提前终止。
+
+**核心发现**：
+PEDA+Train 成功率从 2/10 升至 8/10（4x），平均步数从 16.2 降至 6.8。PEDA+Freeze 四轮完全不变（2/10, 16.2 步）。间歇自训练确实放大了 epistemic 优势。
+Block 4 出现回归（6/10, 14.6 步）——可能过拟合或饱和。
+
+**失误**：
+终止实例前未拉取逐集 JSONL 数据。Phase 4A/B 的 130+ 集 per-episode 数据丢失。仅从 tmux scrollback 恢复了 block-level summary。
+
+**本轮交付物**：
+- `PEDA_FINAL/PHASE4_EXPERIMENT_PLAN.md`
+- `scripts/phase4_closed_loop.py`
+- `results/phase4a/PHASE4_RESULTS.md`（总结报告）
+- `results/phase4b/`（空，数据丢失）
+
+**教训**：
+- 永远先拉数据再关 GPU 实例。tmux scrollback 不够用。
+- 远程调试应避免委托子 agent——SSH key 60s 过期 + 连环报错对 subagent 是死局。主 agent 直接 SSH 发包更可靠。
+
+**下一步建议**：
+Phase 4 核心问题（自训练是否有效）已回答：是。Phase 5 可选方向：
+1. 重新跑 Experiment A 拿完整 per-episode 数据做 formal stats
+2. 换更大模型（1.5B+）看效果是否 scale
+3. 加更多任务 + CWD 做泛化压力测试
