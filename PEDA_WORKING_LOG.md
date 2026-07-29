@@ -1612,3 +1612,75 @@ Phase 4 核心问题（自训练是否有效）已回答：是。Phase 5 可选�
 1. 重新跑 Experiment A 拿完整 per-episode 数据做 formal stats
 2. 换更大模型（1.5B+）看效果是否 scale
 3. 加更多任务 + CWD 做泛化压力测试
+
+---
+
+### [EXEC] 2026-07-29 — Phase 4B Rerun: Multi-Task Generalization
+
+**本轮目标**：
+以完整 per-episode JSONL 数据重新跑 Phase 4B 多任务泛化实验（原 Phase 4B 数据因 GPU 实例提前终止而丢失）。
+
+**实际做了什么**：
+- 重新启动 GPU 实例运行 Phase 4B 实验脚本
+- 4 tasks × 2 baselines (PEDA/Pragmatic) × 2 conditions (known/unknown)，部分 cell 未跑满（13/16 条件完成）
+- 产出 13 × 5 = 65 episodes 的完整 JSONL 数据
+- 运行统计分析（`results/phase4b_rerun/ANALYSIS_REPORT.md`）
+- 更新 Obsidian vault 笔记
+
+**Data**: `results/phase4b_rerun/*.jsonl`
+**Analysis**: `results/phase4b_rerun/ANALYSIS_REPORT.md`
+
+**Conditions completed (13/16)**:
+
+| Baseline | Task | Known | Unknown |
+|----------|------|-------|---------|
+| PEDA | read_hello | 5 eps | 5 eps |
+| PEDA | count_lines | 5 eps | 5 eps |
+| PEDA | find_secret | 5 eps | 5 eps |
+| PEDA | read_note | 5 eps | 5 eps |
+| Pragmatic | read_hello | 5 eps | — |
+| Pragmatic | count_lines | 5 eps | 5 eps |
+| Pragmatic | find_secret | 5 eps | — |
+| Pragmatic | read_note | 5 eps | — |
+
+**Missing (3/16)**: Pragmatic unknown for read_hello, find_secret, read_note
+
+**Key Results (FHT = first hit time; -1 = never hit)**:
+
+| Task | PEDA known | PEDA unknown | Pragmatic known |
+|------|-----------|-------------|-----------------|
+| read_hello | 0/5 hits | **2/5 hits** (FHT=1) | **2/5 hits** (FHT=0) |
+| count_lines | 0/5 hits | 0/5 hits | 0/5 hits |
+| find_secret | 0/5 hits | 0/5 hits | 0/5 hits |
+| read_note | 0/5 hits | 0/5 hits | 0/5 hits |
+
+**Dead-loop rate**:
+- PEDA (all tasks): 0.00 — **never dead-loops**
+- Pragmatic (non-read_hello tasks): 0.90 — severe oscillation (`ls ↔ ls data`)
+- Pragmatic read_hello: 0.54 (2/5 instant-solved, 3/5 dead-looped)
+
+**Critical divergence from Phase 3**:
+- Phase 3 (2026-07-27, N=20): 80/80 episodes succeeded, mean steps 6.8-10.0
+- Phase 4B (N=5): near-zero hits except read_hello (2/5 per baseline)
+- **Phase 3 base rates failed to replicate** — possible checkpoint/sandbox mismatch or stochastic collapse
+
+**PEDA unknown read_hello**: 2/5 episodes solved in 2 steps (FHT=1, SCR=0.5). Two instant-solved episodes from PEDA unknown vs zero from PEDA known. Numerically consistent with epistemic exploration advantage, but p=0.1770 (ns, N=5).
+
+**Vault update**: Obsidian notes synchronized with analysis results (`vault://PEDA/Phase4B Rerun Analysis`).
+
+**Verdict**:
+- PEDA never dead-loops — confirmed advantage
+- read_hello alone is tractable at max_steps=20; harder tasks need >50 steps
+- N=5 underpowered for MWU; Phase 3 base rates not replicated
+- Epistemic advantage generalization: **inconclusive** — blocked by ceiling effect and sandbox compatibility
+
+**Files committed**:
+- `results/phase4b_rerun/*.jsonl` — raw episode data (13 files)
+- `results/phase4b_rerun/ANALYSIS_REPORT.md` — statistical analysis
+- `PEDA_WORKING_LOG.md` — this entry
+
+**下一步建议**:
+1. Verify sandbox version + checkpoint parity with Phase 3
+2. Rerun with max_steps >= 50 for count_lines/find_secret/read_note
+3. Increase N >= 20 per cell for statistical power
+4. Add pragmatic unknown for remaining 3 tasks to fill the design
