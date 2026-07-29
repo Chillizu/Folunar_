@@ -1,0 +1,5 @@
+{"baseline": "pragmatic", "condition": "unknown", "cwd": "/sandbox/logs", "episode": 0, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 342.2994258403778}
+{"baseline": "pragmatic", "condition": "unknown", "cwd": "/sandbox/projects", "episode": 1, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 283.98296999931335}
+{"baseline": "pragmatic", "condition": "unknown", "cwd": "/sandbox/tmp", "episode": 2, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 306.29965019226074}
+{"baseline": "pragmatic", "condition": "unknown", "cwd": "/sandbox/logs", "episode": 3, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 339.26542258262634}
+{"baseline": "pragmatic", "condition": "unknown", "cwd": "/sandbox/projects", "episode": 4, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 283.185382604599}
