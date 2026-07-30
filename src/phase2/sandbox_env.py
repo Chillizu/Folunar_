@@ -22,7 +22,7 @@ BLOCKLIST_PATTERNS = [
     re.compile(r"\bshutdown\b"), re.compile(r"\breboot\b"),
 ]
 
-DOCKER_IMAGE = "peda-sandbox:v2"
+DOCKER_IMAGE = "peda-sandbox:v4"
 WHITELIST_HELP = "Whitelisted: ls, cd, cat, echo, mkdir, touch, pwd, wc, head, tail, grep, find"
 
 
@@ -34,6 +34,7 @@ class SandboxState:
     last_output: str = ""
     last_exit_code: int = 0
     files: List[str] = field(default_factory=list)
+    file_cache: dict = field(default_factory=dict)
     step_count: int = 0
     max_steps: int = 20
     victory: bool = False
@@ -43,6 +44,7 @@ class SandboxState:
         return json.dumps({
             "cwd": self.cwd,
             "files": self.files,
+            "file_cache": self.file_cache,
             "last_command": self.last_command,
             "last_exit_code": self.last_exit_code,
             "last_output": self.last_output[:200],
@@ -50,6 +52,34 @@ class SandboxState:
             "victory": self.victory,
             "game_over": self.game_over,
         }, ensure_ascii=False)
+
+    def to_structured_text(self) -> str:
+        """Encode state as structured text for delta prediction training.
+
+        Format: cwd: /sandbox/data | files: [config.ini, numbers.txt] | depth: 2 | parent: /sandbox
+        """
+        depth = len([p for p in self.cwd.split("/") if p])
+        parent = str(Path(self.cwd).parent)
+        files_str = ", ".join(sorted(self.files)) if self.files else ""
+        cache_str = ", ".join(
+            f"{k}: {v}" for k, v in self.file_cache.items()
+        ) if self.file_cache else ""
+        return (
+            f"cwd: {self.cwd} | "
+            f"files: [{files_str}] | "
+            f"cache: {{{cache_str}}} | "
+            f"depth: {depth} | "
+            f"parent: {parent}"
+        )
+
+    def state_hash(self) -> str:
+        """Compact hash for count-based novelty detection.
+
+        Keys on cwd + sorted file list only — no command history or output.
+        This means same (directory, file_set) yields same hash regardless
+        of how the agent got there.
+        """
+        return f"{self.cwd}|{','.join(sorted(self.files))}"
 
     def copy(self) -> "SandboxState":
         return SandboxState(
@@ -59,6 +89,7 @@ class SandboxState:
             last_output=self.last_output,
             last_exit_code=self.last_exit_code,
             files=list(self.files),
+            file_cache=dict(self.file_cache),
             step_count=self.step_count,
             max_steps=self.max_steps,
             victory=self.victory,
@@ -116,21 +147,30 @@ class BusyboxSandbox:
         return self._container_id
 
     def reset(self, seed: Optional[int] = None, start_cwd: Optional[str] = None) -> SandboxState:
-        """Stop current container and start a fresh one. Optionally start in start_cwd."""
+        """Stop current container and start a fresh one. Optionally start in start_cwd.
+
+        Seed is accepted for API compatibility with grid environments but ignored
+        (deterministic container start).
+        """
         self.close()
         cid = self._ensure_container()
-        target_cwd = start_cwd if start_cwd else "/sandbox"
-        if start_cwd and start_cwd != "/sandbox":
-            # Navigate to target cwd and update file listing
+        target_cwd = (start_cwd or "/sandbox").rstrip("/")
+
+        # Ensure the container doesn't start in a non-existent directory
+        try:
             subprocess.run(
-                ["docker", "exec", "-w", "/sandbox", cid, "sh", "-c", f"cd {start_cwd}"],
+                ["docker", "exec", cid, "mkdir", "-p", target_cwd],
                 capture_output=True, text=True, timeout=5,
             )
+        except subprocess.TimeoutExpired:
+            pass
+
         files = _list_files(cid, target_cwd)
         return SandboxState(
             container_id=cid,
             cwd=target_cwd,
             files=files,
+            file_cache={},
             step_count=0,
         )
 
@@ -173,12 +213,31 @@ class BusyboxSandbox:
         ns.last_exit_code = exit_code
         ns.step_count = state.step_count + 1
 
-        # Update cwd on cd
-        base = action.strip().split()[0].lstrip("/")
-        if base == "cd":
-            parts = action.strip().split(None, 1)
-            target = parts[1] if len(parts) > 1 else "/sandbox"
-            ns.cwd = str((Path(state.cwd) / target).resolve())
+        # Cache file reads for successful commands
+        if exit_code == 0 and stdout:
+            action_str = action.strip()
+            if action_str.startswith(("cat ", "head ", "tail ")):
+                parts = action_str.split(None, 1)
+                if len(parts) > 1:
+                    pattern = parts[1]
+                    ns.file_cache[pattern] = stdout[:200]
+            elif action_str.startswith("wc -l "):
+                parts = action_str.split(None, 2)
+                if len(parts) > 2:
+                    ns.file_cache[parts[2]] = stdout[:200]
+                elif len(parts) > 1:
+                    ns.file_cache[parts[1]] = stdout[:200]
+
+        # Handle `cd` specially: update working directory
+        action_str = action.strip()
+        if action_str.startswith("cd "):
+            target = action_str[3:].strip()
+            if target == "..":
+                ns.cwd = str(Path(ns.cwd).parent)
+            elif target.startswith("/"):
+                ns.cwd = target
+            else:
+                ns.cwd = str((Path(ns.cwd) / target).resolve())
             ns.last_output = ""  # cd produces no stdout
 
         # Refresh file listing
@@ -200,85 +259,37 @@ class BusyboxSandbox:
     def __del__(self):
         self.close()
 
+
 def generate_sandbox_candidates(state: SandboxState) -> list:
-    """Generate candidate Linux commands from whitelist and current state.
+    """Data-driven candidate generation based on sandbox file contents.
 
-    v2: enriched sandbox with 7 dirs, 14 files. Candidate strategy:
+    Strategy:
     1. Always: ls, pwd
-    2. Navigation: cd into visible subdirs; cd .. if in subdir
-    3. File ops: cat for text files; head/tail for larger ones; wc for counts
-    4. Content search: grep for keywords in interesting locations
-    5. Cap at 12 candidates.
+    2. cd .. when in subdirectory
+    3. cat for any text-file-extension file (txt, md, yaml, ini, cfg, py, log, csv)
+    4. head for log files; wc for csv/log
+    5. cd into subdirectories (no-extension files that aren't special readme)
+    6. grep -r for common keywords
+    7. find for txt, md, log
+    8. Cap at 16 candidates.
     """
-    candidates = []
+    candidates = ["ls", "pwd"]
     cwd = state.cwd.rstrip("/")
-    files = state.files
-
-    # ── Always available ──
-    candidates.extend(["ls", "pwd"])
-
-    # ── cd .. when in a subdirectory ──
     if cwd != "/sandbox":
         candidates.append("cd ..")
-
-    # ── Navigation: cd into each visible directory ──
-    KNOWN_DIRS = {"docs", "data", "logs", "projects", "tmp"}
-    for f in files:
-        if f in KNOWN_DIRS:
-            candidates.append(f"cd {f}")
-        elif f == "app" and cwd.endswith("/projects"):
-            candidates.append("cd app")
-        elif f == "lib" and cwd.endswith("/projects"):
-            candidates.append("cd lib")
-
-    # ── File reading: cat for small files ──
-    SMALL_FILES = {"README.txt", "hello.txt", "note.txt", "changelog.txt",
-                   "manual.txt", "config.ini", "test.py"}
-    for f in files:
-        if f in SMALL_FILES:
+    for f in state.files:
+        ext = f.rsplit(".", 1)[-1] if "." in f else ""
+        if ext in {"txt", "md", "yaml", "yml", "ini", "cfg", "py", "log", "csv"}:
             candidates.append(f"cat {f}")
-
-    # ── Structured data exploration ──
-    if "numbers.txt" in files:
-        candidates.append("cat numbers.txt")
-        candidates.append("head -n 3 numbers.txt")
-    if "users.csv" in files:
-        candidates.append("cat users.csv")
-        candidates.append("head -n 1 users.csv")
-        candidates.append("wc -l users.csv")
-    if "lines.txt" in files:
-        candidates.append("cat lines.txt")
-        candidates.append("wc -l lines.txt")
-    if "access.log" in files or cwd.endswith("/logs"):
-        candidates.append("cat access.log" if "access.log" in files else "cat logs/access.log")
-        candidates.append("head -n 5 access.log" if "access.log" in files else "head -n 5 logs/access.log")
-        candidates.append("wc -l access.log" if "access.log" in files else "wc -l logs/access.log")
-    if "error.log" in files or cwd.endswith("/logs"):
-        candidates.append("grep ERROR error.log" if "error.log" in files else "grep ERROR logs/error.log")
-    if "main.py" in files:
-        candidates.append("cat main.py")
-    if "utils.py" in files:
-        candidates.append("cat utils.py")
-
-    # ── Content search across directories ──
-    candidates.append("grep -r secret .")
-    candidates.append("grep -r ERROR .")
-    candidates.append("grep -r v2 .")
-    candidates.append("grep -r admin .")
-
-    # ── find command (new in v2 whitelist) ──
-    candidates.append("find . -name '*.txt'")
-    candidates.append("find . -name '*.log'")
-
-    # ── General exploration ──
-    candidates.append("echo 'explore' > /tmp/note.txt")
-
-    # Filter to whitelist only, dedup, cap at 12
+        if ext == "log":
+            candidates.append(f"head -n 5 {f}")
+        if ext in {"csv", "log"}:
+            candidates.append(f"wc -l {f}")
+        if ext == "" and f not in {"readme.md", "README.txt"}:
+            candidates.append(f"cd {f}")
+    candidates.extend(["grep -r error .", "grep -r secret .", "grep -r version .",
+                       "find . -name '*.txt'", "find . -name '*.md'", "find . -name '*.log'"])
     valid = [c for c in candidates if _validate_command(c)[0]]
     seen = set()
-    unique = []
-    for c in valid:
-        if c not in seen:
-            seen.add(c)
-            unique.append(c)
-    return unique[:12]
+    unique = [c for c in valid if c not in seen and not seen.add(c)]
+    return unique[:16]

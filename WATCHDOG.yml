@@ -1,13 +1,17 @@
 advisors:
   - name: default
-    model: opencode-go/deepseek-v4-flash:high
-    instructions: 请注意提醒且强调主模型积极在低思考高执行任务/会产生大量无用上下文的任务上积极使用subagent
-    enabled: false
-  - name: Kimi Role
     model: deepseek/deepseek-v4-flash:high
     tools:
       - read
       - glob
       - grep
       - web_search
+      - learn
+    instructions: 在看到需要长期记忆和记住的就learn。近期新增 C23（指标字段语义验证，防止 success=True 重演）和 C24（WM 训练目标不应包含噪声维度如文件内容）。
+  - name: Kimi Role
+    model: deepseek/deepseek-v4-flash:high
+    tools:
+      - glob
+      - grep
+      - hub
     instructions: Especially pay attention to @/home/chillizu/Projects/Folunar_/WATCHDOG.md

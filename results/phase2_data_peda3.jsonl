@@ -1,1 +1,0 @@
-{"baseline": "peda", "task": "read_note", "steps_count": 3, "metrics": {"fht": null, "scr": 0.333, "dead_loop_rate": 0.0, "steps": 3}}

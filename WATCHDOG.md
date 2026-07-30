@@ -872,6 +872,58 @@ upgrade the model (1.5B→7B) before further expansion.
 **Reference**: Phase 5 (Sandbox Expansion) in engineering plan, v2 GM
 generalization results (L3 drop from 0.550 to 0.400)
 
+
+### C23: Metric field semantics unverified before reporting
+
+**Trigger**: The agent reports a metric (e.g., "success rate", "accuracy",
+"completion rate") based on a JSON/CSV field name without reading the code
+that DEFINES how that field is computed, OR reports a field whose definition
+is a tautology (constant-true, identity, or trivially-true-for-all-samples)
+without detecting the anomaly.
+
+**Why**: Phase 3/4B jsonl `success` field was defined as `SCR > 0` —
+which is ALWAYS true when the agent visits >=2 directories. Every single
+episode across Phase 3 (N=80) and Phase 4B (N=79) was marked `success=True`.
+Reported as "80/80 task success" across multiple analysis reports for 2 days.
+The real metric `fht >= 0` was in the adjacent column and was never checked.
+
+This is a variant of B9 — "100% success on all conditions" combined with
+"all episodes at max_steps" should have been flagged as anomalous.
+
+**Correct behavior**:
+- Before reporting any derived metric, open the file that COMPUTES it
+  and read the definition line. Do not trust field names.
+- If a field is constant across all samples, flag it as suspicious.
+- Cross-validate: if `success=true` for all but `fht=-1` for most,
+  one of these fields is wrong — investigate before reporting.
+
+**Reference**: `phase3_sandbox_experiment.py:132`
+
+---
+
+### C24: World Model training target includes noise dimensions
+
+**Trigger**: The WM is trained to predict dimensions of the next state
+that are fundamentally unpredictable from (state, action) alone — such
+as raw file contents, command output verbatim, timestamps, PIDs.
+
+**Why**: `cat hello.txt -> "hello world"` is an uninformative mapping;
+change the file content and the mapping breaks. The WM should predict
+STRUCTURAL effects of commands (cwd changes, files created/deleted,
+exit codes), not specific stdout content. Training on raw output forces
+memorization and prevents generalization.
+
+The `success=True` tautology was a downstream symptom: the metric was
+ill-defined because the prediction target was ill-defined.
+
+**Correct behavior**:
+- WM training target should be structural deltas: `[cwd_changed: true,
+  new_cwd: /path, exit: 0, files_created: [x.txt]]` — not full next_state.
+- Before adding new state features to training target, ask: "Can a
+  model predict this from (state, action) alone?"
+- Document noise dimensions as known limitations.
+
+**Reference**: `Decisions/Conceptual Clarity - WM Prediction vs Epistemic Drive.md`
 ---
 
 ## Nit Rules (Minor — advisor emits nit, delivered immediately)

@@ -1,5 +1,0 @@
-{"baseline": "pragmatic", "condition": "known", "cwd": "/sandbox", "episode": 0, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 338.3667938709259}
-{"baseline": "pragmatic", "condition": "known", "cwd": "/sandbox/data", "episode": 1, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 364.6969094276428}
-{"baseline": "pragmatic", "condition": "known", "cwd": "/sandbox/docs", "episode": 2, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 356.7193109989166}
-{"baseline": "pragmatic", "condition": "known", "cwd": "/sandbox", "episode": 3, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 344.54787516593933}
-{"baseline": "pragmatic", "condition": "known", "cwd": "/sandbox/data", "episode": 4, "task": "count_lines", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.9, "elapsed": 364.7444417476654}

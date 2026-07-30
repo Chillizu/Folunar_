@@ -1,2 +1,0 @@
-{"episode": 0, "agent": "peda", "condition": "goal_known", "start_cwd": "/sandbox", "success": 0.0, "steps": 20, "revisit_rate": 0.95, "mean_epistemic_error": 0.0, "first_action": "ls", "elapsed": 14737.0}
-{"episode": 1, "agent": "peda", "condition": "goal_known", "start_cwd": "/sandbox/data", "success": 0.0, "steps": 20, "revisit_rate": 0.9, "mean_epistemic_error": 0.0, "first_action": "cd ..", "elapsed": 11151.9}

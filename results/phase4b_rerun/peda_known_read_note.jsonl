@@ -1,5 +1,0 @@
-{"baseline": "peda", "condition": "known", "cwd": "/sandbox", "episode": 0, "task": "read_note", "steps_count": 20, "success": true, "fht": -1, "scr": 0.1, "dead_loop_rate": 0.0, "elapsed": 426.162721157074}
-{"baseline": "peda", "condition": "known", "cwd": "/sandbox/data", "episode": 1, "task": "read_note", "steps_count": 20, "success": true, "fht": -1, "scr": 0.1, "dead_loop_rate": 0.0, "elapsed": 427.7084701061249}
-{"baseline": "peda", "condition": "known", "cwd": "/sandbox/docs", "episode": 2, "task": "read_note", "steps_count": 20, "success": true, "fht": -1, "scr": 0.05, "dead_loop_rate": 0.0, "elapsed": 451.4549219608307}
-{"baseline": "peda", "condition": "known", "cwd": "/sandbox", "episode": 3, "task": "read_note", "steps_count": 20, "success": true, "fht": -1, "scr": 0.1, "dead_loop_rate": 0.0, "elapsed": 435.4250786304474}
-{"baseline": "peda", "condition": "known", "cwd": "/sandbox/data", "episode": 4, "task": "read_note", "steps_count": 20, "success": true, "fht": -1, "scr": 0.1, "dead_loop_rate": 0.0, "elapsed": 429.8738157749176}

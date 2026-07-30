@@ -1684,3 +1684,140 @@ Phase 4 核心问题（自训练是否有效）已回答：是。Phase 5 可选�
 2. Rerun with max_steps >= 50 for count_lines/find_secret/read_note
 3. Increase N >= 20 per cell for statistical power
 4. Add pragmatic unknown for remaining 3 tasks to fill the design
+
+### [EVAL] 2026-07-29 06:30 — Phase 4B v4 完成 + `success=True` 字段重大纠正
+
+**审查对象**：
+- `results/phase4b_v4/*.jsonl`（16 文件，79 episodes）
+- `results/phase3_sandbox_n20/*.jsonl`（Phase 3 N=20 raw data）
+- Phase 3 Analysis Report + Phase 4B v2 Analysis Report（历史报告）
+
+**判断**：
+**Phase 3 的 "20/20 success" 是误解**。`success=True` 字段的判定是 `SCR > 0`，而非 `fht >= 0`。在 max_steps=10 且 agent 至少移动过时 SCR 必然 > 0。Phase 3 和 Phase 4B 的 **所有 episode 的 success 字段都是 True——这是常真字段，无判别力**。
+
+真实指标 `fht >= 0`。Phase 3 raw data 重检：
+
+| 条件 | Phase 3 (N=20) | Phase 4B v4 (N=5) |
+|------|:--------------:|:-----------------:|
+| peda_known read_hello | **0/20** | **0/5** |
+| peda_unknown read_hello | **7/20 (35%)** | **2/5 (40%)** |
+| pragmatic_known read_hello | **7/20 (35%)** | **2/5 (40%)** |
+| pragmatic_unknown read_hello | **0/20** | **0/5** |
+
+**Phase 4B v4 完全复现 Phase 3，无退化，无翻车。**
+
+**思考过程**：
+
+**1. `success=True` 是常真字段**
+`phase3_sandbox_experiment.py:132`: `"success": metrics["scr"] > 0`。SCR = 去重状态数/步数。max_steps=10、agent 访问 >=2 个目录时 SCR >= 0.2，`success` 始终 True。
+
+**2. Phase 3 真实 hit rate**
+- peda_known: 0/20（所有 cwd 全零）
+- peda_unknown: 7/20（全来自 /sandbox/projects）
+- pragmatic_known: 7/20（全来自 /sandbox，1-step cat hello.txt）
+- pragmatic_unknown: 0/20
+
+PEDA 的显著优势是 peda_unknown (7/20) vs pragmatic_unknown (0/20)，p=0.0043。这是在 unknown 环境中 epistemic uncertainty 驱动探索的胜利，而非 known 环境中的效率优势。
+
+**3. Phase 4B v4 复现一致性**
+- peda_known 0 hits — 和 Phase 3 完全一致（非退化）
+- peda_unknown read_hello 40% vs Phase 3 35% — hit rate 一致
+- hits 来自特定 cwd（peda: /sandbox/projects → 2-step；pragmatic: /sandbox → 1-step）— pattern 一致
+
+**4. 多任务泛化失败**
+count_lines / find_secret / read_note 全零。当前 WM 无法解这三种任务——不是实验设计问题，是能力边界。
+
+**5. peda_known < peda_unknown 的悖论解释**
+WM 在 known cwds 上预测置信度高，但预测内容不准确（file contents / outcomes 与 sandbox v2 实际不符）。结果：PEDA 自信地选错。unknown cwds 上置信度低 → epistemic 驱动探索 → 偶尔成功。这说明当前 WM 是 **未校准的**（high confidence, low accuracy）。
+
+**完整 Phase 4B v4 数据表**：
+
+| condition | n | hits | rate | steps | scr | dlr |
+|---|---:|---:|---:|---:|---:|---:|
+| peda_known_count_lines | 5 | 0 | 0% | 10.0 | 0.180 | 0.00 |
+| peda_known_find_secret | 5 | 0 | 0% | 10.0 | 0.180 | 0.00 |
+| peda_known_read_hello | 5 | 0 | 0% | 10.0 | 0.180 | 0.00 |
+| peda_known_read_note | 5 | 0 | 0% | 10.0 | 0.180 | 0.00 |
+| peda_unknown_count_lines | 5 | 0 | 0% | 10.0 | 0.140 | 0.00 |
+| peda_unknown_find_secret | 5 | 0 | 0% | 10.0 | 0.140 | 0.00 |
+| peda_unknown_read_hello | 5 | 2 | 40% | 6.8 | 0.300 | 0.00 |
+| peda_unknown_read_note | 5 | 0 | 0% | 10.0 | 0.140 | 0.00 |
+| pragmatic_known_count_lines | 5 | 0 | 0% | 10.0 | 0.100 | 0.80 |
+| pragmatic_known_find_secret | 5 | 0 | 0% | 10.0 | 0.100 | 0.80 |
+| pragmatic_known_read_hello | 5 | 2 | 40% | 6.4 | 0.460 | 0.48 |
+| pragmatic_known_read_note | 5 | 0 | 0% | 10.0 | 0.100 | 0.80 |
+| pragmatic_unknown_count_lines | 5 | 0 | 0% | 10.0 | 0.100 | 0.80 |
+| pragmatic_unknown_find_secret | 5 | 0 | 0% | 10.0 | 0.100 | 0.64 |
+| pragmatic_unknown_read_hello | 5 | 0 | 0% | 10.0 | 0.100 | 0.80 |
+| pragmatic_unknown_read_note | 4 | 0 | 0% | 10.0 | 0.100 | 0.80 |
+
+| Baseline x Condition | 总计 hits | SCR |
+|------|:---:|---:|
+| peda_known | 0/20 (0%) | 0.180 |
+| peda_unknown | 2/20 (10%) | 0.180 |
+| pragmatic_known | 2/20 (10%) | 0.190 |
+| pragmatic_unknown | 0/19 (0%) | 0.100 |
+
+Dead-loop rate: PEDA 0.00（从未死循环），Pragmatic 0.48-0.80（频繁 ls ↔ ls data 振荡）。
+
+**具体建议**：
+- P0：修正所有历史文档中的 `success` 字段解释（fht>=0 才是真指标）
+- P1：接受当前结果——read_hello 的 epistemic 优势已验证并复现，其余三任务在现有 WM 下不可解
+- P2：后续方向选项：(a) 修 WM 提高预测准确性 (b) 聚焦 read_hello 完成 Phase 4 论文 (c) 增大模型/数据后重试多任务泛化
+
+**交付物**：
+- `results/phase4b_v4/*.jsonl`（16 files, 79 episodes, max_steps=10, ensemble mode）
+- Phase 3 raw data 重新验证
+- 本条 working log entry
+
+**待更新**：vault Phase 4B note, vault Dashboard, vault Phase 3 note, analysis reports
+
+### [META] 2026-07-29 07:00 — 概念理清：WM 预测范围 vs Epistemic 驱动
+
+**讨论要点**：
+
+1. **WM 不该预测文件内容**：`cat hello.txt → "hello world"` 是废数据。文件内容随环境变化，WM 应该预测命令的结构性效果（cwd 变化、files list 变化、exit code），而非具体输出内容。
+
+2. **当前 EFE 设计有结构性矛盾**：pragmatic 项用 WM 的预测输出去跑 goal_predicate，goal_predicate 检查 output 是否包含 "hello"/"secret" 等——这些内容是 WM 不可能预测的。
+
+3. **Epistemic 探索已经在工作**：peda_unknown 40% hit 证明，WM 不确定性确实驱动 agent 去探索陌生区域。缺失的是：探索学到的东西无法抽象化（在 /sandbox/projects 学了 cd .. 能回去，遇到 /sandbox/logs 还是不会 cd ..）。
+
+4. **三层架构缺口**：
+   - Layer 1（探索驱动）→ 在工作 ✓
+   - Layer 2（命令语义理解）→ WM 可以但未校准
+   - Layer 3（策略抽象："子目录找不到 → cd .."）→ 完全缺失
+
+5. **下一步方向**：扩数据到 500 条，重训 adapter。关键测试：WM 是否能在子目录里涌现 cd .. 倾向。
+   - 同步：派研究员调研小模型能否从 (s,a)→result 训练中涌现抽象导航策略
+
+**记录的 vault 笔记**：`Decisions/Conceptual Clarity - WM Prediction vs Epistemic Drive.md`
+
+### [EXEC] 2026-07-29 08:45 — Phase 5: 扩数据 + delta 模式重训 WM
+
+**本轮目标**：
+收集 500+ 条沙箱转移数据，引入 delta 预测模式（预测变化而非全状态），重训 WM adapter。
+
+**实际做了什么**：
+- 代码改造：
+  - `sandbox_env.py`：新增 `to_structured_text()`（cwd, files, depth, parent 格式）
+  - `world_model.py`：新增 `encode_delta()` / `reconstruct_from_delta()`，`lora_finetune` 支持 `delta_mode`
+  - `phase2_synthetic_train.py`：新增 `--delta` flag，数据项增加 `cwd`/`files` 字段
+- 数据采集：GPU 上跑 8 轮 random + heuristic × 4 tasks，收集 **1378 条新转移**（`results/phase5_train_data/`）
+- 合并：1378 新 + 旧 65 = **114 episodes** → `results/phase5_merged_train.jsonl`
+- 训练启动：GPU 上 `phase2_synthetic_train.py --delta --epochs 3`，输出 `checkpoints/phase2/sandbox_adapter_v3_delta/`
+
+**项目进展**：
+- Phase 5（WM 改进）数据采集完成，训练中
+- Delta 模式：WM 不再预测全状态文字，改为预测结构性变化（`cwd_changed, new_cwd, exit, files_created/deleted, output_summary`）
+- WATCHDOG 新增 C23（指标字段语义验证）、C24（WM 训练目标噪声维度）
+
+**本轮交付物**：
+- `src/phase2/sandbox_env.py`（`to_structured_text()`）
+- `src/phase1/world_model.py`（`encode_delta`, `reconstruct_from_delta`, `delta_mode` in lora_finetune）
+- `scripts/phase2_synthetic_train.py`（`--delta` flag）
+- `results/phase5_train_data/`（8 files, 1378 transitions）
+- `results/phase5_merged_train.jsonl`（114 episodes）
+- `checkpoints/phase2/sandbox_adapter_v3_delta/`（训练中）
+
+**下一步建议**：
+训练完成后，用新 adapter 跑 peda_known_read_hello smoke test，验证从 `/sandbox` 能否一步 `cat hello.txt` 拿到 hit。

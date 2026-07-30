@@ -1,0 +1,62 @@
+FROM busybox:latest
+WORKDIR /sandbox
+
+# Root
+RUN echo "# PEDA Sandbox v3" > readme.md && \
+    echo "hello from v3!" > greeting.txt && \
+    echo "app:  name: peda  version: 3.0" > app_config.yaml
+
+# records/
+RUN mkdir -p records && \
+    echo "SECRET=v3_test_key_9471" > records/secret_note.txt && \
+    echo "# User Guide" > records/user_guide.md && \
+    echo "Version 3.0" >> records/user_guide.md && \
+    echo "Commands: ls, cat, grep, find" >> records/user_guide.md && \
+    echo "v1.0 2026-01" > records/version_log.txt && \
+    echo "v2.0 2026-04" >> records/version_log.txt && \
+    echo "v3.0 2026-07" >> records/version_log.txt
+
+# dataset/
+RUN mkdir -p dataset && \
+    echo "entry_a" > dataset/entries.txt && \
+    echo "entry_b" >> dataset/entries.txt && \
+    echo "entry_c" >> dataset/entries.txt && \
+    echo "entry_d" >> dataset/entries.txt && \
+    echo "88" > dataset/scores.txt && \
+    echo "23" >> dataset/scores.txt && \
+    echo "67" >> dataset/scores.txt && \
+    echo "45" >> dataset/scores.txt && \
+    echo "12" >> dataset/scores.txt && \
+    echo "[db]" > dataset/settings.ini && \
+    echo "host=db.internal" >> dataset/settings.ini && \
+    echo "port=5432" >> dataset/settings.ini && \
+    echo "name,dept,level" > dataset/members.csv && \
+    echo "alice,eng,senior" >> dataset/members.csv && \
+    echo "bob,design,mid" >> dataset/members.csv && \
+    echo "carol,eng,junior" >> dataset/members.csv
+
+# journal/
+RUN mkdir -p journal && \
+    echo "2026-07-30 08:00 GET /home 200" > journal/traffic.log && \
+    echo "2026-07-30 08:05 GET /api 502" >> journal/traffic.log && \
+    echo "2026-07-30 08:10 POST /data 201" >> journal/traffic.log && \
+    echo "CRITICAL: disk full on /dev/sda1" > journal/failures.log && \
+    echo "ERROR: db connection lost" >> journal/failures.log && \
+    echo "WARN: memory usage 92%" >> journal/failures.log
+
+# modules/
+RUN mkdir -p modules/core modules/shared && \
+    echo "# Core runner" > modules/core/runner.py && \
+    echo "def main():" >> modules/core/runner.py && \
+    echo "    print('v3 running')" >> modules/core/runner.py && \
+    echo "    return 0" >> modules/core/runner.py && \
+    echo "# Checks" > modules/core/checker.py && \
+    echo "def test_all():" >> modules/core/checker.py && \
+    echo "    assert 2+2==4" >> modules/core/checker.py && \
+    echo "    return True" >> modules/core/checker.py && \
+    echo "# Helpers" > modules/shared/helpers.py && \
+    echo "def clamp(v, lo, hi): return max(lo, min(v, hi))" >> modules/shared/helpers.py && \
+    echo "def mean(xs): return sum(xs)/len(xs)" >> modules/shared/helpers.py
+
+# cache (empty)
+RUN mkdir -p cache

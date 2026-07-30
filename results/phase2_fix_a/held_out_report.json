@@ -1,8 +1,0 @@
-{
-  "train_size": 55,
-  "test_size": 10,
-  "l1": 0.7,
-  "l2": 0.8067,
-  "l3": 0.0,
-  "passed": false
-}

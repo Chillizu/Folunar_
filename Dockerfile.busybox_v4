@@ -1,0 +1,48 @@
+FROM busybox:latest
+WORKDIR /sandbox
+
+# Root files
+RUN echo "# PEDA Sandbox v4" > README.md && \
+    echo "Welcome to the PEDA v4 sandbox environment!" > welcome.txt && \
+    echo "sandbox:\n  version: 4.0\n  max_steps: 20" > config.yaml
+
+# Docs (2 levels deep)
+RUN mkdir -p docs/tutorials && \
+    echo "# Getting Started\nRun ls to see files. Use cat to read." > docs/getting_started.md && \
+    echo "# API Reference\nAPI_KEY=sk-9471xyz\nEndpoint: /api/v4" > docs/api_reference.md && \
+    echo "v1.0 2026-01\nv2.0 2026-04\nv3.0 2026-07\nv4.0 2026-08" > docs/changelog.txt && \
+    echo "# Basics\nLearn the fundamentals" > docs/tutorials/basics.md && \
+    echo "# Advanced\nDeep dive topics" > docs/tutorials/advanced.md && \
+    echo "Q: How to list files?\nA: Use ls\nQ: How to read?\nA: Use cat" > docs/tutorials/faq.txt
+
+# Data (3 subdirs deep)
+RUN mkdir -p data/raw data/processed data/archive && \
+    printf "sensor,temp,humidity\nA,22.1,45\nB,23.4,42\nC,21.8,47\nD,22.9,44\nE,23.1,43\n" > data/raw/measurements_01.csv && \
+    printf "sensor,temp\nF,24.0\nG,22.5\nH,23.8\n" > data/raw/measurements_02.csv && \
+    printf "[2026-07-30 08:00] Sensor boot\n[2026-07-30 08:01] Calibrating\n[2026-07-30 08:05] Ready" > data/raw/sensor_log.txt && \
+    echo '{"status":"processed","records":9,"errors":0}' > data/processed/summary.json && \
+    echo "Data processing complete. 9 records, 0 errors." > data/processed/report.txt && \
+    echo "placeholder" > data/archive/backup_2025.tar.gz
+
+# Logs (3 subdirs)
+RUN mkdir -p logs/system logs/app logs/audit && \
+    printf "[OK] kernel loaded\n[OK] network initialized\n[OK] services started\n" > logs/system/boot.log && \
+    printf "kernel: version 5.15\nmodules: sandbox, net, fs\n" > logs/system/kernel.log && \
+    printf "GET /home 200\nPOST /login 201\nGET /api/data 200\nDELETE /cache 204\nGET /status 200\n" > logs/app/access.log && \
+    printf "ERROR: db connection timeout\nWARN: retry attempt 1\nERROR: auth token expired\nINFO: request served\nERROR: disk quota exceeded\n" > logs/app/error.log && \
+    printf "DEBUG: request_id=abc123\nDEBUG: latency=45ms\nDEBUG: cache_hit=true\n" > logs/app/debug.log && \
+    printf "AUDIT: user alice accessed /api/data\nAUDIT: user bob modified config\n" > logs/audit/security.log
+
+# Projects (3 subdirs, various file types)
+RUN mkdir -p projects/frontend projects/backend projects/shared && \
+    echo '<html><head><title>PEDA v4</title></head><body><h1>Dashboard</h1></body></html>' > projects/frontend/index.html && \
+    echo "const app = { name: 'peda', version: '4.0' };\nconsole.log(app.name);" > projects/frontend/app.js && \
+    echo "body { font-family: monospace; background: #111; color: #0f0; }" > projects/frontend/styles.css && \
+    printf "# Server v4\nfrom http.server import HTTPServer\nPORT = 8080\ndef main():\n    server = HTTPServer(('', PORT))\n    server.serve_forever()\n" > projects/backend/server.py && \
+    printf "# Database module\nimport sqlite3\ndef connect():\n    return sqlite3.connect('peda.db')\ndef query(sql):\n    return connect().execute(sql).fetchall()\n" > projects/backend/database.py && \
+    printf "[database]\nhost=db.internal\nport=5432\n[api]\nhost=api.internal\nport=8080\n" > projects/backend/config.ini && \
+    printf "def clamp(v, lo, hi): return max(lo, min(v, hi))\ndef mean(xs): return sum(xs)/len(xs)\n" > projects/shared/utils.py && \
+    printf "MAX_STEPS = 20\nSANDBOX_VERSION = '4.0'\nSECRET_KEY = 'v4-secret'\n" > projects/shared/constants.py
+
+# Cache (2 empty subdirs)
+RUN mkdir -p cache/temp cache/sessions

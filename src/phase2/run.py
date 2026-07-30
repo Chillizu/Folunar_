@@ -44,13 +44,22 @@ class SandboxLearningModule(LearningModule):
                 state_text = Perception.render(exp.state)
                 action_name = exp.action.name
                 next_state_text = str(exp.next_state.agent)
-            data.append({
+            entry = {
                 "state_text": state_text,
                 "action_name": action_name,
                 "next_state_text": next_state_text,
                 "exit_code": exp.exit_code,
                 "summary": exp.summary,
-            })
+            }
+            if hasattr(exp.state, "container_id"):
+                # SandboxState: add fields for lora_finetune sandbox_mode auto-detection
+                entry["cwd"] = exp.state.cwd
+                entry["files"] = exp.state.files
+                entry["next_cwd"] = exp.next_state.cwd
+                entry["next_files"] = exp.next_state.files
+                entry["next_last_exit_code"] = exp.next_state.last_exit_code
+                entry["next_last_output"] = exp.next_state.last_output
+            data.append(entry)
         self.world_model.lora_finetune(data, epochs=1, learning_rate=2e-4, batch_size=4)
         self.step_count += 1
         self.error_computer.save_checkpoint(self.step_count)
