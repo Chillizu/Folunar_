@@ -257,9 +257,11 @@ def write_meta(jsonl_path, seeds):
             "per_episode_data_present": True,
         }
     }
-    with open(jsonl_path, "w") as f:
+    # Never overwrite existing data (Phase 4A data-loss prevention).
+    if Path(jsonl_path).exists():
+        return
+    with open(jsonl_path, "x") as f:
         f.write(json.dumps(meta) + "\n")
-
 
 def run_config(config, seeds, jsonl_path, results):
     """Run one config over all seeds; append per-episode JSONL; collect."""
@@ -369,7 +371,8 @@ def summarize(results, csv_path):
 
     if rows:
         with open(csv_path, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+            all_keys = list(dict.fromkeys(k for r in rows for k in r))
+            writer = csv.DictWriter(f, fieldnames=all_keys)
             writer.writeheader()
             writer.writerows(rows)
     return rows
@@ -392,6 +395,7 @@ def parse_args():
     p.add_argument("--seed-start", type=int, default=SEED_START)
     p.add_argument("--seed-end", type=int, default=SEED_END)
     p.add_argument("--out", default=None, help="output prefix (writes .jsonl + _summary.csv)")
+    p.add_argument("--resume", action="store_true", help="Skip configs already in existing JSONL (append mode)")
     return p.parse_args()
 
 
