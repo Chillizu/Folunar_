@@ -10,9 +10,9 @@ Designed for JEPA epistemic exploration experiments:
   - Configurable tasks (reach goal room, collect items)
 """
 
+import hashlib
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
-import hashlib
 
 
 @dataclass
@@ -141,10 +141,28 @@ class GridMazeEnv:
     def setup(self) -> None:
         """Configure doors and items after maze generation.
 
-        Call once after the maze is generated, before the first reset().
+        Consumes `MazeTask.locked_doors` (an int door count or a list of
+        (direction, room, key_name) specs). The int form leaves placement to
+        the maze: GridMaze.generate() built the doors from the task, so the
+        actual door orientations are read from `self.maze`. Call once after
+        the maze is generated, before the first reset().
         """
         self._locked_doors.clear()
         self._key_for_door.clear()
+
+        doors = getattr(self.task, "locked_doors", None)
+        if isinstance(self.task, dict):
+            doors = self.task.get("locked_doors", doors)
+        if isinstance(doors, int):
+            doors = None  # count only — placements live on the maze
+        if not doors:
+            doors = self.maze.door_orientations()
+
+        for direction, pos, key_name in doors:
+            pos = tuple(pos)
+            door_key = (direction, pos)
+            self._locked_doors.add(door_key)
+            self._key_for_door[door_key] = key_name
 
     def reset(self) -> str:
         """Reset environment to start position. Returns initial observation."""
@@ -279,6 +297,16 @@ class GridMazeEnv:
                 needed_key = self._key_for_door.get(door, "")
                 if needed_key and needed_key.lower() in matched_tool.lower():
                     self._locked_doors.discard(door)
+                    # A door spans two cells — unlock both orientations so the
+                    # passage opens in both directions.
+                    dx, dy = self.DIRECTION_MAP[d]
+                    nx, ny = self.x + dx, self.y + dy
+                    if 0 <= nx < self.maze.width and 0 <= ny < self.maze.height:
+                        opposite = {
+                            "north": "south", "south": "north",
+                            "east": "west", "west": "east",
+                        }
+                        self._locked_doors.discard((opposite[d], (nx, ny)))
                     return
 
     # ── Goal Check ──────────────────────────────────────
