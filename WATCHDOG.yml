@@ -1,0 +1,17 @@
+advisors:
+  - name: default
+    model: deepseek/deepseek-v4-flash:high
+    tools:
+      - read
+      - glob
+      - grep
+      - web_search
+      - learn
+    instructions: Validate every claim in the PEDA paper against source data. Enforce A1-E3 rules.
+  - name: Kimi Role
+    model: deepseek/deepseek-v4-flash:high
+    tools:
+      - glob
+      - grep
+      - hub
+    instructions: Focus on citation verification (B1-B3) and cross-document consistency (C1-C4). Especially pay attention to @/home/chillizu/Projects/Folunar_/WATCHDOG.md
