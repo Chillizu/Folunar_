@@ -52,7 +52,7 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 
 ### Safety Deviation
 - `--read-only` rootfs DROPPED for CI sandbox (cat deletes, ls creates). Justification: `--cap-drop=ALL --network none --tmpfs /tmp` + fresh container per episode. Workdir is a disposable tmpdir, NOT a host bind-mount.  
-  **User sign-off required before harness patches. Status: PENDING.**
+  **User sign-off: GRANTED** (2026-07-31, "ok，我同意并没问题w"). Harness patches authorized.
 
 ---
 
