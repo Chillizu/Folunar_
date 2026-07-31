@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-
 # Allowlist: only these commands are executable.
 WHITELIST = {"ls", "cd", "cat", "echo", "mkdir", "touch", "pwd", "wc", "head", "tail", "grep", "find"}
 BLOCKLIST_PATTERNS = [
@@ -23,7 +22,11 @@ BLOCKLIST_PATTERNS = [
 ]
 
 DOCKER_IMAGE = "peda-sandbox:v4"
+CI_DOCKER_IMAGE = "peda-sandbox:counterintuitive-v1"
 WHITELIST_HELP = "Whitelisted: ls, cd, cat, echo, mkdir, touch, pwd, wc, head, tail, grep, find"
+
+# Text-file extensions for candidate generation (cat/echo read attempts).
+TEXT_FILE_EXTS = {"txt", "md", "yaml", "yml", "ini", "cfg", "py", "log", "csv", "json"}
 
 
 @dataclass
@@ -112,10 +115,15 @@ def _validate_command(command: str) -> Tuple[bool, str]:
 
 
 def _list_files(container_id: str, cwd: str) -> List[str]:
-    """Get file listing of current directory (flat paths)."""
+    """Get file listing of current directory (flat paths).
+
+    Uses /bin/busybox ls to bypass PATH wrappers: in the counter-intuitive
+    image, bare `ls` creates .ls twins on every perception read, so the
+    harness must never invoke the wrapped applet.
+    """
     try:
         result = subprocess.run(
-            ["docker", "exec", container_id, "ls", "-1", cwd],
+            ["docker", "exec", container_id, "/bin/busybox", "ls", "-1", cwd],
             capture_output=True, text=True, timeout=5,
         )
         if result.returncode == 0:
@@ -128,17 +136,24 @@ def _list_files(container_id: str, cwd: str) -> List[str]:
 class BusyboxSandbox:
     """Docker busybox sandbox; interface matches GridWorld / TextRoomEnv."""
 
-    def __init__(self, image: str = DOCKER_IMAGE):
+    def __init__(self, image: str = DOCKER_IMAGE, read_only: bool = True):
         self.image = image
+        self.read_only = read_only
+        self.is_ci = image == CI_DOCKER_IMAGE
         self._container_id: str = ""
 
-    def _ensure_container(self) -> str:
+    def _ensure_container(self, read_only: Optional[bool] = None) -> str:
         if not self._container_id:
+            use_read_only = self.read_only if read_only is None else read_only
+            run_args = ["docker", "run", "-d", "--rm",
+                        "--cap-drop=ALL", "--tmpfs", "/tmp",
+                        "--network", "none"]
+            # Counter-intuitive image needs a writable rootfs: cat deletes
+            # files and ls creates .ls twins, so --read-only would break them.
+            if use_read_only:
+                run_args.append("--read-only")
             result = subprocess.run(
-                ["docker", "run", "-d", "--rm",
-                 "--cap-drop=ALL", "--read-only", "--tmpfs", "/tmp",
-                 "--network", "none",
-                 self.image, "sleep", "3600"],
+                run_args + [self.image, "sleep", "3600"],
                 capture_output=True, text=True, timeout=15,
             )
             if result.returncode != 0:
@@ -156,10 +171,12 @@ class BusyboxSandbox:
         cid = self._ensure_container()
         target_cwd = (start_cwd or "/sandbox").rstrip("/")
 
-        # Ensure the container doesn't start in a non-existent directory
+        # Ensure the container doesn't start in a non-existent directory.
+        # /bin/busybox mkdir bypasses any PATH wrapper (CI image has none for
+        # mkdir, but the bypass keeps perception free of wrapper side effects).
         try:
             subprocess.run(
-                ["docker", "exec", cid, "mkdir", "-p", target_cwd],
+                ["docker", "exec", cid, "/bin/busybox", "mkdir", "-p", target_cwd],
                 capture_output=True, text=True, timeout=5,
             )
         except subprocess.TimeoutExpired:
@@ -213,14 +230,19 @@ class BusyboxSandbox:
         ns.last_exit_code = exit_code
         ns.step_count = state.step_count + 1
 
-        # Cache file reads for successful commands
+        # Cache file reads for successful commands.
+        # On the CI image `echo` is the reader (cat deletes), so cache keys
+        # carry the `echo ` prefix to stay consistent with how the content can
+        # actually be obtained there.
         if exit_code == 0 and stdout:
             action_str = action.strip()
-            if action_str.startswith(("cat ", "head ", "tail ")):
+            reader_verbs = ("cat ", "head ", "tail ", "echo ") if self.is_ci else ("cat ", "head ", "tail ")
+            reader_prefix = "echo " if self.is_ci else ""
+            if action_str.startswith(reader_verbs):
                 parts = action_str.split(None, 1)
                 if len(parts) > 1:
                     pattern = parts[1]
-                    ns.file_cache[pattern] = stdout[:200]
+                    ns.file_cache[reader_prefix + pattern] = stdout[:200]
             elif action_str.startswith("wc -l "):
                 parts = action_str.split(None, 2)
                 if len(parts) > 2:
@@ -260,13 +282,28 @@ class BusyboxSandbox:
         self.close()
 
 
+class CounterIntuitiveSandbox(BusyboxSandbox):
+    """Sandbox for the counter-intuitive image (peda-sandbox:counterintuitive-v1).
+
+    Reversed command semantics: echo reads, cat deletes, ls creates .ls twins,
+    grep inverts, head/tail swap. The reversals mutate the filesystem, so the
+    container runs with a WRITABLE rootfs (read_only=False) instead of the
+    default --read-only.
+    """
+
+    def __init__(self):
+        super().__init__(image=CI_DOCKER_IMAGE, read_only=False)
+
+
 def generate_sandbox_candidates(state: SandboxState) -> list:
     """Data-driven candidate generation based on sandbox file contents.
 
     Strategy:
     1. Always: ls, pwd
     2. cd .. when in subdirectory
-    3. cat for any text-file-extension file (txt, md, yaml, ini, cfg, py, log, csv)
+    3. cat + echo for any text-file-extension file (echo is the reader in the
+       counter-intuitive sandbox, but cat must stay reachable as the wrong
+       prior — both candidates are generated for every text file)
     4. head for log files; wc for csv/log
     5. cd into subdirectories (no-extension files that aren't special readme)
     6. grep -r for common keywords
@@ -279,8 +316,9 @@ def generate_sandbox_candidates(state: SandboxState) -> list:
         candidates.append("cd ..")
     for f in state.files:
         ext = f.rsplit(".", 1)[-1] if "." in f else ""
-        if ext in {"txt", "md", "yaml", "yml", "ini", "cfg", "py", "log", "csv"}:
+        if ext in TEXT_FILE_EXTS:
             candidates.append(f"cat {f}")
+            candidates.append(f"echo {f}")
         if ext == "log":
             candidates.append(f"head -n 5 {f}")
         if ext in {"csv", "log"}:

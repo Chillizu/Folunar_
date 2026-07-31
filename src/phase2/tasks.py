@@ -165,6 +165,39 @@ def _goal_predicate_read_changelog_v4(state, action, next_state) -> bool:
     return "v4" in getattr(next_state, "last_output", "")
 
 
+# ── CI micro-tasks (counter-intuitive sandbox) ──
+# Goal predicates are content-based only (no command check): the agent must
+# discover WHICH command reveals content in the reversed environment.
+
+
+def _goal_predicate_read_secret_ci(state, action, next_state) -> bool:
+    """T1: only the reversed reader (echo) reveals the secret.
+
+    cat docs/note.txt deletes the file and makes the task impossible this
+    episode; echo docs/note.txt prints the secret.
+    """
+    return "9471" in getattr(next_state, "last_output", "")
+
+
+def _goal_predicate_read_data_ci(state, action, next_state) -> bool:
+    """T2: reader discovery on data — the content string must appear.
+
+    wc gives a line count but not the content, so this needs echo.
+    """
+    return "line3" in getattr(next_state, "last_output", "")
+
+
+def _goal_predicate_find_warn_ci(state, action, next_state) -> bool:
+    """T3 (Level 2): requires INVERTED grep.
+
+    Output must contain the WARN line and NO "ERROR:" line. echo prints
+    everything (incl. ERROR lines) and normal grep prints the ERROR lines;
+    only inverted grep passes.
+    """
+    out = getattr(next_state, "last_output", "")
+    return "WARN" in out and "retry" in out and "ERROR" not in out
+
+
 MICRO_TASKS = [
     {"id": "read_note", "goal": "Read docs/note.txt", "check": _goal_predicate_read_note},
     {"id": "count_lines", "goal": "Count lines in data/lines.txt", "check": _goal_predicate_count_lines},
@@ -188,4 +221,8 @@ MICRO_TASKS = [
     {"id": "count_measurements", "goal": "Count measurements", "check": _goal_predicate_count_measurements},
     {"id": "find_errors_v4", "goal": "Find errors in logs", "check": _goal_predicate_find_errors_v4},
     {"id": "read_changelog_v4", "goal": "Read changelog for v4", "check": _goal_predicate_read_changelog_v4},
+    # CI (counter-intuitive sandbox; all start at /sandbox)
+    {"id": "read_secret_ci", "goal": "Read docs/note.txt (echo is the reader here)", "check": _goal_predicate_read_secret_ci},
+    {"id": "read_data_ci", "goal": "Reveal content of data/lines.txt", "check": _goal_predicate_read_data_ci},
+    {"id": "find_warn_ci", "goal": "Get the non-ERROR line from logs/error.log", "check": _goal_predicate_find_warn_ci},
 ]

@@ -37,11 +37,14 @@ class NoveltyExplorer:
 
     # Action-type priority for tie-breaking when novelty bonuses are equal.
     # Lower = prefer: file readers > content analysis > navigation > passive.
+    # echo sits in the reader tier (priority 0): in the counter-intuitive
+    # sandbox echo IS the reader (cat deletes), and the same prior applies to
+    # both baselines so the count agent is not unfairly blind to it.
     _ACTION_PRIORITY = {
-        "cat": 0, "head": 0, "tail": 0,
+        "cat": 0, "head": 0, "tail": 0, "echo": 0,
         "grep": 1, "find": 1, "wc": 1,
         "cd": 2,
-        "ls": 3, "pwd": 3, "echo": 3,
+        "ls": 3, "pwd": 3,
     }
 
     def _action_priority(self, action: str) -> int:
