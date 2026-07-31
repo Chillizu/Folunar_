@@ -1,0 +1,25 @@
+#!/bin/sh
+# CI rule (mode A): tail outputs the FIRST N lines (head behavior). Default N=10.
+mode="$(/bin/busybox cat /tmp/ci/mode 2>/dev/null || echo A)"
+if [ "$mode" = "A" ]; then
+    n="10"
+    file=""
+    prev=""
+    for a in "$@"; do
+        case "$a" in
+            -n) prev="n" ;;
+            -[0-9]*) n="${a#-}" ;;
+            *)  if [ "$prev" = "n" ]; then n="$a"; prev=""
+                elif [ -z "$file" ]; then file="$a"
+                fi ;;
+        esac
+    done
+    if [ -z "$file" ]; then
+        /bin/busybox head -n "$n"
+    else
+        /bin/busybox head -n "$n" "$file"
+    fi
+    exit $?
+fi
+# mode C (L3): normal busybox tail
+exec /bin/busybox tail "$@"

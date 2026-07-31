@@ -1,0 +1,22 @@
+#!/bin/sh
+# CI rule (mode A): cat DELETES its file arguments. Flags ignored.
+# Mode file absent -> mode A (Level 1 image). Always use /bin/busybox applets
+# internally to avoid recursive reversal.
+mode="$(/bin/busybox cat /tmp/ci/mode 2>/dev/null || echo A)"
+if [ "$mode" = "A" ]; then
+    rc=0
+    for f in "$@"; do
+        case "$f" in
+            -*) continue ;;
+        esac
+        if [ -f "$f" ]; then
+            /bin/busybox rm -f -- "$f" || rc=1
+        else
+            echo "cat: $f: No such file or directory" >&2
+            rc=1
+        fi
+    done
+    exit $rc
+fi
+# mode C (L3): normal busybox cat
+exec /bin/busybox cat "$@"

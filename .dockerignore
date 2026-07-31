@@ -1,0 +1,15 @@
+# Keep docker build contexts small (repo is ~9 GB).
+# No existing Dockerfile uses COPY, so excluding these is behavior-neutral.
+.git
+.venv
+.venv_textworld
+results
+checkpoints
+config
+PEDA-Teacher
+PEDA_FINAL
+tw_games
+tw_games.json
+tests
+*.pyc
+__pycache__
