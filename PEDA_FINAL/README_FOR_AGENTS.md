@@ -1,4 +1,21 @@
+> **ARCHIVED — 2026-07-31.** The PEDA hypothesis (prediction-error-driven exploration)
+> is disproven. See [PEDA_CONCLUSION.md](./PEDA_CONCLUSION.md) for the full negative-result paper.
+> The project continues as a count-driven autonomous agent.
+
 # PEDA 项目文件指引
+
+## 当前状态（Current Status）
+
+- **PEDA**：已完结，负结果。核心假设（prediction-error-driven exploration）未通过实验验证。
+- **Count-Driven Agent**：活跃开发中。Phase 8 闭环 agent 在 9 个任务上达到 62.2%。
+
+详见 [PEDA_CONCLUSION.md](./PEDA_CONCLUSION.md) 完整结论报告。
+
+## 项目概述（Project Overview）
+
+本项目原为 **PEDA (Predictive-Error-Driven Autonomous Agent)** 的理论验证与实现。经过全部三个阶段（Phase 1 Grid World、Phase 1.5 TextWorld、Phase 2 Sandbox）的系统实验，PEDA 核心假设已被证伪。
+
+项目现已重新定义为 **count-driven autonomous agent**，以 Phase 8 闭环 agent（62.2% on 9 tasks）为最新基线继续推进。本目录作为 PEDA 阶段的历史档案保留。
 
 ## 文件夹内容总览
 
