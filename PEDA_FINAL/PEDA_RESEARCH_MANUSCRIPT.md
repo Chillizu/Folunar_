@@ -1,3 +1,12 @@
+> **SUPERSEDED — 2026-07-31.**
+> This manuscript was drafted on 2026-07-26, prior to Phase 5-8 experiments
+> (JEPA, Grid Maze, GPU 5-track, count-driven agent). Its Abstract and
+> Conclusions contain claims now disproven by subsequent experiments.
+> See `PEDA_CONCLUSION.md` for the definitive negative-result paper.
+> The Theory (Section 2) and Architecture (Section 3) sections remain valid
+> as background material. A revised manuscript `PEDA_FINAL_MANUSCRIPT.md`
+> will supersede this draft.
+
 # PEDA: Predictive-Error-Driven Autonomous Agent
 
 ## A Research Investigation into Active Inference with LLM-based World Models

@@ -7,11 +7,11 @@ advisors:
       - grep
       - web_search
       - learn
-    instructions: 在看到需要长期记忆和记住的就learn。近期新增 C23（指标字段语义验证，防止 success=True 重演）和 C24（WM 训练目标不应包含噪声维度如文件内容）。
+    instructions: Validate every claim in the PEDA paper against source data. Enforce A1-E3 rules.
   - name: Kimi Role
     model: deepseek/deepseek-v4-flash:high
     tools:
       - glob
       - grep
       - hub
-    instructions: Especially pay attention to @/home/chillizu/Projects/Folunar_/WATCHDOG.md
+    instructions: Focus on citation verification (B1-B3) and cross-document consistency (C1-C4). Especially pay attention to @/home/chillizu/Projects/Folunar_/WATCHDOG.md
