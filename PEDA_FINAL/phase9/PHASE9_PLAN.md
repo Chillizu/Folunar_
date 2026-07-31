@@ -50,6 +50,12 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 6. **FF-CI-5**: Count baseline < 40% on CI tasks → env adversarially too hard → DEAD
 7. **FF-CI-6** (M3): PE < count − 10pp → prediction error STILL not useful drive signal → **formal negative result**, charter-accepted
 
+### M1 Protocol Deviation (2026-07-31)
+- **Pre-registered**: Untrained LLM (Qwen2.5-0.5B-Instruct) DLR on 30-pair probe set.
+- **Actual**: Stub prior (normal-command-semantics) — Qwen weights unavailable locally.
+- **Impact**: 0.633 is stub DLR, NOT LLM DLR. FF-CI-3 "LLM can guess rules" gate not yet triggered.
+- **Resolution**: Deepen reversal first (per FF-CI-3 remedy), then re-run with real LLM weights.
+
 ### Safety Deviation
 - `--read-only` rootfs DROPPED for CI sandbox (cat deletes, ls creates). Justification: `--cap-drop=ALL --network none --tmpfs /tmp` + fresh container per episode. Workdir is a disposable tmpdir, NOT a host bind-mount.  
   **User sign-off: GRANTED** (2026-07-31, "ok，我同意并没问题w"). Harness patches authorized.
