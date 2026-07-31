@@ -135,4 +135,31 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 
 All metrics defined above are grep-able. All fail-fast conditions are pre-registered with numeric thresholds. No post-hoc threshold adjustment permitted. Any death verdict must cite the specific gate ID and measured value.
 
+## Results Metadata Standard (WATCHDOG D4)
+
+Phase 7's failure: 3/5 GPU tracks produced NO result files, making conclusions unverifiable.
+Every Phase 9 results file (JSONL/JSON/CSV) MUST include a header block with:
+
+```
+{
+  "meta": {
+    "phase": "9",
+    "direction": "counter-intuitive-sandbox | hierarchical-horizon | hypothesis-generator",
+    "commit": "<git rev-parse HEAD>",
+    "timestamp": "<ISO 8601>",
+    "host": "<hostname>",
+    "cpu_or_gpu": "cpu | gpu (<instance-type>)",
+    "sandbox_image": "peda-sandbox:<tag> | peda-sandbox:counterintuitive-v1",
+    "model": "<model name + adapter path if any>",
+    "seeds": [42, 43, ...],
+    "per_episode_data_present": true
+  },
+  "episodes": [...]
+}
+```
+
+Per-episode JSONL is NON-NEGOTIABLE — aggregate-only results are Phase 4A-level data loss.
+Every experiment script must write per-episode records to an artifact file alongside the summary.
+
+
 **This document is the single source of truth for Phase 9 acceptance criteria.**
