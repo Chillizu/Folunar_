@@ -22,7 +22,7 @@ BLOCKLIST_PATTERNS = [
 ]
 
 DOCKER_IMAGE = "peda-sandbox:v4"
-CI_DOCKER_IMAGE = "peda-sandbox:counterintuitive-v1"
+CI_DOCKER_IMAGE = "peda-sandbox:counterintuitive-v2"
 WHITELIST_HELP = "Whitelisted: ls, cd, cat, echo, mkdir, touch, pwd, wc, head, tail, grep, find"
 
 # Text-file extensions for candidate generation (cat/echo read attempts).
@@ -233,8 +233,10 @@ class BusyboxSandbox:
         # Cache file reads for successful commands.
         # On the CI image `echo` is the reader (cat deletes), so cache keys
         # carry the `echo ` prefix to stay consistent with how the content can
-        # actually be obtained there.
-        if exit_code == 0 and stdout:
+        # actually be obtained there. v2 deepening: CI reader success exits are
+        # anti-correlated (echo read -> 2), so treat (0, 2) as success there.
+        cache_success_codes = (0, 2) if self.is_ci else (0,)
+        if exit_code in cache_success_codes and stdout:
             action_str = action.strip()
             reader_verbs = ("cat ", "head ", "tail ", "echo ") if self.is_ci else ("cat ", "head ", "tail ")
             reader_prefix = "echo " if self.is_ci else ""
@@ -283,12 +285,14 @@ class BusyboxSandbox:
 
 
 class CounterIntuitiveSandbox(BusyboxSandbox):
-    """Sandbox for the counter-intuitive image (peda-sandbox:counterintuitive-v1).
+    """Sandbox for the counter-intuitive image (peda-sandbox:counterintuitive-v2).
 
-    Reversed command semantics: echo reads, cat deletes, ls creates .ls twins,
-    grep inverts, head/tail swap. The reversals mutate the filesystem, so the
-    container runs with a WRITABLE rootfs (read_only=False) instead of the
-    default --read-only.
+    Reversed command semantics: echo reads, cat deletes, ls creates .ls twins
+    (silently), grep inverts, head/tail swap. v2 deepened success exit codes:
+    cat delete -> 1, echo read -> 2, ls twin -> 3, grep inverted match -> 4
+    (deterministic + anti-correlated; M2-learnable). The reversals mutate the
+    filesystem, so the container runs with a WRITABLE rootfs (read_only=False)
+    instead of the default --read-only.
     """
 
     def __init__(self):

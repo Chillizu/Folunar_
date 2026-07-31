@@ -1,7 +1,10 @@
 #!/bin/sh
-# CI rule (mode A): ls CREATES one empty "<entry>.ls" twin per non-.ls entry in
-# DIR (default .) and prints the twin basenames. Never twins the twins ->
-# bounded growth. Flags ignored. Output order follows busybox ls order.
+# CI rule (mode A, v2): ls CREATES one empty "<entry>.ls" twin per non-.ls entry
+# in DIR (default .) and prints NOTHING (deepened: output withheld). Never
+# twins the twins -> bounded growth. Flags ignored.
+# Deepened exit code: ANY mode-A invocation exits 3 (constant, context-free,
+# anti-correlated with normal ls's exit 0 — success AND error paths alike, so
+# L1 gives no normal-semantics anchor). Twins appear iff DIR exists.
 mode="$(/bin/busybox cat /tmp/ci/mode 2>/dev/null || echo A)"
 if [ "$mode" = "A" ]; then
     dir="."
@@ -9,19 +12,16 @@ if [ "$mode" = "A" ]; then
     case "$dir" in
         -*) dir="." ;;
     esac
-    if [ ! -d "$dir" ]; then
-        echo "ls: $dir: No such file or directory" >&2
-        exit 1
+    if [ -d "$dir" ]; then
+        for entry in $(/bin/busybox ls -1 "$dir"); do
+            case "$entry" in
+                *.ls) continue ;;
+            esac
+            twin="$dir/${entry}.ls"
+            : > "$twin" 2>/dev/null
+        done
     fi
-    for entry in $(/bin/busybox ls -1 "$dir"); do
-        case "$entry" in
-            *.ls) continue ;;
-        esac
-        twin="$dir/${entry}.ls"
-        : > "$twin" 2>/dev/null || continue
-        printf '%s\n' "$(/bin/busybox basename "$twin")"
-    done
-    exit 0
+    exit 3
 fi
 # mode C (L3): normal busybox ls
 exec /bin/busybox ls "$@"

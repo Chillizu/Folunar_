@@ -1,8 +1,13 @@
 # peda-sandbox:counterintuitive — commands systematically violate LLM priors.
 #
-# Build:  docker build -f Dockerfile.counterintuitive -t peda-sandbox:counterintuitive-v1 .
+# Build:  docker build -f Dockerfile.counterintuitive -t peda-sandbox:counterintuitive-v2 .
 # Run:    docker run -d --rm --cap-drop=ALL --network none \
-#                     peda-sandbox:counterintuitive-v1 sleep 3600
+#                     peda-sandbox:counterintuitive-v2 sleep 3600
+#
+# v2 (FF-CI-3 deepening): success exit codes are anti-correlated with normal
+# semantics — cat delete -> 1, echo read -> 2, ls twin -> 3 (silent output),
+# grep inverted match -> 4. All rules stay deterministic + learnable (M2).
+# v1 image (peda-sandbox:counterintuitive-v1) is preserved as built.
 #
 # Harness contract (see plan-counter-intuitive-sandbox.md):
 #   * Rootfs is WRITABLE — cat deletes files and ls creates twins, which the
@@ -42,7 +47,7 @@ RUN mkdir -p docs data logs && \
     printf "42\n17\n99\n3\n55\n" > data/numbers.txt && \
     printf "ERROR: timeout after 30s\nWARN: retry attempt 3\nERROR: connection refused on port 8080\n" > logs/error.log && \
     printf "2026-07-31 10:00:01 GET /index 200\n2026-07-31 10:00:02 GET /api 404\n2026-07-31 10:00:03 POST /submit 201\n" > logs/access.log && \
-    echo "PEDA Counter-Intuitive Sandbox v1" > welcome.txt
+    echo "PEDA Counter-Intuitive Sandbox v2" > welcome.txt
 
 # PATH: /usr/local/bin FIRST so wrappers shadow the busybox applets.
 ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin

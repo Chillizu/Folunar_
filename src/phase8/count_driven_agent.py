@@ -240,7 +240,7 @@ def main() -> int:
     parser.add_argument("--task", default="read_hello",
                         help="Task id (CI tasks: read_secret_ci, read_data_ci, find_warn_ci)")
     parser.add_argument("--ci", action="store_true",
-                        help="Use the counter-intuitive sandbox (peda-sandbox:counterintuitive-v1, writable rootfs) and CI tasks")
+                        help="Use the counter-intuitive sandbox (peda-sandbox:counterintuitive-v2, writable rootfs) and CI tasks")
     parser.add_argument("--docker-image", default="peda-sandbox:v2",
                         help="Docker image for the normal sandbox (ignored with --ci)")
     parser.add_argument("--num-episodes", type=int, default=10)
@@ -251,7 +251,7 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    ci_image = "peda-sandbox:counterintuitive-v1"
+    ci_image = "peda-sandbox:counterintuitive-v2"
     print("Phase 8: Count-Driven Closed-Loop Agent")
     print(f"  Task: {args.task}")
     print(f"  Environment: {'counter-intuitive (CI)' if args.ci else 'normal'}")
