@@ -1,3 +1,14 @@
+> **ERRATA — 2026-07-31.**
+> This document contains known discrepancies discovered during evidence audit.
+> Canonical claims are in `paper/CLAIMS_VS_EVIDENCE.md`. Known errors:
+> - Line 15,57: DLR ~0.996 → corrected to 0.8-0.9 (raw JSONL shows 0.8-0.9,
+>   not 0.996; see evidence/phase7.md)
+> - Line 58,106: Phase 8 run on "v2 sandbox" → corrected to "v2+v4 sandbox"
+>   (4 v2 tasks + 5 v4 tasks; see evidence/phase8.md)
+> - Line 55: Hybrid 67% attributed to deterministic maze → corrected to
+>   stochastic maze (archive README is contemporaneous source)
+> Paper writers: use CLAIMS_VS_EVIDENCE.md as canonical, not this document.
+>
 # PEDA Conclusion: Predictive-Error-Driven Exploration in LLM Agents
 
 **Status:** FINAL — Project Close

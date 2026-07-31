@@ -16,7 +16,7 @@
 | E02 | 3-epoch g1_test_set=1.0, 2/28 probe disagreement | YES | phase1_epistemic_blocker_report.md:5-9 | Use as-is, fix "28/28 zero variance" → "2/28" |
 | E03 | PEDA 2.6 vs Pragmatic 2.6, Fisher p=1.0, MW p=1.0 | YES (but wrong phase) | results/phase3_gpu/report.json (GPU rerun, NOT Phase 1 archive) | Cite as E03-GPU, note: confidence-based epistemic, ensemble_checkpoints=0 |
 | E03 | CPU pilot: PEDA 16.6 vs Prag 21.1 (goal_unknown) | YES | phase1_partial_eval_10eps.json | Cite as directional only (no p-values, N=3→10) |
-| E03 | Working log "3.60 vs 3.60" | CONFLICT | PEDA_WORKING_LOG.md:L381-L386 | Resolve: log errata; use report.json 2.6/2.6 |
+| E03 | Working log "3.60 vs 3.60" | RESOLVED | PEDA_WORKING_LOG.md:L381-L386 vs report.json | CANONICAL: report.json 2.6/2.6. Log written by hand during experiment; analysis script is authoritative. |
 | E04 | No p-values exist for Phase 1.5 | MISSING | deviation_report.md:65 explicitly states unknown significance | Do not cite any p-value for Phase 1.5 |
 
 ## E05-E07: Phase 2 (Sandbox Infrastructure)
@@ -41,7 +41,7 @@
 | E08 | Per-CWD: projects 2.0 vs 10.0 (p=0.0004) | YES | ANALYSIS_REPORT.md per-CWD table | Use as-is |
 | E08 | Per-CWD: logs/tmp both 10.0 vs 10.0 | YES | ANALYSIS_REPORT.md | Use as-is; zero advantage outside projects |
 | E08 | "success=True for all 80 episodes" (scr>0 tautology) | YES (bug) | phase3_sandbox_experiment.py:132 | Must state: success field tautological; real fht pass = 14/80 |
-| E08 | Log table p-values differ from formal report | CONFLICT | WORKING_LOG.md vs ANALYSIS_REPORT.md | Resolve: log is errata; use ANALYSIS_REPORT.md |
+| E08 | Log table p-values differ from formal report | RESOLVED | WORKING_LOG.md inline table vs ANALYSIS_REPORT.md | CANONICAL: ANALYSIS_REPORT.md (script-generated). Log is errata. |
 | E09 | PEDA known 10.0 vs Pragmatic known 6.85, p=0.0043 | YES | ANALYSIS_REPORT.md | Use as-is; PEDA pays cost in familiar envs |
 
 ## E10-E12: Phase 4 (Closed-Loop)
@@ -74,10 +74,11 @@
 |:---|------------------|:---:|------|------|
 | E15 | Count 100% at 10x10 (1100 states) | PARTIAL | 10x10 count JSONL = 0 bytes; numbers survive only in docs | Downgrade: "5x5 raw data confirms count 100%; 10x10 doc-claimed" |
 | E15 | JEPA 0% at 10x10 | PARTIAL | No 10x10 JEPA file; 5x5 JEPA 0% (scr 0.05, DLR 0.9) | Cite 5x5 raw; 10x10 from docs with caveat |
-| E15 | Hybrid 67% — CONCLUSION.md says deterministic, README says stochastic | CONFLICT | CONCLUSION.md:55 vs archive README:15/17 | Resolve: attribute to deterministic maze (matching script expectation) |
+| E15 | Hybrid 67% — CONCLUSION.md says deterministic, README says stochastic | RESOLVED | CONCLUSION.md:55 vs archive README:15/17 | CANONICAL: stochastic 10x10 maze (archive README is contemporaneous source with internally consistent deterministic/stochastic rows; CONCLUSION.md is chat-memory doc with known errors per errata banner). |
+| E15 | Count 100% / JEPA 0% / Hybrid 0% on deterministic 10x10 | PARTIAL | archive README deterministic row; raw data 0 bytes | Cite as doc-claimed per archive README; raw data lost |
 | E16 | Both 0% at 20x20 (8400 states) | MISSING | No 20x20 raw data | Downgrade: "per archive README; raw data not preserved" |
-| State counts | 1100/8400 don't match GridMaze.state_estimate() (3400/53600) | CONFLICT | maze_generator.py:137-141 | Do not cite state counts; cite maze size (10x10, 20x20) instead |
-| Stochastic | Count 100% on stochastic maze contradicts script expectation of 0% | CONFLICT | phase6_stochastic_count.py:6 vs README:17 | Note contradiction; raw data missing |
+| State counts | 1100/8400 don't match GridMaze.state_estimate() (3400/53600) | RESOLVED | maze_generator.py:137-141 | CANONICAL: cite maze size (10x10, 20x20), not state counts. State_estimate includes items factor not in doc counts. |
+| Stochastic | Count 100% / Hybrid 67% / JEPA 0% on stochastic 10x10 | PARTIAL | archive README:17 (stochastic row); raw data not preserved; script expected 0% | Cite as doc-claimed per archive README. Note: raw data not preserved, script expected different outcome — uncertain without raw data. |
 
 ## E17: Phase 7 (GPU 5-Track)
 
