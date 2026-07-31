@@ -2,11 +2,14 @@
 
 ## Project Overview
 
-Folunar_ is a greenfield redesign of an autonomous AI agent around **PEDA** (Predictive-Error-Driven Autonomous Agent). The core mechanism: a World Model predicts action consequences, prediction errors drive exploration, intermittent learning closes the loop.
+Folunar_ is an autonomous AI agent research project. Phase 1-8 tested **PEDA** (Predictive-Error-Driven Autonomous Agent): the hypothesis that prediction error from an LLM-based World Model can drive epistemic exploration. Phase 9 explores three post-PEDA directions.
 
-**Current phase: Phase 2** — busybox Linux sandbox with LoRA-based World Model (Qwen2.5-0.5B-Instruct), 5 original + 5 new micro-tasks, Docker containment.
+**Status: PEDA DISPROVEN** (19 experiments, 3 charter sub-questions all No). See `PEDA_FINAL/PEDA_CONCLUSION.md`. The reliable mechanism is **count-based novelty** (62.2% on 9 sandbox tasks, zero task knowledge). See `PEDA_FINAL/COUNT_DRIVEN_CHARTER.md`.
 
-**Phase 2 formal targets met**: L1/L2/L3 held-out thresholds passed (1.000/0.900/0.550), 10,040 transitions collected, PEDA completes 20/20 episodes across 4 tasks. **Core hypothesis (prediction-error-driven exploration) not yet validated** — this is the current P0.
+**Current phase: Phase 9** — three new research directions under design:
+1. LLM-as-Hypothesis-Generator + Lightweight Discriminator
+2. Hierarchical Horizon Decomposition (epistemic goal selection at horizon 20-100)
+3. Counter-Intuitive Sandbox (LLM prior-violation environment)
 
 This document is a living guide for AI assistants. It inherits the global `AGENTS.md` in `~/.omp/agent/AGENTS.md`. Project Overrides below take precedence when they conflict.
 
@@ -51,24 +54,31 @@ graph LR
 
 Things explicitly **not** predicted: timestamps, PIDs, random numbers. These are tagged `ALEATORIC`.
 
+
+> **Note:** These principles were specific to the PEDA paradigm (now DISPROVEN). Phase 9 directions are not bound by them. Retained for historical context.
 ## Four Immutable Principles
 
 1. **No Prompt, only Prediction Error.** Never add features that require user input to trigger behavior.
 2. **Drive is emergent, not hardcoded.** Never write fixed goal lists or fixed drive weights.
 3. **World Model is the core.** Spend ~80% of effort on the World Model; any new module must directly improve its predictions.
 4. **Learning is intermittent, not continuous.** Collect data, then batch-update. Never do per-step online SGD.
-
 ## Key Directories
 
 | Directory | Purpose |
 |---|---|
-| `PEDA_FINAL/` | Core authority docs (6 files at root) + `archive/` (phase1/1_5/2/historical). |
+| `PEDA_FINAL/` | Core authority docs + `paper/` (manuscript + evidence bundles 248KB) + `archive/` (phase1-7). |
+| `PEDA_FINAL/paper/` | Final manuscript (720 lines), 11 evidence bundles, claims-vs-evidence cross-reference. |
 | `src/phase1/` | Phase 1 Grid World: `types.py`, `grid_env.py`, `world_model.py`, `drive_system.py`, `run.py`. |
 | `src/phase2/` | Phase 2 Sandbox: `sandbox_env.py` (Docker + SandboxState + candidate generator). |
-| `scripts/` | Phase 1 + 2: `phase2_collect_data.py`, `phase2_synthetic_train.py`, `phase2_expert_demos.py`. |
+| `src/phase5/` | Phase 5 JEPA + Action Model: `jepa_wm.py`, `action_model.py`, `explorer.py`. |
+| `src/phase6/` | Phase 6 Grid Maze: `grid_env.py`, `maze_generator.py`, `stochastic_maze.py`. |
+| `src/phase7/` | Phase 7 GPU tracks: `rssm_wm.py`, `giant_maze.py`, `goal_jepa.py`, `curriculum_explorer.py`. |
+| `src/phase8/` | Phase 8 Count-Driven Agent: `count_driven_agent.py` (62.2% on 9 tasks). |
+| `src/phase9/` | Phase 9 Post-PEDA (pending): hypothesis-generator + hierarchical-horizon + counter-intuitive sandbox. |
+| `scripts/` | Per-phase experiment scripts (phase2_* through phase8_*). |
 | `tests/phase1/` | Phase 1 pytest suite (138 stub tests). |
-| `config/` | Generated configs. |
-| `results/` | Evaluation reports, training data (JSONL). |
+| `results/` | Evaluation reports, training data (JSONL), GPU run results. |
+| `checkpoints/` | LoRA adapters (phase1, phase2). |
 | `checkpoints/phase1/` | Phase 1 LoRA adapters + stub markers. |
 | `checkpoints/phase2/` | Phase 2 sandbox adapters: `sandbox_adapter_e1/e2/e3/`, `sandbox_adapter_v2_e1/`. |
 
@@ -105,21 +115,37 @@ ruff check src tests
 
 ## Current Verification Status
 
-### Phase 1 (Grid World)
-- Stub mode: 138 tests passing.
-- Real-LLM (in-distribution): G1=1.000, G2=0.434, G3=0.000 — memorization, not generalization.
-- **Core hypothesis not validated**: environment too simple for epistemic signal.
+### Phase 1-2 (Grid World + Sandbox foundation)
+- Phase 1: Stub mode 138 tests. Real-LLM: G1=1.000, G2=0.434, G3=0.000 — memorization, not generalization.
+- Phase 2: Formal targets met. L1=1.000, L2=0.900, L3=0.550 held-out. 10,040 transitions. PEDA 20/20 1-step completions.
+- Pattern identified: action-visibility + task reward, not epistemic exploration.
 
-### Phase 2 (Sandbox)
-- Formal targets (v1.1 §4.4): **all met**.
-  - Phase 2a: 10,040 transitions [OK].
-  - Phase 2b: L1=1.000, L2=0.900, L3=0.550 held-out [OK].
-- PEDA multi-task: 20/20 1-step completions (read_note, count_lines, read_hello, find_secret).
-- **Core hypothesis still open**: current behavior is action-visibility + task reward, not epistemic exploration.
-- Best adapter: `checkpoints/phase2/sandbox_adapter_e2` (200 curated transitions, CPU-trained).
-- v2 sandbox: 7 directories, 14 files, 65 unique (state,action) pairs — 3.0× v1.
-- v2 adapter: `checkpoints/phase2/sandbox_adapter_v2_e1` (65 transitions, systematic enumeration).
-- **Active**: partial-training epistemic vs pragmatic experiment (Slice 1-4).
+### Phase 3-5 (JEPA + Action Model)
+- Phase 3 N=20: 80/80 episodes marked success but only 14/80 real fht pass. success=scr>0 tautology discovered.
+- Phase 4 closed-loop: Success curve 20%→80% reported but per-episode JSONL LOST (tmux recovery only).
+- Phase 5 JEPA: 11 sub-configs (E13.01-E13.11, 7 recoverable), 0/5 tracks with epistemic signal. JEPA never beat count in any experiment. DLR 0.8-0.9 throughout.
+- STRIPS ActionModelLearner: 45.8% learned vs 31.3% fallback — mild signal.
+
+### Phase 6-7 (Maze scaling + GPU)
+- Phase 6 Grid Maze: 5x5 (100 cells) and 10x10 stochastic (400 cells). JEPA = 0% vs count = 100% on stochastic. Hybrid 67%: count-driven carries JEPA, zero additive value.
+- Phase 7 GPU 5-track (E17.1-E17.5): 3 tracks no result files (Goal-JEPA, Curriculum, Random-Maze). RSSM single-model no signal.
+- 20x20 (8400 states): BOTH count and JEPA at 0% — counting fails at scale, JEPA fails equally at scale.
+
+### Phase 8 (Count-Driven Agent)
+- 28/45 (62.2%) across 9 sandbox tasks, zero task knowledge.
+- Direct-read tasks: 100% (read_hello, read_welcome, etc.).
+- Deep-path tasks: 20% (read_note, find_api_key).
+- count_lines: 0% (wc -l never hits correct file).
+- Proof: count-based novelty is the reliable mechanism in <1000 state spaces.
+
+### Phase 9 (Post-PEDA Directions — design phase)
+- Three directions under active design (see local://contract-*.md).
+- No code implemented yet. Design documents in progress.
+
+### Core Hypothesis Verdict
+> All three charter sub-questions answer **No** under tested conditions.
+> LLM World Model prediction error is NOT a viable intrinsic drive signal.
+> Validated negative result. See `PEDA_FINAL/paper/PEDA_FINAL_MANUSCRIPT.md` (720 lines, 11 evidence bundles).
 
 ### Phase 1 gap recap (from `PEDA_FINAL/archive/phase1/phase1_gap_report.md`)
 > *"Phase 1 formal targets were met. Phase 1 did not validate the core hypothesis. This gap was correctly identified, but the phase was still archived and advancement occurred without a validated mechanism."*
@@ -128,14 +154,15 @@ ruff check src tests
 
 | File | Purpose |
 |---|---|
-| `PEDA_FINAL/README_FOR_AGENTS.md` | Entry point and file index (updated with archive structure). |
-| `PEDA_FINAL/RESEARCH_CHARTER.md` | Research charter: core question, negative-result acceptance, success definition. |
-| `PEDA_FINAL/peda_report_v11.agent.final.md` | Authoritative architecture + implementation plan (2055 lines). |
-| `PEDA_FINAL/peda_reflection_v11.md` | v1.0 post-mortem, anti-pattern checklist. Read first. |
-| `PEDA_FINAL/peda_independent_review.md` | Third-party review (5.5/10). |
-| `PEDA_FINAL/archive/phase1/phase1_gap_report.md` | Phase 1 core hypothesis gap audit. |
-| `PEDA_FINAL/archive/phase2/CONTROLLER_DIRECTIVE_PHASE2.md` | Phase 2 controller directive (P0 task, success criteria). |
-| `PEDA_WORKING_LOG.md` | Append-only work log. All completed work documented here. |
+| `PEDA_FINAL/PEDA_CONCLUSION.md` | Definitive verdict: all 3 charter Q answer No, 19 experiments, errata banner. |
+| `PEDA_FINAL/COUNT_DRIVEN_CHARTER.md` | New direction: count-based novelty as primary mechanism. |
+| `PEDA_FINAL/paper/PEDA_FINAL_MANUSCRIPT.md` | 720-line negative-result paper (11 evidence bundles, 55 audited claims). |
+| `PEDA_FINAL/paper/CLAIMS_VS_EVIDENCE.md` | Canonical 55-claim cross-reference. |
+| `PEDA_FINAL/RESEARCH_CHARTER.md` | Original PEDA charter (core question, negative-result acceptance). |
+| `PEDA_FINAL/README_FOR_AGENTS.md` | Entry point and file index. |
+| `PEDA_FINAL/peda_reflection_v11.md` | v1.0 post-mortem, anti-pattern checklist. |
+| `WATCHDOG.md` | 278-line paper validator (3-stage: Data→Writing→Review). |
+| `PEDA_WORKING_LOG.md` | Append-only work log.
 
 ## Code Conventions
 
