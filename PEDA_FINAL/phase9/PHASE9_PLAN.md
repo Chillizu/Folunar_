@@ -37,7 +37,7 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 |---|--------|-----------|-----------|
 | M0 | Build gate | Probe script 12/12 | PASS (verified) |
 | M1 | Prior breakage | Untrained LLM DLR on 30-pair probe set | **≤ 0.35** (normal sandbox ≥ 0.8) |
-| M2 | Learnability | Held-out DLR after LoRA on ≤200 CI transitions | **≥ 0.70** | RUN1: LoRA(100ex)=0.676 FAIL; STRIPS=0.926 PASS (rules learnable); retraining @200 |
+| M2 | Learnability | Held-out DLR after LoRA on ≤200 CI transitions | **≥ 0.70** | **PASS** LoRA(200ex, GPU)=0.713 (L1 33/36 L2 20/36 L3 24/36); untrained 0.287; STRIPS 0.926 |
 | M3 | Behavioral productivity | PE agent completion vs count baseline, 20 eps × 3 tasks | **PE ≥ count − 10pp**; both improve ≥ 2× ep11-20 vs ep1-10; discovery steps ≤ 1.5× count |
 | M4 | Error trajectory | Per-step mean prediction error E(t) | E(1..10) **≥ 0.5**; E(31..40) **≤ 0.5·E(1..10)** |
 
@@ -46,7 +46,7 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 2. **FF-CI-1**: Normal-vs-CI divergence < 3/4 commands → wrappers not reversing → DEAD
 3. **FF-CI-2**: LLM policy with normal priors scores > 0/20 on read_secret_ci → reversal too shallow → DEAD
 4. **FF-CI-3** (M1): DLR > 0.35 → LLM can guess rules → DEAD (deepen reversal)
-5. **FF-CI-4** (M2): DLR < 0.70 → rules not learnable → DEAD (loosen reversal) — FIRST RUN: LoRA(100ex)=0.676 < 0.70 → FAIL; STRIPS=0.926 proves rules learnable, LoRA gate retried at full 200 (gate cap) before verdict
+5. **FF-CI-4** (M2): DLR < 0.70 → rules not learnable → DEAD (loosen reversal) — **PASSED**: LoRA(100ex)=0.676 FAIL → retrained at gate cap 200 (GPU T4, 178s, early-stop loss 0.019) → LoRA(200ex)=0.713 ≥ 0.70 PASS. STRIPS=0.926 corroborates learnability. Eval on AWS GPU (ip-172-31-1-126, device=cuda, fp16); meta.commit = instance HEAD ad0aa06 (local code dc391da + meta fix); parse failures 0/0
 6. **FF-CI-5**: Count baseline < 40% on CI tasks → env adversarially too hard → DEAD
 7. **FF-CI-6** (M3): PE < count − 10pp → prediction error STILL not useful drive signal → **formal negative result**, charter-accepted
 
