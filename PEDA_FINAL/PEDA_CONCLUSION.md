@@ -19,7 +19,7 @@
 
 ## Executive Summary
 
-PEDA asked whether prediction error from an LLM-based World Model can serve as an intrinsic drive signal that guides an agent to actively explore uncertain regions, outperforming purely goal-directed behavior. The core hypothesis — that Expected Free Energy (EFE) minimization with epistemic uncertainty drives more effective exploration than pragmatic heuristics — was tested across 17+ controlled experiments spanning 5 environments (Grid World, Sandbox v1/v2/v3/v4, Grid Maze, Giant Maze, TextWorld), using 4 model architectures (Qwen2.5-0.5B with LoRA, JEPA MLP predictors, RSSM, STRIPS action models), with ~2,000 total evaluation episodes.
+PEDA asked whether prediction error from an LLM-based World Model can serve as an intrinsic drive signal that guides an agent to actively explore uncertain regions, outperforming purely goal-directed behavior. The core hypothesis — that Expected Free Energy (EFE) minimization with epistemic uncertainty drives more effective exploration than pragmatic heuristics — was tested across 19 controlled experiments (E01-E19) spanning 5 environments (Grid World, Sandbox v1/v2/v3/v4, Grid Maze, Giant Maze, TextWorld), using 4 model architectures (Qwen2.5-0.5B with LoRA, JEPA MLP predictors, RSSM, STRIPS action models), with ~2,000 total evaluation episodes.
 
 All three charter sub-questions answer **No** under the tested conditions:
 

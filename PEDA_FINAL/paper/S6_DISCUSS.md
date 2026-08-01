@@ -2,7 +2,7 @@
 
 ## 6.1 The hypothesis, restated and answered
 
-PEDA asked whether prediction error from an LLM-based World Model can serve as an intrinsic drive signal that guides an agent to explore uncertain regions more effectively than goal-directed baselines. The hypothesis was tested across 17+ controlled experiments spanning 5 environments, using 4 model architectures and ~2,000 total evaluation episodes (PEDA_CONCLUSION.md:11, "tested across 17+ controlled experiments spanning 5 environments (Grid World, Sandbox v1/v2/v3/v4, Grid Maze, Giant Maze, TextWorld), using 4 model architectures (Qwen2.5-0.5B with LoRA, JEPA MLP predictors, RSSM, STRIPS action models), with ~2,000 total evaluation episodes").
+PEDA asked whether prediction error from an LLM-based World Model can serve as an intrinsic drive signal that guides an agent to explore uncertain regions more effectively than goal-directed baselines. The hypothesis was tested across 19 controlled experiments (E01-E19) spanning 5 environments, using 4 model architectures and ~2,000 total evaluation episodes (PEDA_CONCLUSION.md:22, "tested across 19 controlled experiments (E01-E19) spanning 5 environments (Grid World, Sandbox v1/v2/v3/v4, Grid Maze, Giant Maze, TextWorld), using 4 model architectures (Qwen2.5-0.5B with LoRA, JEPA MLP predictors, RSSM, STRIPS action models), with ~2,000 total evaluation episodes").
 
 All three charter sub-questions answer **No** under the tested conditions (PEDA_CONCLUSION.md:24, "All three charter sub-questions answer **No** under the tested conditions"):
 
