@@ -206,7 +206,12 @@ per-episode JSONL：`results/phase8_qw_{baseline,fixed,fixed2,matrix_only,all}/<
 - [x] per-episode JSONL 落盘（§6 文件清单）。
 - [x] 62.2% → 86.7%（+24.4pp）；count_lines 0% → 80%（>0%）。
 - [x] 本地 Docker 沙盒（peda-sandbox:v2/v4）完成全量 5ep×9task 评估。
-- [x] 提交到 dev（commit 见 git log）。
+- [x] 提交到 dev（commit bdc1f68 + 91a0c3c）。
+
+> 注：commit 91a0c3c 修复了 budget guard 在 CI 模式（`Phase8Runner ci=True`，
+> base `NoveltyExplorer` 无 `cd_child`）下的 AttributeError——guard 现仅对正常沙盒生效，
+> CI 模式与改前行为逐位一致（同生成器、同 base explorer、无候选过滤），
+> 已用 `read_secret_ci` 实跑验证无崩溃。
 
 ## 产出文件
 
