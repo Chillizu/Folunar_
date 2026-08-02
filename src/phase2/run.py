@@ -60,7 +60,17 @@ class SandboxLearningModule(LearningModule):
                 entry["next_last_exit_code"] = exp.next_state.last_exit_code
                 entry["next_last_output"] = exp.next_state.last_output
             data.append(entry)
-        self.world_model.lora_finetune(data, epochs=1, learning_rate=2e-4, batch_size=4)
+        self.world_model.lora_finetune(data, epochs=1, learning_rate=2e-4, batch_size=1)
+        # Memory hygiene: fp32 forward/backward through a 0.5B LLM holds the full
+        # autograd activation graph (~13GB at batch 4, measured 2026-08-02 — the
+        # M3 PEDA OOM root cause; MALLOC_ARENA_MAX=2 does not cap single large
+        # allocations). batch_size=1 keeps peak ~5.8GB. malloc_trim returns freed
+        # arena memory to the OS so RSS does not ratchet across episodes.
+        try:
+            import ctypes
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except Exception:
+            pass
         self.step_count += 1
         self.error_computer.save_checkpoint(self.step_count)
         self.buffer.clear()
