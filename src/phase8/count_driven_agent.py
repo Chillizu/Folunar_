@@ -10,6 +10,23 @@ Count-driven agent control flow:
     Action Gen     → NoveltyExplorer.select_action()
     Action Exec    → BusyboxSandbox.step()
     Learning       → ActionModelLearner + JEPAEnsemble (optional)
+
+Quick-win changes (2026-08-02, L1-QW):
+    1. verb×file candidate matrix (generate_phase8_candidates): every
+       discovered text file gets the full applicable verb set
+       (cat / head -n 5 / wc -l) instead of cat+echo only, closing the
+       count_lines blind spot (wc -l was only generated for csv/log).
+       echo is dropped in the normal sandbox (it is the CI-only reader);
+       grep -ri error . added (case-insensitive: sandbox logs are
+       uppercase ERROR). Zero task knowledge — combinations are generic
+       for any file.
+    2. Phase8Explorer: wc promoted to the file-reader priority tier
+       (otherwise wc -l is starved behind 12+ reader actions per dir and
+       count tasks never select it within the 10-step budget) and a
+       cached-success child revisit (if `cd X` leads to a state with a
+       cached success, return there immediately — the base explorer only
+       replays the cache when already at the state, so deep-path tasks
+       never re-enter the directory where the answer was discovered).
 """
 import argparse
 import json
@@ -28,11 +45,104 @@ from phase2.sandbox_env import (
     BusyboxSandbox,
     CounterIntuitiveSandbox,
     SandboxState,
+    _validate_command,
     generate_sandbox_candidates,
 )
 from phase2.tasks import MICRO_TASKS
 from phase5.action_model import ActionModelLearner
 from phase5.explorer import NoveltyExplorer
+
+
+# ── Quick-win: verb×file candidate matrix (normal sandbox) ─────────────
+
+_P8_TEXT_EXTS = {"txt", "md", "yaml", "yml", "ini", "cfg", "py", "log", "csv", "json"}
+
+
+def generate_phase8_candidates(state: SandboxState) -> List[str]:
+    """Generic verb×file candidate matrix for the normal (non-CI) sandbox.
+
+    For every discovered text file we generate the full applicable verb
+    set — cat, head -n 5, wc -l — instead of the phase2 generator's
+    cat+echo-only (echo is the CI-only reader and wastes exploration
+    budget here; wc/head were previously gated to csv/log). This is
+    deliberately task-agnostic: the same matrix applies to any file the
+    agent discovers, with no filename or task answer hardcoded.
+    """
+    candidates = ["ls", "pwd"]
+    cwd = state.cwd.rstrip("/")
+    if cwd != "/sandbox":
+        candidates.append("cd ..")
+    for f in state.files:
+        ext = f.rsplit(".", 1)[-1] if "." in f else ""
+        if ext in _P8_TEXT_EXTS:
+            candidates.append(f"cat {f}")
+            candidates.append(f"head -n 5 {f}")
+            candidates.append(f"wc -l {f}")
+        elif ext == "" and f not in {"readme.md", "README.txt"}:
+            candidates.append(f"cd {f}")
+    candidates.extend([
+        "grep -r error .",
+        "grep -ri error .",
+        "grep -r secret .",
+        "grep -r version .",
+        "find . -name '*.txt'",
+        "find . -name '*.md'",
+        "find . -name '*.log'",
+    ])
+    valid = [c for c in candidates if _validate_command(c)[0]]
+    seen = set()
+    unique = [c for c in valid if c not in seen and not seen.add(c)]
+    return unique[:24]
+
+
+class Phase8Explorer(NoveltyExplorer):
+    """Count-based explorer with two Phase 8 quick-win adjustments.
+
+    1. wc is promoted to the file-reader tier (priority 0). Without this,
+       `wc -l` sits behind every cat/echo/head candidate in a directory
+       and is never selected inside the 10-step episode budget, so count
+       tasks (count_lines 0%) stay unreachable even once the candidate
+       exists.
+    2. Cached-success child revisit: if `cd X` leads to a state with a
+       cached success, return that cd immediately. The base explorer
+       only replays the success cache when it is already at the state;
+       deep-path tasks (read_note, find_api_key 20%) discover the answer
+       in episode k but then never re-enter that directory, so the cache
+       is never replayed.
+    """
+
+    _ACTION_PRIORITY = {**NoveltyExplorer._ACTION_PRIORITY, "wc": 0}
+
+    def __init__(self):
+        super().__init__()
+        # parent_state_hash -> {cd_action -> child_state_hash}
+        self.cd_child: Dict[str, Dict[str, str]] = {}
+
+    def record_cd(self, parent_state, action: str, child_state) -> None:
+        """Remember which state a cd action leads to (deterministic sandbox)."""
+        self.cd_child.setdefault(parent_state.state_hash(), {})[action] = (
+            child_state.state_hash()
+        )
+
+    def select_action(self, state, candidates, action_history):
+        if not candidates:
+            return "ls"
+
+        sh = state.state_hash()
+
+        # 1. Cached success replay (base behavior)
+        if sh in self.success_cache:
+            cached = self.success_cache[sh]
+            if cached in candidates:
+                return cached
+
+        # 2. Return to a child directory whose state has a cached success
+        for cand in candidates:
+            if cand.startswith("cd ") and cand in self.cd_child.get(sh, {}):
+                if self.cd_child[sh][cand] in self.success_cache:
+                    return cand
+
+        return super().select_action(state, candidates, action_history)
 
 
 def _get_task(task_id: str) -> dict:
@@ -99,6 +209,12 @@ class Phase8Runner:
 
     Winning (cwd,action) pairs are memoized for fast reuse.
     """
+
+    # Testability seams (used by scripts/phase8_qw_ablation.py for
+    # per-change contribution attribution).
+    EXPLORER_CLS = Phase8Explorer   # normal-sandbox explorer
+    BUDGET_GUARD = True             # last-step new-dir cd guard
+
     def __init__(self, docker_image: str = "peda-sandbox:v2",
                  task_id: str = "read_hello",
                  model_path: Optional[str] = None,
@@ -121,7 +237,13 @@ class Phase8Runner:
             self.sandbox = BusyboxSandbox(image=docker_image)
 
         # Explorer — count-based action selection
-        self.explorer = NoveltyExplorer()
+        # Normal sandbox: Phase8Explorer (wc in reader tier + cached-child
+        # revisit). CI mode keeps the base explorer and phase2 candidate
+        # generator untouched (CI semantics are Phase 9 direction 1).
+        if ci:
+            self.explorer = NoveltyExplorer()
+        else:
+            self.explorer = self.EXPLORER_CLS()
 
         # Action model — STRIPS schema learner
         self.action_model = ActionModelLearner()
@@ -159,15 +281,35 @@ class Phase8Runner:
 
         for t in range(max_steps):
             # 1. Perception — generate candidate actions from current state
-            candidates = generate_sandbox_candidates(state)
+            if self.ci:
+                candidates = generate_sandbox_candidates(state)
+            else:
+                candidates = generate_phase8_candidates(state)
             if not candidates:
                 candidates = ["ls", "pwd"]
+
+            # Budget guard: never enter a brand-new directory on the last
+            # step. A cd that lands with zero budget left is pure waste —
+            # the child state gets marked visited but never acted upon, and
+            # (without a cached success there) the agent never returns.
+            if self.BUDGET_GUARD and t >= max_steps - 1:
+                known = self.explorer.cd_child.get(state.state_hash(), {})
+                candidates = [
+                    c for c in candidates
+                    if not (c.startswith("cd ") and c != "cd .." and c not in known)
+                ]
+                if not candidates:
+                    candidates = ["ls"]
 
             # 2. Action Generator — select via count-based novelty
             action = self.explorer.select_action(state, candidates, result.actions)
 
             # 3. Action Executor — run in sandbox
             next_state, reward, done = self.sandbox.step(state, action)
+
+            # Record cd -> child-state mapping for cached-success revisit
+            if not self.ci and action.startswith("cd ") and hasattr(self.explorer, "record_cd"):
+                self.explorer.record_cd(state, action, next_state)
 
             # Record the attempt
             success = False

@@ -1,0 +1,6 @@
+{"meta": {"phase": 8, "tag": "all", "commit": "1b34b7108d97db21add20c8fd15b15925d20e724", "timestamp": "2026-08-02T02:09:26.663887+00:00", "host": "mioarch", "explorer": "Phase8Explorer", "budget_guard": true}, "task": "find_api_key", "image": "peda-sandbox:v4"}
+{"episode": 0, "success": false, "steps": 10, "actions": ["cat README.md", "head -n 5 README.md", "wc -l README.md", "cat config.yaml", "head -n 5 config.yaml", "wc -l config.yaml", "cat welcome.txt", "head -n 5 welcome.txt", "wc -l welcome.txt", "grep -r error ."], "buffer_size": 10}
+{"episode": 1, "success": false, "steps": 10, "actions": ["grep -ri error .", "grep -r secret .", "grep -r version .", "find . -name '*.txt'", "find . -name '*.md'", "find . -name '*.log'", "cd cache", "grep -r error .", "grep -ri error .", "grep -r secret ."], "buffer_size": 20}
+{"episode": 2, "success": false, "steps": 10, "actions": ["cd data", "grep -r error .", "grep -ri error .", "grep -r secret .", "grep -r version .", "find . -name '*.txt'", "find . -name '*.md'", "find . -name '*.log'", "cd ..", "ls"], "buffer_size": 30}
+{"episode": 3, "success": true, "steps": 2, "actions": ["cd docs", "cat api_reference.md"], "buffer_size": 32}
+{"episode": 4, "success": true, "steps": 2, "actions": ["cd docs", "cat api_reference.md"], "buffer_size": 34}

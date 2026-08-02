@@ -1,0 +1,6 @@
+{"meta": {"phase": 8, "tag": "fixed", "commit": "ceed3eed4d9224ce9def53dc61c536fd2839c025", "timestamp": "2026-08-02T02:06:22.683697+00:00", "host": "mioarch", "episodes_per_task": 5, "max_steps": 10, "tasks": ["read_hello", "read_note", "count_lines", "find_secret", "read_welcome", "find_api_key", "count_measurements", "find_errors_v4", "read_changelog_v4"]}, "task": "read_changelog_v4", "image": "peda-sandbox:v4"}
+{"episode": 0, "success": true, "steps": 4, "actions": ["cat api_reference.md", "head -n 5 api_reference.md", "wc -l api_reference.md", "cat changelog.txt"], "buffer_size": 4}
+{"episode": 1, "success": true, "steps": 1, "actions": ["cat changelog.txt"], "buffer_size": 5}
+{"episode": 2, "success": true, "steps": 1, "actions": ["cat changelog.txt"], "buffer_size": 6}
+{"episode": 3, "success": true, "steps": 1, "actions": ["cat changelog.txt"], "buffer_size": 7}
+{"episode": 4, "success": true, "steps": 1, "actions": ["cat changelog.txt"], "buffer_size": 8}
