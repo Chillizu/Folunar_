@@ -139,7 +139,7 @@ ruff check src tests
 - Proof: count-based novelty is the reliable mechanism in <1000 state spaces.
 
 ### Phase 9 (Post-PEDA Directions — verdicts emerging)
-- Direction 1 CI Sandbox: M0/M1/M2 PASS; M4 FAIL (online/batch mismatch); M3 count 33.3%, PEDA rerun in progress; FF-CI-6 pending.
+- Direction 1 CI Sandbox: **COMPLETE** — M0/M1/M2 PASS; M4 FAIL (online/batch mismatch); **FF-CI-6 PASS: PE 0.400 ≥ count 0.367 (+3.3pp), failure hypothesis rejected (weak positive, non-inferiority)**. First agent-level PE signal. See `PEDA_FINAL/phase9/CI_M3M4_REPORT.md` §7.
 - Direction 2 Hierarchical Horizon: **VERDICT ALIVE** at 20x20B (dSCR +0.39 vs flat), simplified to open-loop. See `PEDA_FINAL/phase9/HH_VERDICT.md`.
 - Direction 3 Hypothesis-Generator: MVP 5/5 gates PASS; **FF-HG-5 agent-level DEAD** (PE 0/3 tasks vs count). See `results/phase9_hg_f5_report.md`.
 - Gate verdicts recorded in `PEDA_FINAL/phase9/PHASE9_PLAN.md` §Gate Verdicts (2026-08-02).

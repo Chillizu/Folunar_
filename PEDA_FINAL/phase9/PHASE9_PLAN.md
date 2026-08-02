@@ -143,11 +143,11 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 - Literal gate "Agent-level ≤ count baseline → DEAD": PE beats count 0/3 tasks → agent-level claim DEAD
 - Root cause: STRIPS unmatched-verb fallback (confidence = 1 − success_rate(verb)) inverts prior on high-success verbs (cd), burning steps on navigation; offline structure (MVP) did not transfer to closed loop. Fix pointer recorded in report (out of gate scope).
 
-**Direction 1 (CI): M4 COMPLETE → FAIL; M3 count COMPLETE; M3 PEDA rerun in progress (2026-08-02).** Report `PEDA_FINAL/phase9/CI_M3M4_REPORT.md` (commit 870aca6).
+**Direction 1 (CI): COMPLETE 2026-08-02 — M4 FAIL; M3 + FF-CI-6 PASS (non-inferiority).** Report `PEDA_FINAL/phase9/CI_M3M4_REPORT.md` §7 (commits 870aca6, 9570016, cf91296; M3 PEDA on GPU T4 clean rerun, `results/phase9_ci_m3_peda_gpu.jsonl` 30/30).
 - M4 (error trajectory): FAIL — E(1..10)=0.6444 ≥ 0.5 PASS; E(31..40)=0.4333 > 0.3222 FAIL. Primary explanation: online/batch mismatch (agent converges to pwd-only post-update, E(t) capped at pwd plateau ~0.33; M2 batch DLR 0.713 proves signal exists).
 - M3 count: pooled 33.3% (20ep; read_secret 13/30, read_data 17/30, find_warn 0/30). **FF-CI-5 formally triggers (<40%) but is entirely driven by find_warn_ci (0/30); two L1 tasks at 0.433/0.567 and improving → recorded as triggered-but-scoped, direction NOT killed on this gate** (top-level adjudication, threshold unchanged).
-- M3 PEDA partial (10/10 read_secret_ci before OOM): ep3–10 eight consecutive 2-step successes (PE 0.80 vs count 0.40) — direction opposite to FF-CI-6 failure hypothesis, but single-task, not extrapolable. OOM root cause fixed (MALLOC_ARENA_MAX=2); full clean rerun delegated (L1-CI2).
-- FF-CI-6: PENDING rerun.
+- **FF-CI-6: PASS — failure hypothesis REJECTED.** PE pooled 12/30 = 0.400 vs count(10ep) 11/30 = 0.367 (+3.3pp; vs count 20ep 0.333: +6.7pp), ≥ count − 10pp criterion met; min per-task delta 0 (read_secret tie 4/10, read_data win 8/10 vs 7/10, find_warn tie 0/10). PE early/late 0.200→0.600 (3×, meets ≥2× sub-metric); count 1.75× (misses). Honest reading: weak positive within non-inferiority bound, NOT a vindication — PE drives exploration (epi_err=1.000 on read_data wins) without in-episode error convergence (M3 PASS ⇔ M4 FAIL coherent).
+- OOM root cause (CPU): fp32 autograd graph ~13GB at batch 4; fixed bs=1 + malloc_trim (9570016).
 
 ## Priority
 
