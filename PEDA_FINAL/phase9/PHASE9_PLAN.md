@@ -127,6 +127,24 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 
 ---
 
+## Gate Verdicts (2026-08-02)
+
+**Direction 2 (HH): VERDICT — ALIVE at 20x20 Variant B, architecture simplified to open-loop.** Full analysis `PEDA_FINAL/phase9/HH_VERDICT.md` (commits 5445afb, 1b34b71); independent recomputation 282/282 rows match summary CSV.
+- FF-HH-1: PASS (20x20B ΔSCR_vs_random +0.2854, ΔFHT +102.0)
+- FF-HH-2: PASS at anchor (20x20B λ-range 0.14–0.24, all ≥ 0.05); literal reading at 15x15 FAIL — reading ambiguity recorded in HH_VERDICT §2.2, threshold NOT adjusted
+- FF-HH-3: TRIGGERED → open-loop adopted (re-eval max gain +0.0150 < 0.02; t_reeval wired but near-inert at gate arm, evidence HH_VERDICT §1)
+- FF-HH-4: PASS (layered 0.5458 vs flat 0.1592, ΔSCR +0.3867)
+- FF-HH-5: PASS (wins at 10x10/15x15/20x20, +0.18/+0.25/+0.39)
+- Charter implication: count's 8400-state collapse is a horizon/goal-selection failure, not scale — layered fixes it without a learned model.
+
+**Direction 3 (HG): VERDICT — MVP PASSED (F1–F3, V1–V3, 2026-07-31); FF-HG-5 agent-level gate → DEAD (literal reading).** Report `results/phase9_hg_f5_report.md` (commit ceed3ee; 180 episodes, 9 configs × 20 eps).
+- Aggregate (M3-style, 60 eps): count 73.3% vs PE 66.7%, Δ −6.7pp (within −10pp band)
+- Held-out branch: find_errors_v4 count 20% vs PE 0% (−20pp); train branches neutral (success-cache replay dominates)
+- Literal gate "Agent-level ≤ count baseline → DEAD": PE beats count 0/3 tasks → agent-level claim DEAD
+- Root cause: STRIPS unmatched-verb fallback (confidence = 1 − success_rate(verb)) inverts prior on high-success verbs (cd), burning steps on navigation; offline structure (MVP) did not transfer to closed loop. Fix pointer recorded in report (out of gate scope).
+
+**Direction 1 (CI): M3 count side complete, PEDA side + M4 in progress (2026-08-02).** FF-CI-6 verdict pending; see `PEDA_FINAL/phase9/CI_M3M4_REPORT.md` when filed.
+
 ## Priority
 
 | Rank | Direction | Rationale |
