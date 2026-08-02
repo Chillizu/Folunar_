@@ -132,6 +132,6 @@
 | `scripts/phase9_hh_treeval_check.py` | t_reeval 接线 + 逐种子轨迹比对（90 单元全网格） |
 | `scripts/phase9_hh_recompute.py` | FF-HH-1..5 独立复算 + 282 行 CSV 对账 |
 
-**Commit:** `<COMMIT_HASH>`（dev 分支，message: `phase9: HH verdict — t_reeval wired-but-inert at gate arm; direction ALIVE at 20x20B, simplify to open-loop (FF3)`）
+**Commit:** `5445afb`（dev 分支，message: `phase9: HH verdict — t_reeval wired-but-inert at gate arm; direction ALIVE at 20x20B, simplify to open-loop (FF3)`）
 
 **验收清单自检**：✓ t_reeval 结论含代码证据路径:行号（§1.1）；✓ FF-HH-* 逐门判定表（§2）；✓ 独立复算数字与 summary CSV 对账 282/282 一致（§2.1）；✓ commit hash 已记录（§5）；✓ COUNT_DRIVEN_CHARTER 回答（§3）；✓ 后续建议（§4）；✓ FF2 歧义诚实标注 UNVERIFIABLE-待裁决而非擅自改阈值（§2.2）。
