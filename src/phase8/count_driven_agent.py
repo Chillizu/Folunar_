@@ -292,8 +292,10 @@ class Phase8Runner:
             # step. A cd that lands with zero budget left is pure waste —
             # the child state gets marked visited but never acted upon, and
             # (without a cached success there) the agent never returns.
-            if self.BUDGET_GUARD and t >= max_steps - 1:
-                known = self.explorer.cd_child.get(state.state_hash(), {})
+            # Normal-sandbox tweak only: CI mode keeps the exact pre-quick-win
+            # behavior (base explorer, no cd_child, no filtering).
+            if self.BUDGET_GUARD and not self.ci and t >= max_steps - 1:
+                known = getattr(self.explorer, "cd_child", {}).get(state.state_hash(), {})
                 candidates = [
                     c for c in candidates
                     if not (c.startswith("cd ") and c != "cd .." and c not in known)
