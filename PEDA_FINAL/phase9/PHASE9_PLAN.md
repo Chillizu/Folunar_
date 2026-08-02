@@ -143,7 +143,11 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 - Literal gate "Agent-level ≤ count baseline → DEAD": PE beats count 0/3 tasks → agent-level claim DEAD
 - Root cause: STRIPS unmatched-verb fallback (confidence = 1 − success_rate(verb)) inverts prior on high-success verbs (cd), burning steps on navigation; offline structure (MVP) did not transfer to closed loop. Fix pointer recorded in report (out of gate scope).
 
-**Direction 1 (CI): M3 count side complete, PEDA side + M4 in progress (2026-08-02).** FF-CI-6 verdict pending; see `PEDA_FINAL/phase9/CI_M3M4_REPORT.md` when filed.
+**Direction 1 (CI): M4 COMPLETE → FAIL; M3 count COMPLETE; M3 PEDA rerun in progress (2026-08-02).** Report `PEDA_FINAL/phase9/CI_M3M4_REPORT.md` (commit 870aca6).
+- M4 (error trajectory): FAIL — E(1..10)=0.6444 ≥ 0.5 PASS; E(31..40)=0.4333 > 0.3222 FAIL. Primary explanation: online/batch mismatch (agent converges to pwd-only post-update, E(t) capped at pwd plateau ~0.33; M2 batch DLR 0.713 proves signal exists).
+- M3 count: pooled 33.3% (20ep; read_secret 13/30, read_data 17/30, find_warn 0/30). **FF-CI-5 formally triggers (<40%) but is entirely driven by find_warn_ci (0/30); two L1 tasks at 0.433/0.567 and improving → recorded as triggered-but-scoped, direction NOT killed on this gate** (top-level adjudication, threshold unchanged).
+- M3 PEDA partial (10/10 read_secret_ci before OOM): ep3–10 eight consecutive 2-step successes (PE 0.80 vs count 0.40) — direction opposite to FF-CI-6 failure hypothesis, but single-task, not extrapolable. OOM root cause fixed (MALLOC_ARENA_MAX=2); full clean rerun delegated (L1-CI2).
+- FF-CI-6: PENDING rerun.
 
 ## Priority
 

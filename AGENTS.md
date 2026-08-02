@@ -132,15 +132,17 @@ ruff check src tests
 - 20x20 (8400 states): BOTH count and JEPA at 0% — counting fails at scale, JEPA fails equally at scale.
 
 ### Phase 8 (Count-Driven Agent)
-- 28/45 (62.2%) across 9 sandbox tasks, zero task knowledge.
-- Direct-read tasks: 100% (read_hello, read_welcome, etc.).
-- Deep-path tasks: 20% (read_note, find_api_key).
-- count_lines: 0% (wc -l never hits correct file).
+- Baseline: 28/45 (62.2%) across 9 sandbox tasks, zero task knowledge.
+- **2026-08-02 quick wins: 39/45 (86.7%)** — verb×file candidate matrix + cached-child revisit + budget guard (`results/phase8_qw_report.md`, commit bdc1f68).
+- Direct-read tasks: 100%. Deep-path tasks: read_note 3/5, find_api_key 2/5, find_errors_v4 5/5.
+- count_lines: 0% → 80% (wc -l never hit correct file → verb×file matrix fix).
 - Proof: count-based novelty is the reliable mechanism in <1000 state spaces.
 
-### Phase 9 (Post-PEDA Directions — design phase)
-- Three directions under active design (see local://contract-*.md).
-- No code implemented yet. Design documents in progress.
+### Phase 9 (Post-PEDA Directions — verdicts emerging)
+- Direction 1 CI Sandbox: M0/M1/M2 PASS; M4 FAIL (online/batch mismatch); M3 count 33.3%, PEDA rerun in progress; FF-CI-6 pending.
+- Direction 2 Hierarchical Horizon: **VERDICT ALIVE** at 20x20B (dSCR +0.39 vs flat), simplified to open-loop. See `PEDA_FINAL/phase9/HH_VERDICT.md`.
+- Direction 3 Hypothesis-Generator: MVP 5/5 gates PASS; **FF-HG-5 agent-level DEAD** (PE 0/3 tasks vs count). See `results/phase9_hg_f5_report.md`.
+- Gate verdicts recorded in `PEDA_FINAL/phase9/PHASE9_PLAN.md` §Gate Verdicts (2026-08-02).
 
 ### Core Hypothesis Verdict
 > All three charter sub-questions answer **No** under tested conditions.
