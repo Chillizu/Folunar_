@@ -1,0 +1,10 @@
+agent,alpha,task,branch,n_eps,completion_pct,avg_steps,ep1_10_pct,ep11_20_pct,sig_n_steps,sig_mean_error,sig_mean_uncertainty
+count,0.5,count_measurements,train (data),20,100.0,1.3,100.0,100.0,0,None,None
+count,0.5,find_errors_v4,held-out (logs),20,20.0,9.5,0.0,40.0,0,None,None
+count,0.5,read_changelog_v4,train (docs),20,100.0,1.1,100.0,100.0,0,None,None
+pe,0.5,count_measurements,train (data),20,100.0,1.1,100.0,100.0,22,0.0545,0.2049
+pe,0.5,find_errors_v4,held-out (logs),20,0.0,10,0.0,0.0,200,0.081,0.7633
+pe,0.5,read_changelog_v4,train (docs),20,100.0,1.05,100.0,100.0,21,0.019,0.1736
+pe,1.0,count_measurements,train (data),20,100.0,1.1,100.0,100.0,22,0.0545,0.2049
+pe,1.0,find_errors_v4,held-out (logs),20,0.0,10,0.0,0.0,200,0.072,0.2892
+pe,1.0,read_changelog_v4,train (docs),20,100.0,1.05,100.0,100.0,21,0.019,0.1736
