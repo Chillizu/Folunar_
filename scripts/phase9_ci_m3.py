@@ -79,9 +79,40 @@ def _peda_agent_fn(ag: ActionGenerator):
     return agent_fn
 
 
+def _write_meta_header(path: Path, meta: Dict) -> None:
+    """Write the D4 meta header line if the file is absent or empty."""
+    if not path.exists() or path.stat().st_size == 0:
+        with path.open("w") as f:
+            f.write(json.dumps({"meta": meta}, ensure_ascii=False) + "\n")
+
+
+def _append_row(path: Path, row: Dict) -> None:
+    with path.open("a") as f:
+        f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+
 def _run_peda_tasks(wm: WorldModel, task_id: str, device: str,
-                    num_episodes: int = NUM_EPISODES, max_steps: int = MAX_STEPS) -> List[Dict]:
-    """Run NUM_EPISODES PEDA episodes on one CI task (shared learning module)."""
+                    num_episodes: int = NUM_EPISODES, max_steps: int = MAX_STEPS,
+                    out_path: Optional[Path] = None) -> List[Dict]:
+    """Run NUM_EPISODES PEDA episodes on one CI task (shared learning module).
+
+    Rows are appended to out_path incrementally (crash-safe; D4 per-episode
+    data is never lost to a late write). Resume-aware: episodes already
+    present in out_path for this task are skipped, so an OOM-killed run can
+    be restarted and continue instead of re-running from scratch.
+    """
+    done_eps = set()
+    if out_path is not None and out_path.exists():
+        with out_path.open() as f:
+            for line in f:
+                if line.startswith('{"meta"'):
+                    continue
+                try:
+                    r = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if r.get("task_id") == task_id:
+                    done_eps.add(r.get("episode"))
     ag, ec, ds = _build_peda_components(wm)
     lm = SandboxLearningModule(
         wm, ec, buffer_size=200, update_interval=UPDATE_INTERVAL,
@@ -90,11 +121,15 @@ def _run_peda_tasks(wm: WorldModel, task_id: str, device: str,
     sb = CounterIntuitiveSandbox()
     rows: List[Dict] = []
     for ep in range(num_episodes):
+        if ep in done_eps:
+            print(f"[peda {task_id}] ep {ep+1:02d}/{num_episodes} RESUME-SKIP (already on disk)",
+                  flush=True)
+            continue
         steps, final_state, metrics = run_peda_episode(
             sb, wm, ec, ds, lm, agent_fn,
             max_steps=max_steps, task_id=task_id,
         )
-        rows.append({
+        row = {
             "task_id": task_id,
             "episode": ep,
             "success": bool(metrics["success"]),
@@ -102,7 +137,10 @@ def _run_peda_tasks(wm: WorldModel, task_id: str, device: str,
             "mean_epistemic_error": metrics["mean_epistemic_error"],
             "mean_aleatoric_error": metrics["mean_aleatoric_error"],
             "victory_step": steps[-1]["step"] if (metrics["success"] and steps) else None,
-        })
+        }
+        rows.append(row)
+        if out_path is not None:
+            _append_row(out_path, row)
         print(f"[peda {task_id}] ep {ep+1:02d}/{num_episodes} success={metrics['success']} "
               f"steps={metrics['steps']} epi_err={metrics['mean_epistemic_error']:.3f}",
               flush=True)
@@ -111,18 +149,22 @@ def _run_peda_tasks(wm: WorldModel, task_id: str, device: str,
 
 
 def _run_count_tasks(task_id: str, num_episodes: int = NUM_EPISODES,
-                     max_steps: int = MAX_STEPS) -> List[Dict]:
+                     max_steps: int = MAX_STEPS,
+                     out_path: Optional[Path] = None) -> List[Dict]:
     runner = Phase8Runner(task_id=task_id, ci=True, model_path=None)
     rows: List[Dict] = []
     for ep in range(num_episodes):
         res = runner.run_episode(max_steps=max_steps)
-        rows.append({
+        row = {
             "task_id": task_id,
             "episode": ep,
             "success": bool(res.success),
             "steps": res.steps,
             "victory_step": res.victory_step if hasattr(res, "victory_step") else None,
-        })
+        }
+        rows.append(row)
+        if out_path is not None:
+            _append_row(out_path, row)
         print(f"[count {task_id}] ep {ep+1:02d}/{num_episodes} success={res.success} steps={res.steps}",
               flush=True)
     return rows
@@ -191,28 +233,51 @@ def main() -> int:
             return 2
         # fp32: fp16 LoRA finetune produces NaN loss (M2 finding); keep fp32 on GPU
 
+    count_path = REPO_ROOT / "results" / "phase9_ci_m3_count.jsonl"
+    peda_path = REPO_ROOT / "results" / "phase9_ci_m3_peda.jsonl"
+
     all_rows: Dict[str, List[Dict]] = {"count": [], "peda": []}
     for task in tasks:
         if args.agent in ("count", "both"):
-            all_rows["count"].extend(_run_count_tasks(task, args.num_episodes, args.max_steps))
+            if not count_path.exists() or count_path.stat().st_size == 0:
+                _write_meta_header(count_path, meta)
+            all_rows["count"].extend(
+                _run_count_tasks(task, args.num_episodes, args.max_steps, out_path=count_path))
         if args.agent in ("peda", "both") and wm is not None:
-            all_rows["peda"].extend(_run_peda_tasks(wm, task, device, args.num_episodes, args.max_steps))
+            if not peda_path.exists() or peda_path.stat().st_size == 0:
+                _write_meta_header(peda_path, meta)
+            all_rows["peda"].extend(
+                _run_peda_tasks(wm, task, device, args.num_episodes, args.max_steps, out_path=peda_path))
 
-    for agent, rows in all_rows.items():
-        if rows:
-            _write_jsonl(REPO_ROOT / "results" / f"phase9_ci_m3_{agent}.jsonl", meta, rows)
+    # Load the counterpart side from disk when this invocation only ran one
+    # agent (allows `--agent count` and `--agent peda` to be launched as
+    # separate long-running jobs and still produce a full verdict).
+    def _load_side(path: Path) -> List[Dict]:
+        if path.exists():
+            with path.open() as f:
+                return [json.loads(line) for line in f if not line.startswith('{"meta"')]
+        return []
+
+    if not all_rows["count"]:
+        all_rows["count"] = _load_side(count_path)
+    if not all_rows["peda"]:
+        all_rows["peda"] = _load_side(peda_path)
 
     # ── Summary ──
+    # Early/late split adapts to the actual episode count (CPU runs may be
+    # halved; the pre-registered 20ep split maps to the midpoint).
+    n_ep = args.num_episodes
+    mid = max(n_ep // 2, 1)
     summary_rows: List[List[Any]] = []
     if all_rows["peda"] and all_rows["count"]:
         for task in tasks:
             pe = [r for r in all_rows["peda"] if r["task_id"] == task]
             ct = [r for r in all_rows["count"] if r["task_id"] == task]
             pe_c, ct_c = _completion(pe), _completion(ct)
-            pe_early = _completion([r for r in pe if r["episode"] < 10])
-            pe_late = _completion([r for r in pe if r["episode"] >= 10])
-            ct_early = _completion([r for r in ct if r["episode"] < 10])
-            ct_late = _completion([r for r in ct if r["episode"] >= 10])
+            pe_early = _completion([r for r in pe if r["episode"] < mid])
+            pe_late = _completion([r for r in pe if r["episode"] >= mid])
+            ct_early = _completion([r for r in ct if r["episode"] < mid])
+            ct_late = _completion([r for r in ct if r["episode"] >= mid])
             pe_disc, ct_disc = _discovery_steps(pe), _discovery_steps(ct)
             summary_rows.append([
                 task, f"{pe_c:.3f}", f"{ct_c:.3f}", pe_c - ct_c,
@@ -224,10 +289,10 @@ def main() -> int:
         summary_rows.append([
             "POOLED", f"{_completion(pe_all):.3f}", f"{_completion(ct_all):.3f}",
             _completion(pe_all) - _completion(ct_all),
-            f"{_completion([r for r in pe_all if r['episode'] < 10]):.3f}",
-            f"{_completion([r for r in pe_all if r['episode'] >= 10]):.3f}",
-            f"{_completion([r for r in ct_all if r['episode'] < 10]):.3f}",
-            f"{_completion([r for r in ct_all if r['episode'] >= 10]):.3f}",
+            f"{_completion([r for r in pe_all if r['episode'] < mid]):.3f}",
+            f"{_completion([r for r in pe_all if r['episode'] >= mid]):.3f}",
+            f"{_completion([r for r in ct_all if r['episode'] < mid]):.3f}",
+            f"{_completion([r for r in ct_all if r['episode'] >= mid]):.3f}",
             _discovery_steps(pe_all), _discovery_steps(ct_all),
         ])
         pe_c, ct_c = _completion(pe_all), _completion(ct_all)
@@ -243,7 +308,8 @@ def main() -> int:
     with csv_path.open("w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["task", "pe_completion", "count_completion", "delta_pp",
-                    "pe_ep1_10", "pe_ep11_20", "count_ep1_10", "count_ep11_20",
+                    f"pe_ep1_{mid}", f"pe_ep{mid+1}_{n_ep}",
+                    f"count_ep1_{mid}", f"count_ep{mid+1}_{n_ep}",
                     "pe_discovery_steps", "count_discovery_steps"])
         w.writerows(summary_rows)
     print(f"[m3] summary -> {csv_path}")

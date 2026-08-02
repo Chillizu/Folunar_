@@ -40,7 +40,40 @@ from phase1.world_model import EnsembleErrorComputer, WorldModel
 from phase2.run import SandboxLearningModule
 from phase2.sandbox_env import CounterIntuitiveSandbox, generate_sandbox_candidates
 from phase9_ci_m1_real_llm import _extract_json, _fs_snapshot  # noqa: E402
-from phase9_ci_m2_eval import _build_state_prompt, _predict_model  # noqa: E402
+from phase9_ci_m2_eval import _build_state_prompt  # noqa: E402
+
+
+def _predict_model(wm, state, action, max_new=160):
+    """Greedy generation in the world-model prompt format -> parsed JSON.
+
+    Local copy of phase9_ci_m2_eval._predict_model with one fix: on
+    transformers >= 4.50, `apply_chat_template(..., return_tensors="pt")`
+    returns a raw 2-D tensor instead of a BatchEncoding, so indexing
+    `encoded["input_ids"]` raises IndexError. Reuse the WorldModel's own
+    `_extract_input_ids`, which handles both shapes.
+    """
+    system_msg = wm._sandbox_system_message()
+    prompt = _build_state_prompt(state, action)
+    messages = [
+        {"role": "system", "content": system_msg},
+        {"role": "user", "content": prompt},
+    ]
+    encoded = wm.tokenizer.apply_chat_template(
+        messages, tokenize=True, return_tensors="pt", add_generation_prompt=True
+    )
+    input_ids = wm._extract_input_ids(encoded).to(wm.device)
+    pad_id = wm.tokenizer.pad_token_id if wm.tokenizer.pad_token_id is not None \
+        else wm.tokenizer.eos_token_id
+    with torch.no_grad():
+        gen = wm.model.generate(
+            input_ids,
+            max_new_tokens=max_new,
+            do_sample=False,
+            pad_token_id=pad_id,
+            eos_token_id=wm.tokenizer.eos_token_id,
+        )
+    raw = wm.tokenizer.decode(gen[0, input_ids.shape[1]:], skip_special_tokens=True)
+    return _extract_json(raw), raw
 
 MODEL_PATH = "/home/data/models/Qwen2.5-0.5B-Instruct"
 TASK_ID = "read_secret_ci"
@@ -96,6 +129,7 @@ def _run_trial(wm: WorldModel, device: str, max_steps: int = MAX_STEPS) -> List[
     agent_fn = _peda_agent_fn(ag)
     sb = CounterIntuitiveSandbox()
     state = sb.reset(start_cwd=None)
+    state.max_steps = max_steps  # SandboxState defaults to 20; M4 needs 40-step window
     action_history: List[str] = []
     steps: List[Dict] = []
 
@@ -196,9 +230,17 @@ def main() -> int:
     }
 
     all_trials: List[List[Dict]] = []
+    jsonl_path = REPO_ROOT / "results" / "phase9_ci_m4.jsonl"
+    with jsonl_path.open("w") as f:
+        f.write(json.dumps({"meta": meta}, ensure_ascii=False) + "\n")
     for t in range(args.trials):
         print(f"[m4] trial {t+1}/{args.trials}", flush=True)
-        all_trials.append(_run_trial(wm, device, args.max_steps))
+        trial = _run_trial(wm, device, args.max_steps)
+        all_trials.append(trial)
+        # Crash-safe: append this trial's per-step rows immediately.
+        with jsonl_path.open("a") as f:
+            for st in trial:
+                f.write(json.dumps({"trial": t, **st}, ensure_ascii=False) + "\n")
 
     # Per-step E(t) averaged across trials (pad missing steps as NaN-skip)
     n = max(len(tr) for tr in all_trials)
@@ -217,12 +259,6 @@ def main() -> int:
     for t, trial in enumerate(all_trials):
         for st in trial:
             rows.append({"trial": t, **st})
-
-    jsonl_path = REPO_ROOT / "results" / "phase9_ci_m4.jsonl"
-    with jsonl_path.open("w") as f:
-        f.write(json.dumps({"meta": meta}, ensure_ascii=False) + "\n")
-        for row in rows:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
     def mean_e(lo: int, hi: int) -> Optional[float]:
         vals = [e for e in e_by_step[lo:hi] if e is not None]
