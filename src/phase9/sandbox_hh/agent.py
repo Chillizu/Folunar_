@@ -19,6 +19,9 @@ Control state machine (open-loop, no mid-plan re-evaluation):
   explore  — Phase 8 count-driven local exploration at the current dir;
              re-enter select when the local frontier (unvisited
              (verb x file) u cd candidates) is exhausted.
+             R1 (FF-SBH-3): also re-enter select right after a `cd` into
+             a directory with no readable text files (empty-dir trap;
+             see results/phase9_sbh_failure_analysis.md T2/R1).
 
 The low layer's cached-success replay ALWAYS preempts the high layer: a
 known solution outranks any frontier heuristic, so when a replay is
@@ -87,6 +90,17 @@ class SandboxHHAgent:
     def _local_frontier_exhausted(self, state) -> bool:
         density, _, _ = self.planner.unvisited_density(state.cwd, self.explorer)
         return density <= 0
+
+    def _dir_lacks_text_files(self, state) -> bool:
+        """R1: True when cwd has no readable text-file candidates.
+
+        The empty-dir trap (failure analysis T2/R1): after `cd` into a
+        directory that only contains subdirs (e.g. find_api_key ep1
+        `cd cache`), the Phase 8 low layer wastes steps on grep/find
+        (priority 1 < cd 2), and the open-loop re-selection never fires
+        because cd-only candidates keep unvisited_density > 0.
+        """
+        return not self.planner.graph.text_files(state.cwd)
 
     def _select_and_log(self, cwd: str, t: int) -> Optional[dict]:
         """Select a goal, log the decision event, return the goal dict."""
@@ -212,8 +226,15 @@ class SandboxHHAgent:
                 self.planner.graph.observe_find(next_state.cwd, next_state.last_output)
             state = next_state
 
-            # 8. Open-loop re-selection trigger: local frontier exhausted
-            if self.mode == "explore" and self._local_frontier_exhausted(state):
+            # 8. Open-loop re-selection trigger: local frontier exhausted,
+            #    or R1 — the last cd landed in a dir with no readable text
+            #    files (empty-dir trap; failure analysis T2/R1). Treat the
+            #    trap as the frontier-exhausted equivalent so the next step
+            #    re-selects a goal instead of burning budget on grep/find.
+            if self.mode == "explore" and (
+                self._local_frontier_exhausted(state)
+                or (action.startswith("cd ") and self._dir_lacks_text_files(state))
+            ):
                 self.mode = "select"
 
         result = {

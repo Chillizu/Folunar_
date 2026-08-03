@@ -28,6 +28,12 @@ larger raw unvisited count, then lexicographic path.
 Open-loop: selection happens at episode start and again only when the
 local frontier at the current directory is exhausted. No mid-plan
 re-evaluation.
+
+R1 (FF-SBH-3): the agent also re-enters select right after a cd into a
+directory with no readable text files (empty-dir trap, failure analysis
+T2/R1); such a textless cwd is never itself selected as goal (it is the
+frontier-exhausted equivalent), so the re-selection steers toward a
+text-bearing frontier instead of keeping the low layer stuck.
 """
 
 from __future__ import annotations
@@ -183,6 +189,14 @@ class SandboxGoalPlanner:
         for d in self.graph.known_dirs():
             density, unvisited, total = self.unvisited_density(d, explorer)
             if density <= 0:
+                continue
+            # R1 (failure analysis T2/R1): a cwd with no readable text
+            # files is a dead end for local exploration — re-selecting it
+            # would keep the low layer stuck there (goal == cwd => no
+            # navigation). Treat it as the frontier-exhausted equivalent
+            # and exclude it so the forced re-selection picks a
+            # text-bearing frontier.
+            if d == cwd and not self.graph.text_files(d):
                 continue
             path = self.graph.shortest_path(cwd, d)
             if path is None:

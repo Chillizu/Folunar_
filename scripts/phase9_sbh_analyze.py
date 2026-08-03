@@ -18,6 +18,7 @@ lambda-best = max over arms of the pooled success count.
 Usage:
     PYTHONPATH=src python3 scripts/phase9_sbh_analyze.py
     PYTHONPATH=src python3 scripts/phase9_sbh_analyze.py --cases   # deep-path decision excerpts
+    PYTHONPATH=src python3 scripts/phase9_sbh_analyze.py --r1      # FF-SBH-3 rerun (phase9_sbh_r1_*)
 """
 import argparse
 import json
@@ -33,6 +34,18 @@ TASKS = [
 LAMBDA_BEST_BAR = 37   # FF-SBH-1: pooled < 37/45 -> kill
 POSITIVE_BAR = 39      # FF-SBH-2: pooled >= 39/45
 DEEP_BAR = 4           # FF-SBH-2: deep-path >= 4/10
+
+# FF-SBH-3 pre-registered gates (R1 empty-dir re-selection rerun):
+#   PASS: lambda-best pooled >= 41/45 AND per-task >= base matrix (no regression)
+#   KILL: any task regression OR pooled < 40
+#   else NULL (fix not effective; recorded as-is, no forced reading)
+FF3_PASS_POOLED = 41
+FF3_KILL_POOLED = 40
+BASE_MATRIX = {  # FF-SBH-2 final matrix (40/45): read_hello 5, read_note 3,
+    "read_hello": 5, "read_note": 3, "count_lines": 4, "find_secret": 5,   # count_lines 4,
+    "read_welcome": 5, "find_api_key": 3, "count_measurements": 5,          # find_secret 5,
+    "find_errors_v4": 5, "read_changelog_v4": 5,                             # ... find_api_key 3
+}
 
 
 def load(path: Path) -> dict:
@@ -64,6 +77,39 @@ def agg(episodes) -> dict:
         "per_task": {t: (per_task[t][0], per_task[t][1]) for t in TASKS},
         "pooled": (pooled_ok, pooled_total),
         "deep": (deep_ok, deep_total),
+    }
+
+
+def adjudicate_ff3(a0: dict, a5: dict) -> dict:
+    """FF-SBH-3 gate: PASS / NULL / KILL per the pre-registered contract."""
+    pooled_best = max(a0["pooled"][0], a5["pooled"][0])
+    per_task_best = {
+        t: max(a0["per_task"][t][0], a5["per_task"][t][0]) for t in TASKS
+    }
+    regressions = [t for t in TASKS if per_task_best[t] < BASE_MATRIX[t]]
+    if regressions or pooled_best < FF3_KILL_POOLED:
+        verdict = "FF-SBH-3 KILL"
+        reason = (f"pooled_best={pooled_best}/45, regressions={regressions}"
+                  if regressions else f"pooled_best={pooled_best}/45 < 40")
+    elif pooled_best >= FF3_PASS_POOLED:
+        verdict = "FF-SBH-3 PASS"
+        reason = (f"pooled_best={pooled_best}/45 >= 41 and no task regression "
+                  f"(find_api_key {BASE_MATRIX['find_api_key']} -> "
+                  f"{per_task_best['find_api_key']})")
+    else:
+        verdict = "FF-SBH-3 NULL"
+        reason = (f"pooled_best={pooled_best}/45 in [40,41) with no regression: "
+                  f"fix not effective, recorded as-is")
+    return {
+        "lambda_best_pooled": pooled_best,
+        "lambda_best_deep": max(a0["deep"][0], a5["deep"][0]),
+        "per_task_best": per_task_best,
+        "base_matrix": BASE_MATRIX,
+        "ff3_pass_bar": FF3_PASS_POOLED,
+        "ff3_kill_bar": FF3_KILL_POOLED,
+        "regressions": regressions,
+        "verdict": verdict,
+        "reason": reason,
     }
 
 
@@ -110,14 +156,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cases", action="store_true",
                         help="Print deep-path decision-sequence excerpts")
+    parser.add_argument("--r1", action="store_true",
+                        help="FF-SBH-3 mode: read phase9_sbh_r1_{lam0,lam05}.jsonl "
+                             "and adjudicate the pre-registered R1 gates")
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parent.parent / "results"
-    lam0 = load(root / "phase9_sbh_lam0.jsonl")
-    lam05 = load(root / "phase9_sbh_lam05.jsonl")
+    prefix = "phase9_sbh_r1" if args.r1 else "phase9_sbh"
+    lam0 = load(root / f"{prefix}_lam0.jsonl")
+    lam05 = load(root / f"{prefix}_lam05.jsonl")
     a0 = agg(lam0["episodes"])
     a5 = agg(lam05["episodes"])
-    verdict = adjudicate(a0, a5)
+    verdict = adjudicate_ff3(a0, a5) if args.r1 else adjudicate(a0, a5)
 
     print("=== per-task success (recomputed from JSONL) ===")
     print(f"{'task':22s} {'lam=0':>8s} {'lam=0.5':>8s} {'phase8_base':>12s}")
@@ -132,6 +182,24 @@ def main() -> int:
           f"{a5['pooled'][0]}/{a5['pooled'][1]:>3d} 39/45")
     print(f"{'DEEP (read_note+api)':22s} {a0['deep'][0]}/{a0['deep'][1]:>3d} "
           f"{a5['deep'][0]}/{a5['deep'][1]:>3d} 2/10")
+    print()
+    if args.r1:
+        print("=== FF-SBH-3 baseline (FF-SBH-2 final matrix, 40/45) ===")
+        print(f"{'task':22s} {'base':>8s} {'r1_lam0':>8s} {'r1_lam05':>8s} {'best':>6s}")
+        for t in TASKS:
+            base = f"{BASE_MATRIX[t]}/5"
+            a, b = a0["per_task"][t], a5["per_task"][t]
+            best = max(a[0], b[0])
+            flag = "" if best >= BASE_MATRIX[t] else "  <-- regression"
+            print(f"{t:22s} {base:>8s} {a[0]}/{a[1]:>3d} {b[0]}/{b[1]:>3d} "
+                  f"{best:>5d}{flag}")
+        pooled = f"{BASE_MATRIX['read_hello'] + BASE_MATRIX['read_note'] + BASE_MATRIX['count_lines'] + BASE_MATRIX['find_secret'] + BASE_MATRIX['read_welcome'] + BASE_MATRIX['find_api_key'] + BASE_MATRIX['count_measurements'] + BASE_MATRIX['find_errors_v4'] + BASE_MATRIX['read_changelog_v4']}/45"
+        print(f"{'POOLED':22s} {pooled:>8s} {a0['pooled'][0]}/{a0['pooled'][1]:>3d} "
+              f"{a5['pooled'][0]}/{a5['pooled'][1]:>3d} "
+              f"{max(a0['pooled'][0], a5['pooled'][0]):>5d}")
+        print(f"{'DEEP (read_note+api)':22s} {'5/10':>8s} {a0['deep'][0]}/{a0['deep'][1]:>3d} "
+              f"{a5['deep'][0]}/{a5['deep'][1]:>3d} "
+              f"{max(a0['deep'][0], a5['deep'][0]):>5d}")
     print()
     print("=== gate adjudication ===")
     print(json.dumps(verdict, indent=2))
