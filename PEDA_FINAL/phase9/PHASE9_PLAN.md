@@ -169,6 +169,13 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 - 结果：pooled **41/45**（find_api_key 3→4），deep-path **7/10**，零任务回退。λ 两臂仍逐位一致。
 - 剩余 4 失败（read_note×2、count_lines×1、find_api_key×1）：需预算扩展（max_steps 10→12/14，破坏 Phase 8 可比性）或低层改动（违反逐行复用），仅可作独立 arm。40→41 后 10 步预算+无任务知识下接近局部最优。
 
+**FF-GEN-1（泛化判别，v5 镜像 depth 2-3 + 8 新任务）: PASS（弱）但实质否定性。** Report `results/phase9_gen_report.md` (commits a217db8 + d652cfd).
+- 门判定：SBH_best 8/40 ≥ flat 7/40，预注册非劣 PASS。但 +1 全部来自 dist-1 对照任务（gen_read_setup 2→3）；**dist≥2 六任务全臂 0/30**——深度判别器从未触发。
+- 泛化结论收窄：HH 的增益仅限 dist-1 frontier 导航（比 flat 的低层 cd 游走早一集锁定 docs）。旧测试床 41/45 的 deep-path 成果部分归因于 start_cwd handout（旧深任务起点在 dist-1）；真 dist≥2 树上两臂同步崩。
+- λ 次级问题裁决：40/40 逐位一致，跨全部实验 λ 从未改变任何决策（dist-1 满密度前沿垄断 select；dist-2 J=1.0 输在 tie-break/惩罚）——**λ 维度死亡，应从 J 公式移除或重设计**。
+- T1 冷启动仍是主失败模式之一（每臂 7 集）；空目录陷阱 120 集零命中，R1 在新树未受检验。
+- 下一步决策点：dist≥2 需要真正的多层规划（逐层穿透 frontier），不是单步 goal 选择；或预算/起点协议改动（独立 arm）。
+
 ## Priority
 
 | Rank | Direction | Rationale |
