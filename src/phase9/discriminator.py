@@ -77,7 +77,8 @@ class STRIPSDiscriminator(ActionModelLearner):
     confidence(s, a) = max over matched schemas of
         schema.predictive_accuracy x precondition_coverage(s)
       where matched = verb + target_type + flag all align, and preconditions
-      are satisfied in s; unmatched action => verb-level prior 1 - success_rate(verb).
+      are satisfied in s; unmatched action => verb-level prior success_rate(verb)
+      (0.5 neutral when unobserved).
     uncertainty(s, a) = 1 - confidence(s, a)
     """
 
@@ -267,9 +268,14 @@ class STRIPSDiscriminator(ActionModelLearner):
             acc = self._predictive_accuracy(self._schema_key(best.verb, best.target_type, best.flag))
             cov = self._precondition_coverage(best.preconditions, state)
             return acc * cov
-        # unmatched action -> verb-level prior
+        # unmatched action -> verb-level prior: use the verb's observed success
+        # rate directly (0.5 neutral when unobserved). The previous
+        # `1 - success_rate` inversion turned high-success verbs (cd is
+        # required in every L1 task, ~100% success) into ~0-confidence
+        # navigation magnets, starving grep on the held-out branch
+        # (FF-HG-5 find_errors_v4 regression root cause).
         verb, _, _ = self._parse_action(action)
-        return 1.0 - self.verb_success_rate(verb)
+        return self.verb_success_rate(verb)
 
     def uncertainty(self, state, action: str) -> float:
         return 1.0 - self.confidence(state, action)
