@@ -1,0 +1,50 @@
+FROM busybox:latest
+WORKDIR /sandbox
+
+# ── FF-GEN-1: peda-sandbox:v5 ─────────────────────────────────────────
+# 泛化判别镜像：全新目录树（depth 2-3），内容风格沿用 v2/v4
+# （note/log/key/data），保证 cat/grep/wc 语义一致；与 v2/v4 无文件
+# 名/内容重叠，杜绝记忆迁移。
+# 结构：根 2 文本文件 + 4 内容子目录（各含 2 个子子目录）
+#       + 2 个空目录陷阱（app/templates、data/archive），
+#       总文本文件 26 个（25-35）。
+
+# ── 根文件（2 个文本文件）──
+RUN echo "# PEDA Sandbox v5" > README.md && \
+    echo "NOTE: sandbox notes\nNOTE: keep files under app/ data/ docs/ logs/\nNOTE: see docs for guides" > notes.txt
+
+# ── app/（2 + 3 个文本文件；templates/ 为空目录陷阱 #1）──
+RUN mkdir -p app/src app/templates && \
+    printf "# App entry\nfrom core import run\nif __name__ == '__main__':\n    run()\n" > app/main.py && \
+    printf "[app]\nname=peda-v5\ndebug=true\n[server]\nport=9090\n" > app/config.ini && \
+    printf "# Core module\ndef run():\n    print('running')\n" > app/src/core.py && \
+    printf "# Utils\ndef clamp(x):\n    return max(0, min(x, 100))\n" > app/src/utils.py && \
+    printf "app:\n  version: 5.0\n  mode: prod\ncache:\n  ttl: 60\n" > app/src/settings.yaml
+
+# ── data/（2 + 3 个文本文件；archive/ 为空目录陷阱 #2）──
+RUN mkdir -p data/raw data/archive && \
+    printf "sensor,temp,humidity\nA,21.5,44\nB,22.7,41\nC,20.9,46\nD,23.1,43\nE,22.4,45\n" > data/readings.csv && \
+    echo '{"status":"processed","records":12,"errors":1}' > data/summary.json && \
+    printf "[2026-08-03 07:00] SENSOR boot OK\n[2026-08-03 07:01] SENSOR calibrating\n[2026-08-03 07:05] SENSOR ready\n[2026-08-03 08:00] SENSOR reading 21.5C\n" > data/raw/sensor.log && \
+    printf "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n" > data/raw/counts.txt && \
+    printf "id,label\n1,alpha\n2,beta\n3,gamma\n" > data/raw/labels.csv
+
+# ── docs/（2 + 3 + 2 个文本文件）──
+RUN mkdir -p docs/guides docs/ref && \
+    printf "# Setup\nVersion 5.0\nRun the app from app/ main.py\n" > docs/setup.md && \
+    printf "API_KEY=v5-secret-7711\nEndpoint: /api/v5\nRate limit: 100/min\n" > docs/api.txt && \
+    printf "# Usage Guide\nVersion 1.0\nSteps: configure, build, run\n" > docs/guides/usage.md && \
+    printf "Q: How to configure?\nA: Edit app/config.ini\nQ: Where are logs?\nA: Under logs/\n" > docs/guides/faq.md && \
+    printf "v1.0 2025-11\nv2.0 2026-02\nv3.0 2026-05\nv4.0 2026-07\nv5.0 2026-08\n" > docs/guides/changelog.md && \
+    printf "# Manual\nSection 1: Overview\nSection 2: Commands (ls, cd, cat, grep, wc)\nSection 3: Troubleshooting\n" > docs/ref/manual.md && \
+    printf "alpha: first item\nbeta: second item\ngamma: third item\n" > docs/ref/glossary.txt
+
+# ── logs/（2 + 3 + 2 个文本文件）──
+RUN mkdir -p logs/system logs/app && \
+    printf "[OK] kernel loaded\n[OK] network initialized\n[OK] services started\n" > logs/boot.log && \
+    printf "GET /app 200\nPOST /api/data 201\nGET /app 200\nDELETE /cache 204\nGET /status 200\n" > logs/access.log && \
+    printf "kernel: version 5.15\nmodules: sandbox, net, fs\n" > logs/system/kernel.log && \
+    printf "ERROR: db connection timeout\nWARN: retry attempt 1\nERROR: auth token expired\nINFO: request served\nERROR: disk quota exceeded\n" > logs/system/error.log && \
+    printf "DEBUG: request_id=abc\nDEBUG: latency=45ms\nDEBUG: cache_hit=true\n" > logs/system/debug.log && \
+    printf "GET /health 200\nGET /metrics 200\nPOST /batch 202\n" > logs/app/requests.log && \
+    printf "AUDIT: user alice accessed /api\nAUDIT: user bob modified config\n" > logs/app/audit.log
