@@ -46,10 +46,14 @@ DENSITY_DEF = (
 )
 
 
-def build_meta_gen(arm: str, lam, episodes: int) -> dict:
-    """FF-GEN-1 meta header (WATCHDOG D4: git commit + environment).
+def build_meta_gen(arm: str, lam, episodes: int,
+                   max_steps: int = MAX_STEPS,
+                   experiment: str = "sandbox-hh-gen1") -> dict:
+    """FF-GEN-1/FF-CEIL-1 meta header (WATCHDOG D4: git commit + environment).
 
     arm: 'flat' | 'sbh_lam0' | 'sbh_lam05'. lam: None for flat.
+    max_steps: episode budget (FF-CEIL-1 extension, default 10).
+    experiment: 'sandbox-hh-gen1' (default) | 'sandbox-hh-ceil1'.
     """
     commit = subprocess.run(["git", "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip() or "unknown"
@@ -63,7 +67,7 @@ def build_meta_gen(arm: str, lam, episodes: int) -> dict:
                      "(byte-identical to Phase 8)")
     return {
         "phase": 9,
-        "experiment": "sandbox-hh-gen1",
+        "experiment": experiment,
         "arm": arm,
         "lam": lam,
         "commit": commit,
@@ -72,7 +76,7 @@ def build_meta_gen(arm: str, lam, episodes: int) -> dict:
         "cpu_or_gpu": "cpu",
         "model": model,
         "sandbox_image": "peda-sandbox:v5",
-        "max_steps": MAX_STEPS,
+        "max_steps": max_steps,
         "episodes_per_task": NUM_EPISODES,
         "tasks": [tid for tid, _ in GEN_TASK_IMAGES],
         "total_episodes": episodes,
@@ -93,16 +97,17 @@ def write_jsonl(out_path: Path, meta: dict, rows: list) -> None:
             f.write(json.dumps(r) + "\n")
 
 
-def run_flat_arm(out_path: Path) -> dict:
-    """FF-GEN-1 flat arm: Phase 8 count baseline, 5 eps x 8 tasks."""
+def run_flat_arm(out_path: Path, max_steps: int = MAX_STEPS) -> dict:
+    """FF-GEN-1/FF-CEIL-1 flat arm: Phase 8 count baseline, 5 eps x 8 tasks."""
     from phase8.count_driven_agent import Phase8Runner
 
-    print(f"=== flat arm (Phase 8 count baseline) ===", flush=True)
+    print(f"=== flat arm (Phase 8 count baseline, max_steps={max_steps}) ==",
+          flush=True)
     rows = []
     summary = {}
     for task_id, image in GEN_TASK_IMAGES:
         runner = Phase8Runner(docker_image=image, task_id=task_id)
-        eps = runner.run(NUM_EPISODES, MAX_STEPS)  # dicts, episodes 0..4
+        eps = runner.run(NUM_EPISODES, max_steps)  # dicts, episodes 0..4
         for r in eps:
             r["task"] = task_id
             r["image"] = image
@@ -111,15 +116,16 @@ def run_flat_arm(out_path: Path) -> dict:
         summary[task_id] = f"{ok}/{len(eps)}"
         print(f"  {task_id:22s} {ok}/{len(eps)}", flush=True)
         rows.extend(eps)
-    write_jsonl(out_path, build_meta_gen("flat", None, len(rows)), rows)
+    write_jsonl(out_path, build_meta_gen("flat", None, len(rows),
+                                         max_steps=max_steps), rows)
     pooled = sum(1 for e in rows if e["success"])
     print(f"  pooled: {pooled}/{len(rows)} -> {out_path}", flush=True)
     return {"arm": "flat", "lam": None, "pooled": pooled,
             "total": len(rows), "per_task": summary}
 
 
-def run_sbh_arm(lam: float, out_path: Path) -> dict:
-    """FF-GEN-1 SBH arm: SandboxHHAgent (现役 R1 版) driven directly.
+def run_sbh_arm(lam: float, out_path: Path, max_steps: int = MAX_STEPS) -> dict:
+    """FF-GEN-1/FF-CEIL-1 SBH arm: SandboxHHAgent (现役 R1 版) driven directly.
 
     Mirrors src/phase9/sandbox_hh/runner.py run_task (agent module zero
     change): the module-level TASKS there is task-data, so gen1 tasks are
@@ -128,12 +134,12 @@ def run_sbh_arm(lam: float, out_path: Path) -> dict:
     from phase9.sandbox_hh.agent import SandboxHHAgent
 
     name = "lam05" if lam == 0.5 else "lam0"
-    print(f"=== SBH arm lambda={lam} ===", flush=True)
+    print(f"=== SBH arm lambda={lam} (max_steps={max_steps}) ==", flush=True)
     rows = []
     summary = {}
     for task_id, image in GEN_TASK_IMAGES:
         agent = SandboxHHAgent(docker_image=image, task_id=task_id, lam=lam)
-        eps = [agent.run_episode(i, MAX_STEPS) for i in range(NUM_EPISODES)]
+        eps = [agent.run_episode(i, max_steps) for i in range(NUM_EPISODES)]
         for ep in eps:
             ep["task"] = task_id
             ep["image"] = image
@@ -142,7 +148,8 @@ def run_sbh_arm(lam: float, out_path: Path) -> dict:
         summary[task_id] = f"{ok}/{len(eps)}"
         print(f"  {task_id:22s} {ok}/{len(eps)}", flush=True)
         rows.extend(eps)
-    write_jsonl(out_path, build_meta_gen(f"sbh_{name}", lam, len(rows)), rows)
+    write_jsonl(out_path, build_meta_gen(f"sbh_{name}", lam, len(rows),
+                                         max_steps=max_steps), rows)
     pooled = sum(1 for e in rows if e["success"])
     print(f"  pooled: {pooled}/{len(rows)} -> {out_path}", flush=True)
     return {"arm": f"sbh_{name}", "lam": lam, "pooled": pooled,
@@ -168,7 +175,34 @@ def run_gen1() -> int:
     return 0
 
 
-def build_meta(lam: float, episodes: int) -> dict:
+def run_ceil() -> int:
+    """FF-CEIL-1: budget-ceiling diagnostic over the 8 v5 tasks (160 episodes).
+
+    Two arms (flat / SBH-R1 lam=0) x two budgets (max_steps 15 / 20), 40
+    episodes per arm-budget cell (5 eps x 8 tasks). s10 reference comes from
+    the FF-GEN-1 JSONL files (results/phase9_gen_{flat,sbh_lam0}.jsonl), so
+    only the s15/s20 cells are run here. Pure runtime-parameter variation:
+    no logic change to either arm.
+    """
+    from phase2.tasks import MICRO_TASKS
+    from phase9.gen_tasks import GEN_TASKS, GEN_IMAGE
+
+    # Runtime task registration (data extension, src/phase2 零改动) — same
+    # mechanism as run_gen1.
+    MICRO_TASKS.extend(GEN_TASKS)
+
+    res = {}
+    for steps in (15, 20):
+        res[f"flat_s{steps}"] = run_flat_arm(
+            Path(f"results/phase9_ceil_flat_s{steps}.jsonl"), max_steps=steps)
+        res[f"sbh_s{steps}"] = run_sbh_arm(
+            0.0, Path(f"results/phase9_ceil_sbh_s{steps}.jsonl"), max_steps=steps)
+    print("\nCEIL-1 Summary:", json.dumps(res, indent=2))
+    print(f"image: {GEN_IMAGE}")
+    return 0
+
+
+def build_meta(lam: float, episodes: int, max_steps: int = MAX_STEPS) -> dict:
     commit = subprocess.run(["git", "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip() or "unknown"
     return {
@@ -181,7 +215,7 @@ def build_meta(lam: float, episodes: int) -> dict:
         "cpu_or_gpu": "cpu",
         "model": "count-based novelty (low) + frontier-goal density J (high), no learned model",
         "sandbox_images": {tid: img for tid, img in TASKS},
-        "max_steps": MAX_STEPS,
+        "max_steps": max_steps,
         "episodes_per_task": NUM_EPISODES,
         "tasks": [tid for tid, _ in TASKS],
         "total_episodes": episodes,
@@ -194,10 +228,10 @@ def build_meta(lam: float, episodes: int) -> dict:
     }
 
 
-def run_arm(lam: float, out_path: Path) -> dict:
-    print(f"=== lambda={lam} arm ===", flush=True)
+def run_arm(lam: float, out_path: Path, max_steps: int = MAX_STEPS) -> dict:
+    print(f"=== lambda={lam} arm (max_steps={max_steps}) ===", flush=True)
     runner = SandboxHHRunner(lam)
-    per_task = runner.run_all(NUM_EPISODES, MAX_STEPS)
+    per_task = runner.run_all(NUM_EPISODES, max_steps)
 
     rows = []
     summary = {}
@@ -210,7 +244,7 @@ def run_arm(lam: float, out_path: Path) -> dict:
 
     out_path.parent.mkdir(exist_ok=True)
     with open(out_path, "w") as f:
-        f.write(json.dumps({"meta": build_meta(lam, len(rows))}) + "\n")
+        f.write(json.dumps({"meta": build_meta(lam, len(rows), max_steps)}) + "\n")
         for r in rows:
             f.write(json.dumps(r) + "\n")
     pooled = sum(1 for e in rows if e["success"])
@@ -228,7 +262,18 @@ def main() -> int:
     parser.add_argument("--gen1", action="store_true",
                         help="FF-GEN-1 mode: v5 image + 8 new tasks, three arms "
                              "(flat / sbh_lam0 / sbh_lam05), 40 episodes each")
+    parser.add_argument("--ceil", action="store_true",
+                        help="FF-CEIL-1 mode: v5 image + 8 new tasks, two arms "
+                             "(flat / sbh_lam0) x max_steps 15/20, 40 episodes "
+                             "each (160 total); s10 reference = FF-GEN-1 JSONL")
+    parser.add_argument("--max-steps", type=int, default=MAX_STEPS,
+                        help=f"Episode step budget for the --gen1/--lam arms "
+                             f"(default: {MAX_STEPS}). FF-CEIL-1 --ceil uses "
+                             f"the fixed contract matrix {{15, 20}}.")
     args = parser.parse_args()
+
+    if args.ceil:
+        return run_ceil()
 
     if args.gen1:
         return run_gen1()
@@ -237,7 +282,8 @@ def main() -> int:
     res = {}
     for lam in arms:
         name = "lam05" if lam == 0.5 else "lam0"
-        res[name] = run_arm(lam, Path(f"results/{args.out_prefix}_{name}.jsonl"))
+        res[name] = run_arm(lam, Path(f"results/{args.out_prefix}_{name}.jsonl"),
+                            args.max_steps)
     print("\nSummary:", json.dumps(res, indent=2))
     return 0
 
