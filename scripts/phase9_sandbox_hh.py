@@ -15,6 +15,11 @@ Usage:
     # FF-GEN-1 (generalization): new v5 image + 8 new tasks, three arms
     # (flat count baseline / SBH lambda=0 / SBH lambda=0.5), 40 episodes each:
     PYTHONPATH=src python3 scripts/phase9_sandbox_hh.py --gen1
+    # FF-CEIL-1 (budget ceiling): flat / SBH-R1 lam=0 x max_steps 15/20:
+    PYTHONPATH=src python3 scripts/phase9_sandbox_hh.py --ceil
+    # FF-MLP-1 (path-level planner): v5 image + 8 new tasks, path-planner
+    # arms lambda=0 / lambda=0.5, 40 episodes each (80 total):
+    PYTHONPATH=src python3 scripts/phase9_sandbox_hh.py --mlp
 """
 import argparse
 import json
@@ -48,12 +53,14 @@ DENSITY_DEF = (
 
 def build_meta_gen(arm: str, lam, episodes: int,
                    max_steps: int = MAX_STEPS,
-                   experiment: str = "sandbox-hh-gen1") -> dict:
-    """FF-GEN-1/FF-CEIL-1 meta header (WATCHDOG D4: git commit + environment).
+                   experiment: str = "sandbox-hh-gen1",
+                   planner: str = "single") -> dict:
+    """FF-GEN-1/FF-CEIL-1/FF-MLP-1 meta header (WATCHDOG D4: git commit + env).
 
-    arm: 'flat' | 'sbh_lam0' | 'sbh_lam05'. lam: None for flat.
-    max_steps: episode budget (FF-CEIL-1 extension, default 10).
-    experiment: 'sandbox-hh-gen1' (default) | 'sandbox-hh-ceil1'.
+    arm: 'flat' | 'sbh_lam0' | 'sbh_lam05' | 'mlp_lam0' | 'mlp_lam05'.
+    lam: None for flat. max_steps: episode budget (FF-CEIL-1, default 10).
+    experiment: 'sandbox-hh-gen1' | 'sandbox-hh-ceil1' | 'sandbox-hh-mlp1'.
+    planner: 'single' (frontier-goal, default) | 'path' (FF-MLP-1).
     """
     commit = subprocess.run(["git", "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip() or "unknown"
@@ -75,6 +82,7 @@ def build_meta_gen(arm: str, lam, episodes: int,
         "host": socket.gethostname(),
         "cpu_or_gpu": "cpu",
         "model": model,
+        "planner": planner,
         "sandbox_image": "peda-sandbox:v5",
         "max_steps": max_steps,
         "episodes_per_task": NUM_EPISODES,
@@ -202,6 +210,63 @@ def run_ceil() -> int:
     return 0
 
 
+def run_mlp_arm(lam: float, out_path: Path) -> dict:
+    """FF-MLP-1 arm: SandboxPathAgent (path-level planner) driven directly.
+
+    Same task bed as FF-GEN-1 (v5 image, 8 new tasks, 5 eps x 8 tasks,
+    max_steps 10, seeds 0-4) so the four-arm comparison is apples-to-
+    apples; the ONLY difference vs run_sbh_arm is the high-layer planner
+    (path vs single-goal).
+    """
+    from phase9.sandbox_hh.path_planner import SandboxPathAgent
+
+    name = "lam05" if lam == 0.5 else "lam0"
+    print(f"=== MLP arm (path planner) lambda={lam} ==", flush=True)
+    rows = []
+    summary = {}
+    for task_id, image in GEN_TASK_IMAGES:
+        agent = SandboxPathAgent(docker_image=image, task_id=task_id, lam=lam)
+        eps = [agent.run_episode(i, MAX_STEPS) for i in range(NUM_EPISODES)]
+        for ep in eps:
+            ep["task"] = task_id
+            ep["image"] = image
+            ep["lam"] = lam
+        ok = sum(1 for e in eps if e["success"])
+        summary[task_id] = f"{ok}/{len(eps)}"
+        print(f"  {task_id:22s} {ok}/{len(eps)}", flush=True)
+        rows.extend(eps)
+    write_jsonl(out_path, build_meta_gen(f"mlp_{name}", lam, len(rows),
+                                         experiment="sandbox-hh-mlp1",
+                                         planner="path"), rows)
+    pooled = sum(1 for e in rows if e["success"])
+    print(f"  pooled: {pooled}/{len(rows)} -> {out_path}", flush=True)
+    return {"arm": f"mlp_{name}", "lam": lam, "pooled": pooled,
+            "total": len(rows), "per_task": summary}
+
+
+def run_mlp() -> int:
+    """FF-MLP-1: path-planner arms over the 8 v5 tasks (80 episodes).
+
+    Two arms (lambda 0 / 0.5) x 40 episodes (5 eps x 8 tasks), max_steps 10.
+    flat / sbh baselines for the four-arm comparison come from the FF-GEN-1
+    JSONL files (results/phase9_gen_*.jsonl), so only the two MLP arms are
+    run here.
+    """
+    from phase2.tasks import MICRO_TASKS
+    from phase9.gen_tasks import GEN_TASKS, GEN_IMAGE
+
+    # Runtime task registration (data extension, src/phase2 零改动) — same
+    # mechanism as run_gen1.
+    MICRO_TASKS.extend(GEN_TASKS)
+
+    res = {}
+    res["mlp_lam0"] = run_mlp_arm(0.0, Path("results/phase9_mlp_lam0.jsonl"))
+    res["mlp_lam05"] = run_mlp_arm(0.5, Path("results/phase9_mlp_lam05.jsonl"))
+    print("\nMLP-1 Summary:", json.dumps(res, indent=2))
+    print(f"image: {GEN_IMAGE}")
+    return 0
+
+
 def build_meta(lam: float, episodes: int, max_steps: int = MAX_STEPS) -> dict:
     commit = subprocess.run(["git", "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip() or "unknown"
@@ -270,10 +335,22 @@ def main() -> int:
                         help=f"Episode step budget for the --gen1/--lam arms "
                              f"(default: {MAX_STEPS}). FF-CEIL-1 --ceil uses "
                              f"the fixed contract matrix {{15, 20}}.")
+    parser.add_argument("--mlp", action="store_true",
+                        help="FF-MLP-1 mode: v5 image + 8 new tasks, path-"
+                             "planner arms (lambda 0 / 0.5), 40 episodes each "
+                             "(80 total); baselines = FF-GEN-1 JSONL")
+    parser.add_argument("--planner", choices=["single", "path"],
+                        default="single",
+                        help="High-layer planner for the --lam arms: 'single' "
+                             "= frontier-goal (default, old behavior), 'path' "
+                             "= path-level (FF-MLP-1)")
     args = parser.parse_args()
 
     if args.ceil:
         return run_ceil()
+
+    if args.mlp:
+        return run_mlp()
 
     if args.gen1:
         return run_gen1()
