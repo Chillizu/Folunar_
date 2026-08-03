@@ -189,6 +189,14 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 - 死因定性：**方向信息缺失**。λ0 成为 s10 下第一个机械到达 dist-2 的臂（38 次到达），但目标目录从未被选中——未知目录选择是字典序赌博（app/src、data/archive 陷阱连错）；已访问根密度 0.9 > 未知先验 0.5 造成拉回。
 - 综合 CEIL+MLP 裁决：dist≥2 的墙不是预算、不是可达性，而是**无罗盘**——count 新颖性告诉你去过哪，不告诉你哪个未知目录有价值。盲选在分支深度树上是指数赌博。
 
+**FF-PEC-1（PE 罗盘，最后一搏）：NULL（预注册门，如实记录）。** Report `results/phase9_pec_report.md` (commits 7ad577b + 008bece).
+- s10 主判定：deep **3/30**（usage 2 + count 1，∈ NULL 带 2-3/30；PASS 需 ≥4 且 pooled≥7，未达），pooled 6/40。
+- s20 次级：deep 4/30 > SBH s20 3/30，pooled 10/40。
+- PE 栈逐行复用 FF-CI-6（Qwen2.5-0.5B 本地 CPU，预测 6.7s/次），WM 查询 124 次，fallback 全为预算类符合设计。
+- 信号有分化且可解释：docs s=1.0、logs 0.83、已学目录 0.0；T2/T4/T7 由 PE 指向选对。
+- 定性结论：**deep 首次非零（0→3/30），方向信号真实存在但强度不足**。不确定≠有价值——epistemic 信号指向新颖而非目标，作为 value compass 结构性受限。
+- 研究线闭环：count 家族 + PE 罗盘在零任务知识深度树上的效果边界 ≈ 10-13%（vs 盲选 0%）。效果存在、有限、有界。
+
 ## Priority
 
 | Rank | Direction | Rationale |
