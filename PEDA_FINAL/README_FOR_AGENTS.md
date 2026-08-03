@@ -1,18 +1,45 @@
+> **ARCHIVED — 2026-07-31.** The PEDA hypothesis (prediction-error-driven exploration)
+> is disproven. See [PEDA_CONCLUSION.md](./PEDA_CONCLUSION.md) for the full negative-result paper.
+> The project continues as a count-driven autonomous agent.
+
 # PEDA 项目文件指引
+
+## 当前状态（Current Status）
+
+- **PEDA**：已完结，负结果。核心假设（prediction-error-driven exploration）未通过实验验证。
+- **Count-Driven Agent**：活跃开发中。Phase 8 闭环 agent 在 9 个任务上达到 62.2%。
+
+详见 [PEDA_CONCLUSION.md](./PEDA_CONCLUSION.md) 完整结论报告。
+
+## 项目概述（Project Overview）
+
+本项目原为 **PEDA (Predictive-Error-Driven Autonomous Agent)** 的理论验证与实现。经过全部三个阶段（Phase 1 Grid World、Phase 1.5 TextWorld、Phase 2 Sandbox）的系统实验，PEDA 核心假设已被证伪。
+
+项目现已重新定义为 **count-driven autonomous agent**，以 Phase 8 闭环 agent（62.2% on 9 tasks）为最新基线继续推进。本目录作为 PEDA 阶段的历史档案保留。
 
 ## 文件夹内容总览
 
 本文件夹包含 PEDA (Predictive-Error-Driven Autonomous Agent) 项目的全部最终交付文件。
 
+### 核心权威文档（根目录）
+
 | 文件 | 用途 | 给哪种Agent |
 |------|------|-----------|
+| `RESEARCH_CHARTER.md` | 研究宪章：核心问题、负结果标准、成功定义 | **所有Agent先读** |
 | `PEDA架构设计与开发计划书_v1.1.docx` | 核心技术文档：架构设计+实现方案+开发路线图 | **Coding Agent / Planning Agent** |
 | `peda_report_v11.agent.final.md` | 同上内容的 Markdown 源文件 | 备查/版本控制 |
 | `peda_reflection_v11.md` | v1.0问题反思 + v1.1改进说明 | **Coding Agent（避坑指南）** |
-| `peda_independent_review.md` | 独立第三方评审报告 | **Review Agent（评审标准示例）** |
-| `Folunar_项目深度审查报告.docx` | Folunar_前代项目的诊断报告 | 了解历史/前车之鉴 |
-| `folunar_review.agent.final.md` | 同上内容的 Markdown 源文件 | 备查 |
+| `peda_independent_review.md` | 独立第三方评审报告（5.5/10） | **Review Agent（评审标准示例）** |
 | `README_FOR_AGENTS.md` | 本文件 | 所有Agent先读 |
+
+### 归档（`archive/`）
+
+| 目录 | 内容 | 阶段 |
+|------|------|------|
+| `archive/phase1/` | Phase 1 Grid World 验证报告、gap分析、部分训练评估 | 已完成，核心假设未验证 |
+| `archive/phase1_5/` | Phase 1.5 TextWorld 实验报告、偏差分析、评估 | 已完成，epistemic 信号初步验证 |
+| `archive/phase2/` | Phase 2 控制器指令、基础设施报告、adapter 训练报告 | **当前阶段**，formal 目标已达标 |
+| `archive/historical/` | Folunar_ 前代项目诊断、思维修正 | 历史参考 |
 
 ---
 

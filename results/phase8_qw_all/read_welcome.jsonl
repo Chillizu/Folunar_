@@ -1,0 +1,6 @@
+{"meta": {"phase": 8, "tag": "all", "commit": "1b34b7108d97db21add20c8fd15b15925d20e724", "timestamp": "2026-08-02T02:09:26.663887+00:00", "host": "mioarch", "explorer": "Phase8Explorer", "budget_guard": true}, "task": "read_welcome", "image": "peda-sandbox:v4"}
+{"episode": 0, "success": true, "steps": 7, "actions": ["cat README.md", "head -n 5 README.md", "wc -l README.md", "cat config.yaml", "head -n 5 config.yaml", "wc -l config.yaml", "cat welcome.txt"], "buffer_size": 7}
+{"episode": 1, "success": true, "steps": 1, "actions": ["cat welcome.txt"], "buffer_size": 8}
+{"episode": 2, "success": true, "steps": 1, "actions": ["cat welcome.txt"], "buffer_size": 9}
+{"episode": 3, "success": true, "steps": 1, "actions": ["cat welcome.txt"], "buffer_size": 10}
+{"episode": 4, "success": true, "steps": 1, "actions": ["cat welcome.txt"], "buffer_size": 11}

@@ -1,0 +1,6 @@
+{"meta": {"phase": 8, "tag": "fixed", "commit": "ceed3eed4d9224ce9def53dc61c536fd2839c025", "timestamp": "2026-08-02T02:06:22.683697+00:00", "host": "mioarch", "episodes_per_task": 5, "max_steps": 10, "tasks": ["read_hello", "read_note", "count_lines", "find_secret", "read_welcome", "find_api_key", "count_measurements", "find_errors_v4", "read_changelog_v4"]}, "task": "count_lines", "image": "peda-sandbox:v2"}
+{"episode": 0, "success": false, "steps": 10, "actions": ["cat README.txt", "head -n 5 README.txt", "wc -l README.txt", "cat hello.txt", "head -n 5 hello.txt", "wc -l hello.txt", "grep -r error .", "grep -ri error .", "grep -r secret .", "grep -r version ."], "buffer_size": 10}
+{"episode": 1, "success": true, "steps": 10, "actions": ["find . -name '*.txt'", "find . -name '*.md'", "find . -name '*.log'", "cd data", "cat config.ini", "head -n 5 config.ini", "wc -l config.ini", "cat lines.txt", "head -n 5 lines.txt", "wc -l lines.txt"], "buffer_size": 20}
+{"episode": 2, "success": true, "steps": 2, "actions": ["cd data", "wc -l lines.txt"], "buffer_size": 22}
+{"episode": 3, "success": true, "steps": 2, "actions": ["cd data", "wc -l lines.txt"], "buffer_size": 24}
+{"episode": 4, "success": true, "steps": 2, "actions": ["cd data", "wc -l lines.txt"], "buffer_size": 26}

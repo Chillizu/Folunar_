@@ -167,6 +167,22 @@ class WorldModel:
             '"next_inventory": "key", "exit_code": 0, "summary": "you take the key"}'
         )
 
+    def _delta_system_message(self) -> str:
+        """System instruction for delta prediction on Linux sandbox states."""
+        return (
+            "You predict what CHANGES when a command runs in a Linux sandbox. "
+            "The state is structured text describing cwd, files, depth, and parent. "
+            "Given a state and a command, output a delta string with the fields that changed.\n"
+            "Format: action: <command> | exit: <code> | cwd_changed: <true/false> | "
+            "files_created: [...] | files_deleted: [...] | output_summary: <truncated>\n"
+            "exit_code rules: 0 = command succeeded, 1 = command failed, 2 = task completed.\n"
+            "Only include fields that are relevant; omit empty file lists.\n\n"
+            "Example:\n"
+            'State: cwd: /sandbox | files: [hello.txt, docs, data] | depth: 1 | parent: /\n'
+            "Action: mkdir results\n"
+            'action: mkdir results | exit: 0 | cwd_changed: false | files_created: [results] | output_summary: '
+        )
+
     def _sandbox_system_message(self) -> str:
         """System instruction for Linux sandbox state prediction."""
         return (
@@ -365,6 +381,28 @@ class WorldModel:
 
     def _stub_predict(self, state: GridState, action: Optional[Action]) -> PredictedState:
         """Deterministic grid-rule predictor for dependency-free testing."""
+        # SandboxState stub (Phase 2) — needed for BusyboxSandbox integration
+        if hasattr(state, "container_id"):
+            action_str = action if isinstance(action, str) else (action.name if action else "none")
+            pred_json = {
+                "cwd": state.cwd,
+                "files": list(state.files),
+                "last_command": action_str,
+                "last_exit_code": 0,
+                "last_output": f"[stub] executed: {action_str}",
+            }
+            exit_code = 2 if getattr(state, "victory", False) else 0
+            summary = f"stub: {action_str}"
+            return PredictedState(
+                level1_exit_code=exit_code,
+                level1_confidence=1.0,
+                level2_next_agent=(0, 0),
+                level2_confidence=1.0,
+                level3_output_summary=summary,
+                level3_confidence=1.0,
+                level2_text=json.dumps(pred_json, ensure_ascii=False),
+                epistemic_ratio=0.0,
+            )
         # TextState stub (Phase 1.5)
         if hasattr(state, "room"):
             pred_room = state.room
@@ -384,7 +422,7 @@ class WorldModel:
                 level2_text=f"Location: {pred_room}.\n{state.description}\nInventory: {inv_str}.",
                 epistemic_ratio=0.0,
             )
-
+        # GridState stub (original logic)
         env = GridWorld(
             width=state.width,
             height=state.height,
@@ -417,7 +455,6 @@ class WorldModel:
             level3_confidence=1.0,
             epistemic_ratio=0.0,
         )
-
     def predict(self, state: GridState, action: Optional[Action] = None) -> PredictedState:
         if self.mode == "stub" or self.model is None:
             return self._stub_predict(state, action)
@@ -471,6 +508,103 @@ class WorldModel:
                 )
         return trajectory
 
+    @staticmethod
+    def encode_delta(state, action: str, next_state) -> str:
+        """Encode the delta between state and next_state as a structured string.
+
+        Predicts what CHANGED, not the full next state.
+        Fields: action, exit code, cwd_changed, files_created/deleted, output_summary.
+        """
+        # Helper: access field from dict or object
+        def _get(obj, key, default=None):
+            if isinstance(obj, dict):
+                return obj.get(key, default)
+            return getattr(obj, key, default)
+
+        # Compute cwd changed
+        cwd_changed = (
+            _get(state, "cwd") != _get(next_state, "cwd")
+        )
+
+        # Compute files created/deleted
+        files_created: List[str] = []
+        files_deleted: List[str] = []
+        prev_files = set(_get(state, "files", []))
+        curr_files = set(_get(next_state, "files", []))
+        files_created = sorted(curr_files - prev_files)
+        files_deleted = sorted(prev_files - curr_files)
+
+        # Output summary (truncated)
+        output_summary = ""
+        next_output = _get(next_state, "last_output", "")
+        if next_output:
+            output_summary = str(next_output)[:80]
+
+        exit_code = _get(next_state, "last_exit_code", 0)
+
+        parts = [
+            f"action: {action}",
+            f"exit: {exit_code}",
+            f"cwd_changed: {str(cwd_changed).lower()}",
+        ]
+        if cwd_changed:
+            parts.append(f"new_cwd: {_get(next_state, 'cwd', '')}")
+        if files_created:
+            parts.append(f"files_created: [{', '.join(files_created)}]")
+        if files_deleted:
+            parts.append(f"files_deleted: [{', '.join(files_deleted)}]")
+        parts.append(f"output_summary: {output_summary}")
+        return " | ".join(parts)
+
+    @staticmethod
+    def reconstruct_from_delta(state, delta_text: str) -> dict:
+        """Parse a delta string and reconstruct the next state dict from current state.
+
+        Used for backward compat when delta predictions need full state reconstruction.
+        Returns a dict with cwd, files, last_exit_code, last_output.
+        """
+        # Helper: access field from dict or object
+        def _get(obj, key, default=None):
+            if isinstance(obj, dict):
+                return obj.get(key, default)
+            return getattr(obj, key, default)
+
+        exit_code = 0
+        cwd = _get(state, "cwd", "")
+        files = list(_get(state, "files", []))
+        output = ""
+
+        for part in delta_text.split("|"):
+            part = part.strip()
+            if not part:
+                continue
+            if part.startswith("new_cwd:"):
+                cwd = part.split(":", 1)[1].strip()
+            elif part.startswith("exit:"):
+                try:
+                    exit_code = int(part.split(":", 1)[1].strip())
+                except (ValueError, IndexError):
+                    pass
+            elif part.startswith("files_created:"):
+                inner = part.split(":", 1)[1].strip().strip("[]")
+                created = [f.strip() for f in inner.split(",") if f.strip()]
+                for f in created:
+                    if f not in files:
+                        files.append(f)
+            elif part.startswith("files_deleted:"):
+                inner = part.split(":", 1)[1].strip().strip("[]")
+                deleted = [f.strip() for f in inner.split(",") if f.strip()]
+                files = [f for f in files if f not in deleted]
+            elif part.startswith("output_summary:"):
+                output = part.split(":", 1)[1].strip()
+
+        return {
+            "cwd": cwd,
+            "files": files,
+            "last_exit_code": exit_code,
+            "last_output": output,
+        }
+
     def lora_finetune(
         self,
         data: List[Dict[str, str]],
@@ -480,6 +614,7 @@ class WorldModel:
         checkpoint_dir: Optional[Path] = None,
         text_mode: bool = False,
         sandbox_mode: bool = False,
+        delta_mode: bool = False,
     ) -> None:
         """Batch fine-tune the LoRA adapter on (state, action) -> next-state examples.
 
@@ -501,7 +636,30 @@ class WorldModel:
             if not sandbox_mode and ("next_cwd" in ex or "next_files" in ex):
                 sandbox_mode = True
 
-            if sandbox_mode:
+            # Delta mode: predict what CHANGED, not full next state
+            if delta_mode:
+                # Build partial SandboxState objects for delta encoding
+                state_obj = SandboxState(
+                    cwd=ex.get("cwd", ""),
+                    files=ex.get("files", []),
+                )
+                next_state_obj = SandboxState(
+                    cwd=ex.get("next_cwd", ex.get("cwd", "")),
+                    files=ex.get("next_files", ex.get("files", [])),
+                    last_exit_code=int(ex.get("next_last_exit_code", exit_code)),
+                    last_output=ex.get("next_last_output", ""),
+                )
+
+                state_structured = state_obj.to_structured_text()
+                delta_text = self.encode_delta(state_obj, action_text, next_state_obj)
+                target = delta_text
+                user_content = (
+                    f"State: {state_structured}\n"
+                    f"Action: {action_text}\n"
+                    "Predict the delta (what changes after this action):"
+                )
+                msg_system = self._delta_system_message()
+            elif sandbox_mode:
                 target = json.dumps({
                     "cwd": ex.get("next_cwd", ex.get("cwd", "")),
                     "files": ex.get("next_files", ex.get("files", [])),
@@ -561,7 +719,7 @@ class WorldModel:
                 {"role": "system", "content": msg_system},
                 {"role": "user", "content": user_content},
             ]
-            max_length = 384 if sandbox_mode else 256
+            max_length = 384 if (sandbox_mode or delta_mode) else 256
             if self.tokenizer.chat_template is not None:
                 prompt_input_ids = self._extract_input_ids(
                     self.tokenizer.apply_chat_template(

@@ -1,22 +1,17 @@
-advisors: 
+advisors:
   - name: default
-    model: deepseek/deepseek-v4-pro:medium
-  - name: SubAdvisor
-    model: deepseek/deepseek-v4-flash:xhigh
-    tools: 
+    model: deepseek/deepseek-v4-flash:high
+    tools:
       - read
-      - ask
       - glob
       - grep
       - web_search
       - learn
-      - manage_skill
-    instructions: 在必要时给予全面的建议，在模型似乎陷入困境和遇到阻碍时在用户同意的情况下给予模型合适建议，可以尝试搜索为模型补充信息。勤问用户
+    instructions: Validate every claim in the PEDA paper against source data. Enforce A1-E3 rules.
   - name: Kimi Role
-    model: deepseek/deepseek-v4-pro:xhigh
-    tools: 
-      - read
+    model: deepseek/deepseek-v4-flash:high
+    tools:
       - glob
       - grep
-      - web_search
-    instructions: Especially pay attention to @/home/chillizu/Projects/Folunar_/WATCHDOG.md
+      - hub
+    instructions: Focus on citation verification (B1-B3) and cross-document consistency (C1-C4). Especially pay attention to @/home/chillizu/Projects/Folunar_/WATCHDOG.md

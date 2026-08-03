@@ -1,0 +1,33 @@
+#!/bin/sh
+# CI rule (mode A, v2): grep INVERTS matching — outputs lines NOT containing
+# PATTERN (equiv. real grep -v). Flags ignored. PAT missing -> usage error
+# (exit 2). Deepened (FF-CI-3): a successful inverted match (lines output)
+# exits 4 (anti-correlated with normal grep's exit 0); no output -> exit 1.
+mode="$(/bin/busybox cat /tmp/ci/mode 2>/dev/null || echo A)"
+if [ "$mode" = "A" ]; then
+    pat=""
+    files=""
+    for a in "$@"; do
+        case "$a" in
+            -*) continue ;;
+            *)  if [ -z "$pat" ]; then pat="$a"; else files="$files $a"; fi ;;
+        esac
+    done
+    if [ -z "$pat" ]; then
+        echo "grep: missing pattern" >&2
+        exit 2
+    fi
+    if [ -z "$files" ]; then
+        /bin/busybox grep -v -- "$pat"
+    else
+        # shellcheck disable=SC2086 -- intentional word splitting of file args
+        /bin/busybox grep -v -- "$pat" $files
+    fi
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+        exit 4
+    fi
+    exit $rc
+fi
+# mode C (L3): normal busybox grep
+exec /bin/busybox grep "$@"

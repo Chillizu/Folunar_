@@ -83,6 +83,8 @@ def transitions_from_records(records: list[dict]) -> list[dict]:
                     "last_exit_code": 0,
                     "last_output": "",
                 }, ensure_ascii=False),
+                "cwd": step["cwd"],
+                "files": step["files"],
                 "action_name": step["action"],
                 "exit_code": exit_code,
                 "summary": f"executed {step['action']}",
@@ -103,6 +105,7 @@ def main():
     parser.add_argument("--learning-rate", type=float, default=3e-4)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--stub", action="store_true", help="Smoke-test mode (no LLM)")
+    parser.add_argument("--delta", action="store_true", help="Use delta prediction mode")
     args = parser.parse_args()
 
     output_path = Path(args.output_dir)
@@ -144,7 +147,6 @@ def main():
     if wm.mode == "stub":
         print("[phase2_train] Model fell back to stub.", flush=True)
         sys.exit(1)
-
     print(f"[phase2_train] Training LoRA for {args.epochs} epoch(s) (sandbox mode)...", flush=True)
     wm.lora_finetune(
         data,
@@ -153,6 +155,7 @@ def main():
         batch_size=args.batch_size,
         checkpoint_dir=output_path,
         sandbox_mode=True,
+        delta_mode=args.delta,
     )
 
     print(f"[phase2_train] Saving adapter to {output_path} ...", flush=True)

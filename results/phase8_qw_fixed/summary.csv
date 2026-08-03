@@ -1,0 +1,10 @@
+task,image,success,success_rate,avg_steps
+read_hello,peda-sandbox:v2,5/5,1.0,1.6
+read_note,peda-sandbox:v2,3/5,0.6,6.4
+count_lines,peda-sandbox:v2,4/5,0.8,5.2
+find_secret,peda-sandbox:v2,5/5,1.0,2.6
+read_welcome,peda-sandbox:v4,5/5,1.0,2.2
+find_api_key,peda-sandbox:v4,0/5,0.0,10.0
+count_measurements,peda-sandbox:v4,5/5,1.0,1.4
+find_errors_v4,peda-sandbox:v4,5/5,1.0,1.2
+read_changelog_v4,peda-sandbox:v4,5/5,1.0,1.6

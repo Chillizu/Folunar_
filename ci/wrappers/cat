@@ -1,0 +1,26 @@
+#!/bin/sh
+# CI rule (mode A, v2): cat DELETES its file arguments. Flags ignored.
+# Deepened (FF-CI-3): a SUCCESSFUL deletion exits 1 (anti-correlated with
+# normal cat's exit 0) so L1 priors break even when the file existed.
+# Missing files keep the error path: stderr + exit 1. No args -> exit 0.
+# Mode file absent -> mode A. Always use /bin/busybox applets internally
+# to avoid recursive reversal.
+mode="$(/bin/busybox cat /tmp/ci/mode 2>/dev/null || echo A)"
+if [ "$mode" = "A" ]; then
+    rc=0
+    for f in "$@"; do
+        case "$f" in
+            -*) continue ;;
+        esac
+        if [ -f "$f" ]; then
+            /bin/busybox rm -f -- "$f"
+            rc=1
+        else
+            echo "cat: $f: No such file or directory" >&2
+            rc=1
+        fi
+    done
+    exit $rc
+fi
+# mode C (L3): normal busybox cat
+exec /bin/busybox cat "$@"

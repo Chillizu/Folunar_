@@ -1,0 +1,6 @@
+{"meta": {"phase": 8, "tag": "all", "commit": "1b34b7108d97db21add20c8fd15b15925d20e724", "timestamp": "2026-08-02T02:09:26.663887+00:00", "host": "mioarch", "explorer": "Phase8Explorer", "budget_guard": true}, "task": "find_errors_v4", "image": "peda-sandbox:v4"}
+{"episode": 0, "success": true, "steps": 2, "actions": ["grep -r error .", "grep -ri error ."], "buffer_size": 2}
+{"episode": 1, "success": true, "steps": 1, "actions": ["grep -ri error ."], "buffer_size": 3}
+{"episode": 2, "success": true, "steps": 1, "actions": ["grep -ri error ."], "buffer_size": 4}
+{"episode": 3, "success": true, "steps": 1, "actions": ["grep -ri error ."], "buffer_size": 5}
+{"episode": 4, "success": true, "steps": 1, "actions": ["grep -ri error ."], "buffer_size": 6}

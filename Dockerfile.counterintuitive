@@ -1,0 +1,53 @@
+# peda-sandbox:counterintuitive — commands systematically violate LLM priors.
+#
+# Build:  docker build -f Dockerfile.counterintuitive -t peda-sandbox:counterintuitive-v2 .
+# Run:    docker run -d --rm --cap-drop=ALL --network none \
+#                     peda-sandbox:counterintuitive-v2 sleep 3600
+#
+# v2 (FF-CI-3 deepening): success exit codes are anti-correlated with normal
+# semantics — cat delete -> 1, echo read -> 2, ls twin -> 3 (silent output),
+# grep inverted match -> 4. All rules stay deterministic + learnable (M2).
+# v1 image (peda-sandbox:counterintuitive-v1) is preserved as built.
+#
+# Harness contract (see plan-counter-intuitive-sandbox.md):
+#   * Rootfs is WRITABLE — cat deletes files and ls creates twins, which the
+#     read-only rootfs of the v2/v4 sandboxes would forbid. Keep
+#     --cap-drop=ALL and --network none; fresh container per episode.
+#   * Perception MUST use /bin/busybox ls -1 (bare `ls` hits the reversed
+#     wrapper and would create twins on every state read). Same for `mkdir`
+#     in reset(): /bin/busybox mkdir.
+#   * Wrappers internally always call /bin/busybox <applet>, never bare names,
+#     to avoid recursive reversal.
+
+FROM busybox:latest
+WORKDIR /sandbox
+
+# ── Reversed command wrappers (shadow busybox applets via PATH) ──
+COPY ci/wrappers/ /usr/local/bin/
+RUN chmod 755 /usr/local/bin/cat /usr/local/bin/echo /usr/local/bin/ls \
+               /usr/local/bin/grep /usr/local/bin/head /usr/local/bin/tail
+
+# ── sh prelude: `echo` is an ash BUILTIN and bypasses PATH lookup. ──
+# The harness execs `docker exec <cid> sh -c <action>`, and `sh` resolves via
+# PATH -> /usr/local/bin first. So /usr/local/bin/sh is a wrapper that defines
+# an echo() FUNCTION (functions shadow builtins in POSIX shells) delegating to
+# the reversed wrapper, then evals the command string. cat/ls/grep/head/tail
+# resolve via PATH to their wrappers; cd/pwd/wc stay normal builtins.
+# NOTE (L3): the harness must write the mode file with /bin/busybox echo.
+RUN printf '%s\n' \
+      '#!/bin/busybox sh' \
+      'echo() { /usr/local/bin/echo "$@"; }' \
+      'eval "$2"' > /usr/local/bin/sh && chmod 755 /usr/local/bin/sh
+
+# ── Fixtures (CI micro-task files) ──
+RUN mkdir -p docs data logs && \
+    echo "secret key: 9471" > docs/note.txt && \
+    echo "hello world (disposable control file)" > docs/readme.txt && \
+    printf "line1\nline2\nline3\n" > data/lines.txt && \
+    printf "42\n17\n99\n3\n55\n" > data/numbers.txt && \
+    printf "ERROR: timeout after 30s\nWARN: retry attempt 3\nERROR: connection refused on port 8080\n" > logs/error.log && \
+    printf "2026-07-31 10:00:01 GET /index 200\n2026-07-31 10:00:02 GET /api 404\n2026-07-31 10:00:03 POST /submit 201\n" > logs/access.log && \
+    echo "PEDA Counter-Intuitive Sandbox v2" > welcome.txt
+
+# PATH: /usr/local/bin FIRST so wrappers shadow the busybox applets.
+ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin

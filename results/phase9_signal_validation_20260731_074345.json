@@ -1,0 +1,4234 @@
+{
+  "meta": {
+    "phase": "9",
+    "direction": "hypothesis-generator",
+    "commit": "81fe8b293a6b7678f10e52916d5f13e0aa4d0b21",
+    "timestamp": "2026-07-31T07:43:45+00:00",
+    "host": "mioarch",
+    "cpu_or_gpu": "cpu",
+    "sandbox_image": "peda-sandbox:v4",
+    "model": "STRIPSDiscriminator (primary) + MLPDiscriminator (arm); LLM baseline skipped",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "per_episode_data_present": true
+  },
+  "per_seed": {
+    "1": {
+      "n_train_transitions": 97,
+      "n_held_transitions": 143,
+      "n_D": 27,
+      "n_E": 30,
+      "auc_disc": 0.7593,
+      "auc_llm": null,
+      "auc_transitions_secondary": 0.5014,
+      "kl_uniform_heldout": 0.572,
+      "kl_heldout_train": 0.7904,
+      "cohens_d": 1.1822,
+      "spearman_v3": 0.6983,
+      "err_D": {
+        "n": 27,
+        "mean": 0.2074,
+        "sd": 0.1796,
+        "min": 0.0,
+        "max": 0.4
+      },
+      "err_E": {
+        "n": 30,
+        "mean": 0.4933,
+        "sd": 0.2864,
+        "min": 0.0,
+        "max": 0.8
+      },
+      "per_probe": [
+        {
+          "cls": "D",
+          "cwd": "/",
+          "action": "cat README.md",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/",
+          "action": "cat config.yaml",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/",
+          "action": "cat welcome.txt",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "find . -name '*.md'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "cat api_reference.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.875
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "cat changelog.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.875
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "cat getting_started.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.875
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "cat advanced.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "cat basics.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "cat faq.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs/tutorials",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs/tutorials",
+          "action": "find . -name '*.md'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs/tutorials",
+          "action": "grep -r secret .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8385
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "find . -name '*.none'",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat measurements_01.csv",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "wc -l measurements_01.csv",
+          "distance": 1,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat measurements_02.csv",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "wc -l measurements_02.csv",
+          "distance": 1,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat sensor_log.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/raw",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/raw",
+          "action": "find . -name '*.csv'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat report.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat summary.json",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/processed",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/archive",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/archive",
+          "action": "find . -name '*.gz'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "cat backend",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "head -n 5 backend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "tail backend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "wc -l backend",
+          "distance": 2,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "cat frontend",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "head -n 5 frontend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "tail frontend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "wc -l frontend",
+          "distance": 2,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "cat shared",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "head -n 5 shared",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "tail shared",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "wc -l shared",
+          "distance": 2,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "cat missing.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "head -n 5 missing.log",
+          "distance": 1,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "wc -l missing.csv",
+          "distance": 1,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "tail missing.md",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.py'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.js'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.html'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.css'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.ini'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8947
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "mkdir testdir",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "touch newfile.txt",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "echo hello",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "cat app.js",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "head -n 5 app.js",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "tail app.js",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "wc -l app.js",
+          "distance": 2,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "cat index.html",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "head -n 5 index.html",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        }
+      ]
+    },
+    "2": {
+      "n_train_transitions": 85,
+      "n_held_transitions": 155,
+      "n_D": 29,
+      "n_E": 30,
+      "auc_disc": 0.8816,
+      "auc_llm": null,
+      "auc_transitions_secondary": 0.4805,
+      "kl_uniform_heldout": 0.6563,
+      "kl_heldout_train": 1.2312,
+      "cohens_d": 1.9087,
+      "spearman_v3": 0.839,
+      "err_D": {
+        "n": 29,
+        "mean": 0.1517,
+        "sd": 0.1825,
+        "min": 0.0,
+        "max": 0.4
+      },
+      "err_E": {
+        "n": 30,
+        "mean": 0.5933,
+        "sd": 0.2703,
+        "min": 0.0,
+        "max": 0.8
+      },
+      "per_probe": [
+        {
+          "cls": "D",
+          "cwd": "/",
+          "action": "cat README.md",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/",
+          "action": "cat config.yaml",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/",
+          "action": "cat welcome.txt",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "find . -name '*.md'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "cat api_reference.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.86
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "cat changelog.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.8286
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "cat getting_started.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.86
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "cat advanced.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "cat basics.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "cat faq.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs/tutorials",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "find . -name '*.none'",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cd raw",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat sensor_log.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/raw",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/raw",
+          "action": "find . -name '*.csv'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/raw",
+          "action": "grep -r error .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8348
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/raw",
+          "action": "grep -r secret .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8348
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/raw",
+          "action": "grep -r version .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8348
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cd processed",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat report.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/processed",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/processed",
+          "action": "find . -name '*.txt'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/processed",
+          "action": "grep -r error .",
+          "distance": 0,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8348
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/processed",
+          "action": "grep -r secret .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8348
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/processed",
+          "action": "grep -r version .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8348
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/archive",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/archive",
+          "action": "find . -name '*.gz'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "cat backend",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "head -n 5 backend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "tail backend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "wc -l backend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "cat frontend",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "head -n 5 frontend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "tail frontend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "wc -l frontend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "cat shared",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "head -n 5 shared",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "tail shared",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "wc -l shared",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "cat missing.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "head -n 5 missing.log",
+          "distance": 1,
+          "e_disc": 0.8,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "wc -l missing.csv",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "tail missing.md",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.py'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.js'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.html'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.css'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.ini'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8588
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "mkdir testdir",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "touch newfile.txt",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "echo hello",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "cat app.js",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "head -n 5 app.js",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "tail app.js",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "wc -l app.js",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "cat index.html",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "head -n 5 index.html",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        }
+      ]
+    },
+    "3": {
+      "n_train_transitions": 88,
+      "n_held_transitions": 152,
+      "n_D": 30,
+      "n_E": 30,
+      "auc_disc": 0.7817,
+      "auc_llm": null,
+      "auc_transitions_secondary": 0.4932,
+      "kl_uniform_heldout": 0.572,
+      "kl_heldout_train": 0.8563,
+      "cohens_d": 1.2792,
+      "spearman_v3": 0.7243,
+      "err_D": {
+        "n": 30,
+        "mean": 0.1867,
+        "sd": 0.1814,
+        "min": 0.0,
+        "max": 0.4
+      },
+      "err_E": {
+        "n": 30,
+        "mean": 0.4933,
+        "sd": 0.2864,
+        "min": 0.0,
+        "max": 0.8
+      },
+      "per_probe": [
+        {
+          "cls": "D",
+          "cwd": "/",
+          "action": "cat README.md",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/",
+          "action": "cat config.yaml",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/",
+          "action": "cat welcome.txt",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "find . -name '*.md'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "cat api_reference.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.8571
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "cat changelog.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.875
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox",
+          "action": "cat getting_started.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.8571
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "cat advanced.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "cat basics.md",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs",
+          "action": "cat faq.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs/tutorials",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs/tutorials",
+          "action": "find . -name '*.md'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs/tutorials",
+          "action": "grep -r error .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8174
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs/tutorials",
+          "action": "grep -r secret .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8174
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/docs/tutorials",
+          "action": "grep -r version .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8174
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "find . -name '*.none'",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat measurements_01.csv",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "wc -l measurements_01.csv",
+          "distance": 1,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat measurements_02.csv",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "wc -l measurements_02.csv",
+          "distance": 1,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat sensor_log.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/raw",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/raw",
+          "action": "find . -name '*.csv'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat report.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data",
+          "action": "cat summary.json",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/processed",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.0,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/archive",
+          "action": "ls",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.75
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/archive",
+          "action": "find . -name '*.gz'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "D",
+          "cwd": "/sandbox/data/archive",
+          "action": "grep -r version .",
+          "distance": 0,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": false,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8174
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "cat backend",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "head -n 5 backend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "tail backend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "wc -l backend",
+          "distance": 2,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "cat frontend",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "head -n 5 frontend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "tail frontend",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "wc -l frontend",
+          "distance": 2,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "cat shared",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "head -n 5 shared",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "tail shared",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox",
+          "action": "wc -l shared",
+          "distance": 2,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "cat missing.txt",
+          "distance": 1,
+          "e_disc": 0.4,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "head -n 5 missing.log",
+          "distance": 1,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "wc -l missing.csv",
+          "distance": 1,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "tail missing.md",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.py'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.js'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.html'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.css'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "find . -name '*.ini'",
+          "distance": 0,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": false,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.8667
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "mkdir testdir",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.4,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "touch newfile.txt",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "echo hello",
+          "distance": 1,
+          "e_disc": 0.0,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "cat app.js",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "head -n 5 app.js",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "tail app.js",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "wc -l app.js",
+          "distance": 2,
+          "e_disc": 0.2,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "cat index.html",
+          "distance": 2,
+          "e_disc": 0.4,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": true
+          },
+          "conf": 0.0
+        },
+        {
+          "cls": "E",
+          "cwd": "/sandbox/projects",
+          "action": "head -n 5 index.html",
+          "distance": 2,
+          "e_disc": 0.8,
+          "e_mlp": 0.2,
+          "gt": {
+            "exit_ok": false,
+            "output_nonempty": true,
+            "cwd_changed": false,
+            "listing_changed": false,
+            "cache_gained": false
+          },
+          "pred": {
+            "exit_ok": true,
+            "output_nonempty": true,
+            "cwd_changed": true,
+            "listing_changed": true,
+            "cache_gained": true
+          },
+          "conf": 0.5
+        }
+      ]
+    }
+  },
+  "aggregate": {
+    "auc_disc": {
+      "mean": 0.8075,
+      "sd": 0.0532,
+      "per_seed": [
+        0.7593,
+        0.8816,
+        0.7817
+      ]
+    },
+    "auc_transitions_secondary": {
+      "mean": 0.4917,
+      "sd": 0.0086,
+      "per_seed": [
+        0.5014,
+        0.4805,
+        0.4932
+      ]
+    },
+    "kl_uniform_heldout": {
+      "mean": 0.6001,
+      "sd": 0.0397,
+      "per_seed": [
+        0.572,
+        0.6563,
+        0.572
+      ]
+    },
+    "kl_heldout_train": {
+      "mean": 0.9593,
+      "sd": 0.1941,
+      "per_seed": [
+        0.7904,
+        1.2312,
+        0.8563
+      ]
+    },
+    "cohens_d": {
+      "mean": 1.4567,
+      "sd": 0.3221,
+      "per_seed": [
+        1.1822,
+        1.9087,
+        1.2792
+      ]
+    },
+    "spearman_v3": {
+      "mean": 0.7539,
+      "sd": 0.0611,
+      "per_seed": [
+        0.6983,
+        0.839,
+        0.7243
+      ]
+    }
+  },
+  "gates": {
+    "F1_flatness": {
+      "1": "PASS",
+      "2": "PASS",
+      "3": "PASS"
+    },
+    "F2_separation": {
+      "1": "PASS",
+      "2": "PASS",
+      "3": "PASS"
+    },
+    "F3_count_orthogonality": {
+      "1": "PASS",
+      "2": "PASS",
+      "3": "PASS"
+    },
+    "V3_gradient_optional": {
+      "1": "PASS",
+      "2": "PASS",
+      "3": "PASS"
+    }
+  },
+  "llm_baseline": "SKIPPED (MVP; later phase)"
+}

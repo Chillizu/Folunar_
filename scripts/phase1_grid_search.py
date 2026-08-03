@@ -38,12 +38,12 @@ from phase1.run import aggregate_metrics, run_episode
 from phase1.types import DriveWeights
 from phase1.world_model import EnsembleErrorComputer, LearningModule, WorldModel
 
-WEIGHT_VALUES = [0.1, 0.5, 1.0, 2.0]
+WEIGHT_VALUES = [0.1, 0.5, 1.0]
 DRIVE_NAMES = ["curiosity", "competence", "boredom", "novelty"]
 
 
-def make_env() -> GridWorld:
-    return GridWorld(width=5, height=5, max_steps=50)
+def make_env(max_steps: int = 50) -> GridWorld:
+    return GridWorld(width=5, height=5, max_steps=max_steps)
 
 
 def composite_score(metrics: dict) -> float:
@@ -105,6 +105,8 @@ def run_combo(
     weights: dict,
     num_episodes: int,
     base_seed: int = 0,
+    max_candidates: int = 4,
+    latency_budget_ms: float = 3000.0,
 ) -> dict:
     """Run num_episodes with the given fixed DriveWeights and return aggregated metrics."""
     drive_weights = DriveWeights(
@@ -118,7 +120,7 @@ def run_combo(
     ec = EnsembleErrorComputer(wm, num_checkpoints=5)
     ds = HomeostaticDriveSystem(drive_weights)
     lm = LearningModule(wm, ec, buffer_size=1000, update_interval=500)
-    ag = ActionGenerator(wm, ec, ds, horizon=2, max_candidates=4, latency_budget_ms=3000.0)
+    ag = ActionGenerator(wm, ec, ds, horizon=2, max_candidates=max_candidates, latency_budget_ms=latency_budget_ms)
 
     trajectories = []
     predictions_list = []
@@ -168,6 +170,30 @@ def main():
         help="Number of top combos from Phase A to advance to Phase B (default: 20).",
     )
     parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=50,
+        help="Maximum steps per episode (default: 50).",
+    )
+    parser.add_argument(
+        "--max-candidates",
+        type=int,
+        default=4,
+        help="Number of candidate actions the ActionGenerator evaluates per step (default: 4).",
+    )
+    parser.add_argument(
+        "--latency-budget",
+        type=float,
+        default=3000.0,
+        help="Latency budget in ms for ActionGenerator (default: 3000.0).",
+    )
+    parser.add_argument(
+        "--adapter",
+        type=str,
+        default=None,
+        help="Path to a fine-tuned LoRA adapter to load (default: base model).",
+    )
+    parser.add_argument(
         "--output",
         type=str,
         default="results/phase1_grid_search.json",
@@ -193,12 +219,15 @@ def main():
     print(f"  Weight space: {WEIGHT_VALUES}")
     print(f"  Total combos: {len(WEIGHT_VALUES)**4}")
     print(f"  Phase A episodes per combo: {args.phase_a_episodes}")
+    print(f"  Adapter: {args.adapter or 'base model'}")
     print(f"  Phase B top-k: {args.top_k}")
     print(f"  Phase B episodes per combo: {args.phase_b_episodes}")
+    print(f"  Max steps per episode: {args.max_steps}")
+    print(f"  Max candidates: {args.max_candidates}")
+    wm = WorldModel(model_name=model_name_arg, use_stub=use_stub, adapter_path=args.adapter)
     print()
 
-    env = make_env()
-    wm = WorldModel(model_name=model_name_arg, use_stub=use_stub)
+    env = make_env(max_steps=args.max_steps)
     all_combinations = list(itertools.product(WEIGHT_VALUES, repeat=4))
 
     # ----------------------------------------------------------------
@@ -216,7 +245,7 @@ def main():
             "novelty": combo[3],
         }
         try:
-            result = run_combo(env, wm, weights, args.phase_a_episodes, base_seed=idx * 100)
+            result = run_combo(env, wm, weights, args.phase_a_episodes, base_seed=idx * 100, max_candidates=args.max_candidates, latency_budget_ms=args.latency_budget)
         except Exception as exc:
             print(
                 f"  [{idx + 1}/{len(all_combinations)}] "
@@ -270,7 +299,8 @@ def main():
         weights = combo_result["weights"]
         try:
             result = run_combo(
-                env, wm, weights, args.phase_b_episodes, base_seed=idx * 1000 + 5000
+                env, wm, weights, args.phase_b_episodes, base_seed=idx * 1000 + 5000,
+                max_candidates=args.max_candidates, latency_budget_ms=args.latency_budget
             )
         except Exception as exc:
             print(

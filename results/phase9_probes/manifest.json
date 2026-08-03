@@ -1,0 +1,16 @@
+{
+  "phase": "9",
+  "direction": "hypothesis-generator",
+  "commit": "81fe8b293a6b7678f10e52916d5f13e0aa4d0b21",
+  "timestamp": "2026-07-31T07:39:49+00:00",
+  "host": "mioarch",
+  "cpu_or_gpu": "cpu",
+  "sandbox_image": "peda-sandbox:v4",
+  "model": "count-driven novelty selection (random tie-break, success-cache disabled); no LLM",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "per_episode_data_present": true
+}

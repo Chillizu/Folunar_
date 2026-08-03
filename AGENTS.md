@@ -2,21 +2,25 @@
 
 ## Project Overview
 
-Folunar_ is a greenfield redesign of an autonomous AI agent around **PEDA** (Predictive-Error-Driven Autonomous Agent). The goal is to replace prompt-driven LLM calls with an internal prediction-error loop: a World Model predicts the consequences of actions, prediction errors drive exploration, and intermittent learning closes the loop. The repository now contains the **Phase 1 Grid World implementation** under `src/phase1/`, plus scripts, tests, and config/results scaffolding. The code is built for the approved `local://peda-phase1-plan.md`: a 5×5 grid, a local-LLM + LoRA World Model, EFE-based action selection, and intermittent learning. A deterministic `stub` World Model is included so the pipeline can be tested without downloading multi-gigabyte models.
+Folunar_ is an autonomous AI agent research project. Phase 1-8 tested **PEDA** (Predictive-Error-Driven Autonomous Agent): the hypothesis that prediction error from an LLM-based World Model can drive epistemic exploration. Phase 9 explores three post-PEDA directions.
 
-This document is a living guide for AI assistants working on the codebase. It inherits the global `AGENTS.md` rules in `~/.omp/agent/AGENTS.md`, but the **Project Overrides** below take precedence when they conflict.
+**Status: PEDA DISPROVEN** (19 experiments, 3 charter sub-questions all No). See `PEDA_FINAL/PEDA_CONCLUSION.md`. The reliable mechanism is **count-based novelty** (62.2% on 9 sandbox tasks, zero task knowledge). See `PEDA_FINAL/COUNT_DRIVEN_CHARTER.md`.
+
+**Phase 9: CLOSED（2026-08-03）** — 三方向终裁决 + 五个收官实验全部按预注册门走完。终裁决文档 `PEDA_FINAL/phase9/PHASE9_FINAL_VERDICT.md`：零任务知识下 count 家族浅层 91.1%；深度树效果边界 ≈10-13%（vs 盲选 0%）；不确定≠有价值（PEDA 之后第二次独立确认）。
+
+This document is a living guide for AI assistants. It inherits the global `AGENTS.md` in `~/.omp/agent/AGENTS.md`. Project Overrides below take precedence when they conflict.
 
 ## Project Overrides (Priority Over Global Rules)
 
-- **Subagents are allowed and encouraged.** Use `task` / `explore` agents for parallel investigation, and `task` / `oracle` agents for well-scoped coding work. You do not need user permission per spawn unless the task is destructive or ambiguous.
-- **Role split:** the main agent has broader knowledge and owns synthesis, architecture decisions, and final verification. Subagents are narrow but strong coders; give them exact, self-contained assignments with acceptance criteria.
-- **No emoji, concise Chinese/English prose, and a `Ciallo~~` greeting in every assistant response** still apply.
+- **Subagent 调用**: 推荐使用 subagent 分担工作，但在调用前需向用户提问确认是否同意。用户同意后方可用 `task` 工具分发。
+- **编排优先**: 主要做分析、设计合约、分解任务。确认用户同意分发后，再拆为独立切片交付 subagent。
 - **Before destructive actions** (deleting files, rewriting history, force-pushing, changing core data formats), ask the user. Routine code edits and tests do not need explicit permission.
-- **Git dual-tree:** frequent small commits and pushes on both `dev` and `main`. Milestone work can be merged to `main` via squash-merge. Never force-push.
+- **Git dual-tree:** frequent small commits and pushes on both `dev` and `main`. Milestone work squash-merged to `main`. Never force-push.
+- **编排优先**: 主要做分析、设计合约、分解任务。用户要求分发时才用 subagent 执行。
 
 ## Architecture & Data Flow
 
-PEDA is a closed loop of five modules. The driving signal is **prediction error**, not a user prompt.
+PEDA is a closed loop of seven modules. The driving signal is **prediction error**, not a user prompt.
 
 ```mermaid
 graph LR
@@ -47,104 +51,131 @@ graph LR
 
 Things explicitly **not** predicted: timestamps, PIDs, random numbers. These are tagged `ALEATORIC`.
 
+
+> **Note:** These principles were specific to the PEDA paradigm (now DISPROVEN). Phase 9 directions are not bound by them. Retained for historical context.
 ## Four Immutable Principles
 
 1. **No Prompt, only Prediction Error.** Never add features that require user input to trigger behavior.
 2. **Drive is emergent, not hardcoded.** Never write fixed goal lists or fixed drive weights.
 3. **World Model is the core.** Spend ~80% of effort on the World Model; any new module must directly improve its predictions.
 4. **Learning is intermittent, not continuous.** Collect data, then batch-update. Never do per-step online SGD.
-
 ## Key Directories
 
 | Directory | Purpose |
 |---|---|
-| `PEDA_FINAL/` | All current design and review documents. Source of truth until code is scaffolded. |
-| `src/phase1/` | Phase 1 source code: `types.py`, `grid_env.py`, `world_model.py`, `drive_system.py`, `run.py`. |
-| `tests/phase1/` | Phase 1 pytest suite. |
-| `scripts/` | Phase 1 runnable scripts: `phase1_latency_check.py`, `phase1_grid_search.py`, `phase1_eval.py`. |
-| `config/` | Phase 1 generated configs (`phase1_model.json`, `phase1_default_drives.json`). |
-| `results/` | Phase 1 generated evaluation reports (`phase1_eval.json`). |
-| `checkpoints/phase1/` | LoRA adapter checkpoints and stub markers (generated, not normally committed). |
+| `PEDA_FINAL/` | Core authority docs + `paper/` (manuscript + evidence bundles 248KB) + `archive/` (phase1-7). |
+| `PEDA_FINAL/paper/` | Final manuscript (720 lines), 11 evidence bundles, claims-vs-evidence cross-reference. |
+| `src/phase1/` | Phase 1 Grid World: `types.py`, `grid_env.py`, `world_model.py`, `drive_system.py`, `run.py`. |
+| `src/phase2/` | Phase 2 Sandbox: `sandbox_env.py` (Docker + SandboxState + candidate generator). |
+| `src/phase5/` | Phase 5 JEPA + Action Model: `jepa_wm.py`, `action_model.py`, `explorer.py`. |
+| `src/phase6/` | Phase 6 Grid Maze: `grid_env.py`, `maze_generator.py`, `stochastic_maze.py`. |
+| `src/phase7/` | Phase 7 GPU tracks: `rssm_wm.py`, `giant_maze.py`, `goal_jepa.py`, `curriculum_explorer.py`. |
+| `src/phase8/` | Phase 8 Count-Driven Agent: `count_driven_agent.py` (62.2% on 9 tasks). |
+| `src/phase9/` | Phase 9 Post-PEDA (pending): hypothesis-generator + hierarchical-horizon + counter-intuitive sandbox. |
+| `scripts/` | Per-phase experiment scripts (phase2_* through phase8_*). |
+| `tests/phase1/` | Phase 1 pytest suite (138 stub tests). |
+| `results/` | Evaluation reports, training data (JSONL), GPU run results. |
+| `checkpoints/` | LoRA adapters (phase1, phase2). |
+| `checkpoints/phase1/` | Phase 1 LoRA adapters + stub markers. |
+| `checkpoints/phase2/` | Phase 2 sandbox adapters: `sandbox_adapter_e1/e2/e3/`, `sandbox_adapter_v2_e1/`. |
 
 ## Development Commands
 
-Environment setup and Phase 1 commands (verified in this session):
-
 ```bash
-# Use the local venv (already created during this session)
+# Activate venv
 source venv/bin/activate
 
-# Run the full Phase 1 verification pipeline
-python scripts/phase1_latency_check.py --stub
-python scripts/phase1_grid_search.py --stub
-python scripts/phase1_eval.py --stub
-
-# Run tests
+# Phase 1 tests (stub mode)
 PYTHONPATH=src FOLUNAR_STUB_MODEL=1 python -m pytest tests/phase1 -q
+
+# Phase 2: collect data (random baseline, all tasks, v1 sandbox)
+python scripts/phase2_collect_data.py --baseline random --all-tasks --num-episodes 5
+
+# Phase 2: collect data (PEDA, specific task, with adapter)
+python scripts/phase2_collect_data.py --baseline peda --task read_note \
+  --adapter-path checkpoints/phase2/sandbox_adapter_e2 --max-steps 10
+
+# Phase 2: train adapter
+python scripts/phase2_synthetic_train.py \
+  --data results/phase2_train_merged.jsonl \
+  --output-dir checkpoints/phase2/sandbox_adapter_e1 --epochs 3 --batch-size 4
+
+# Phase 2: generate expert demos
+python scripts/phase2_expert_demos.py
+
+# Phase 2: v2 sandbox (enriched, with Docker image peda-sandbox:v2)
+docker build -f Dockerfile.busybox_v2 -t peda-sandbox:v2 .
 
 # Lint
 ruff check src tests
 ```
 
-The `--stub` flag (or `FOLUNAR_STUB_MODEL=1`) uses the deterministic grid-rule placeholder World Model instead of downloading Qwen. For real LLM evaluation, omit `--stub` after ensuring the model is available locally.
+## Current Verification Status
 
-## Code Conventions & Common Patterns
+### Phase 1-2 (Grid World + Sandbox foundation)
+- Phase 1: Stub mode 138 tests. Real-LLM: G1=1.000, G2=0.434, G3=0.000 — memorization, not generalization.
+- Phase 2: Formal targets met. L1=1.000, L2=0.900, L3=0.550 held-out. 10,040 transitions. PEDA 20/20 1-step completions.
+- Pattern identified: action-visibility + task reward, not epistemic exploration.
 
-- **Language:** Python 3.10+ with type hints. Use `dataclasses` for structured data (`State`, `PredictedState`, `ErrorVector`, `DriveWeights`).
-- **Model code:** PyTorch + HuggingFace `transformers` + `peft` (LoRA). Keep the base model frozen; update only LoRA adapters.
-- **Batch learning:** accumulate ~1000 transitions before a LoRA update. Save multiple checkpoints for ensemble uncertainty.
-- **Uncertainty:** epistemic uncertainty = variance across ensemble checkpoints; aleatoric uncertainty = mean prediction error on repeated observations.
-- **Action generation:** generate at most 2–3 candidate actions, roll out 2–3 steps, and fall back to single-step greedy if inference is too slow.
-- **Safety:** every command must pass a regex blacklist/whitelist, Docker capability drops, and a rule-engine sanity check on World Model predictions before execution.
-- **Never repeat Folunar_ anti-patterns:**
-  - `<1M` parameter models for the World Model (use 1–7B pretrained + LoRA).
-  - Template-only action spaces.
-  - Neuroscience labels on trivial Python classes.
-  - Plan-document inflation without code progress.
-  - Dishonest metrics (e.g., command-execution rate instead of task-completion rate).
+### Phase 3-5 (JEPA + Action Model)
+- Phase 3 N=20: 80/80 episodes marked success but only 14/80 real fht pass. success=scr>0 tautology discovered.
+- Phase 4 closed-loop: Success curve 20%→80% reported but per-episode JSONL LOST (tmux recovery only).
+- Phase 5 JEPA: 11 sub-configs (E13.01-E13.11, 7 recoverable), 0/5 tracks with epistemic signal. JEPA never beat count in any experiment. DLR 0.8-0.9 throughout.
+- STRIPS ActionModelLearner: 45.8% learned vs 31.3% fallback — mild signal.
+
+### Phase 6-7 (Maze scaling + GPU)
+- Phase 6 Grid Maze: 5x5 (100 cells) and 10x10 stochastic (400 cells). JEPA = 0% vs count = 100% on stochastic. Hybrid 67%: count-driven carries JEPA, zero additive value.
+- Phase 7 GPU 5-track (E17.1-E17.5): 3 tracks no result files (Goal-JEPA, Curriculum, Random-Maze). RSSM single-model no signal.
+- 20x20 (8400 states): BOTH count and JEPA at 0% — counting fails at scale, JEPA fails equally at scale.
+
+### Phase 8 (Count-Driven Agent)
+- Baseline: 28/45 (62.2%) across 9 sandbox tasks, zero task knowledge.
+- **2026-08-02 quick wins: 39/45 (86.7%)** — verb×file candidate matrix + cached-child revisit + budget guard (`results/phase8_qw_report.md`, commit bdc1f68).
+- Direct-read tasks: 100%. Deep-path tasks: read_note 3/5, find_api_key 2/5, find_errors_v4 5/5.
+- count_lines: 0% → 80% (wc -l never hit correct file → verb×file matrix fix).
+- Proof: count-based novelty is the reliable mechanism in <1000 state spaces.
+
+### Phase 9 (Post-PEDA Directions — verdicts emerging)
+- Direction 1 CI Sandbox: **COMPLETE** — M0/M1/M2 PASS; M4 FAIL (online/batch mismatch); **FF-CI-6 PASS: PE 0.400 ≥ count 0.367 (+3.3pp), failure hypothesis rejected (weak positive, non-inferiority)**. First agent-level PE signal. See `PEDA_FINAL/phase9/CI_M3M4_REPORT.md` §7.
+- Direction 2 Hierarchical Horizon: **ALIVE（增益域收窄）** — open-loop 简化后沙盒 41/45、deep-path 7/10；但 FF-GEN-1 泛化判别（v5 depth 2-3 新任务集）：SBH 8/40 vs flat 7/40 弱 PASS（非劣），dist≥2 全臂 0/30。HH 增益限 dist-1 frontier 导航；真深度树需多层规划。λ 维度跨全部实验零分叉，判死。FF-CEIL-1：预算墙次要（SBH s20 deep 3/30）、机制墙主导。FF-MLP-1 路径级规划器 KILL：机械到达 dist-2×38 但 0 成功——瓶颈是方向信息（未知目录选择=字典序赌博），非预算非可达性。λ 在路径规划下首次分叉（λ0 深导航 vs λ05 全浅）。FF-PEC-1（PE 罗盘，研究线收官）：s10 deep 0→3/30、NULL 带如实记录——方向信号真实存在但强度不足（不确定≠有价值）；零任务知识深度树效果边界 ≈10-13% vs 盲选 0%。研究线闭环。See `results/phase9_sbh_r1_report.md` + `results/phase9_gen_report.md` + `results/phase9_ceil_report.md` + `results/phase9_mlp_report.md` + `results/phase9_pec_report.md`.
+- Direction 3 Hypothesis-Generator: **DEAD 二次确认** — FF-HG-5 根因修复（verb 先验反转）使 held-out 0→65% 但 aggregate 仍 < count（对称失败）。See `results/phase9_hg_f5_report.md` + `results/phase9_hg_f5_rerun_report.md`.
+- Gate verdicts recorded in `PEDA_FINAL/phase9/PHASE9_PLAN.md` §Gate Verdicts (2026-08-02).
+
+### Core Hypothesis Verdict
+> All three charter sub-questions answer **No** under tested conditions.
+> LLM World Model prediction error is NOT a viable intrinsic drive signal.
+> Validated negative result. See `PEDA_FINAL/paper/PEDA_FINAL_MANUSCRIPT.md` (720 lines, 11 evidence bundles).
+
+### Phase 1 gap recap (from `PEDA_FINAL/archive/phase1/phase1_gap_report.md`)
+> *"Phase 1 formal targets were met. Phase 1 did not validate the core hypothesis. This gap was correctly identified, but the phase was still archived and advancement occurred without a validated mechanism."*
 
 ## Important Files
 
-| File | Purpose | Target reader |
-|---|---|---|
-| `PEDA_FINAL/README_FOR_AGENTS.md` | Entry point and file index; also lists the four principles and known limitations. | All agents |
-| `PEDA_FINAL/peda_report_v11.agent.final.md` | Authoritative architecture + implementation plan (2055 lines). | Coding / Planning agents |
-| `PEDA_FINAL/PEDA架构设计与开发计划书_v1.1.docx` | Chinese DOCX version of the architecture report. | Human readers / document exchange |
-| `PEDA_FINAL/peda_reflection_v11.md` | v1.0 post-mortem and v1.1 fixes; anti-pattern checklist. | Coding agents (read first) |
-| `PEDA_FINAL/peda_independent_review.md` | Third-party review (5.5/10) with technical feasibility and risk analysis. | Review / Planning agents |
-| `PEDA_FINAL/folunar_review.agent.final.md` | Deep diagnostic of the predecessor Folunar_ project; cautionary reference. | Coding agents |
-| `PEDA_FINAL/Folunar_项目深度审查报告.docx` | Chinese DOCX version of the Folunar_ review. | Human readers |
+| File | Purpose |
+|---|---|
+| `PEDA_FINAL/PEDA_CONCLUSION.md` | Definitive verdict: all 3 charter Q answer No, 19 experiments, errata banner. |
+| `PEDA_FINAL/COUNT_DRIVEN_CHARTER.md` | New direction: count-based novelty as primary mechanism. |
+| `PEDA_FINAL/paper/PEDA_FINAL_MANUSCRIPT.md` | 720-line negative-result paper (11 evidence bundles, 55 audited claims). |
+| `PEDA_FINAL/paper/CLAIMS_VS_EVIDENCE.md` | Canonical 55-claim cross-reference. |
+| `PEDA_FINAL/RESEARCH_CHARTER.md` | Original PEDA charter (core question, negative-result acceptance). |
+| `PEDA_FINAL/README_FOR_AGENTS.md` | Entry point and file index. |
+| `PEDA_FINAL/peda_reflection_v11.md` | v1.0 post-mortem, anti-pattern checklist. |
+| `WATCHDOG.md` | 278-line paper validator (3-stage: Data→Writing→Review). |
+| `PEDA_WORKING_LOG.md` | Append-only work log.
 
-## Runtime / Tooling Preferences
+## Code Conventions
 
-- **Language:** Python 3.10+.
-- **ML stack:** PyTorch, HuggingFace `transformers`, `peft`/`trl` for LoRA, `optuna` for hyperparameter search.
-- **LLM size class:** 1–7B parameters (e.g., Qwen2.5-1.5B, Phi-3-mini, Llama-3.2-3B). Avoid <1B models for the World Model.
-- **Sandbox:** Docker (busybox-based) with strict capability drops, no destructive commands, and optional network proxy.
-- **Environments:** Phase 1 = custom Grid World; Phase 1.5 = Microsoft TextWorld; Phase 2+ = Linux busybox sandbox.
-- **Evaluation:** local CPU/GPU inference; budget for API costs if using cloud LLMs for comparisons.
-- **Linting:** `ruff` recommended; `black` or `ruff format` for formatting. Configure once `pyproject.toml` exists.
-
-## Testing & QA
-
-- **Framework:** pytest (to be added).
-- **Test real behavior, not plumbing.** Assert that the World Model improves prediction accuracy, that the Drive System reduces revisit rate, and that safety filters block dangerous commands. Avoid asserting on current default strings.
-For Phase 1, the metrics are:
-- G1 — Level 2 next-state accuracy > 90%.
-- G2 — Drive-agent steps-to-goal ratio vs random < 50%.
-- G3 — Revisit rate in the grid < 20%.
-- Completion at 5/10/20 steps vs random baseline.
-
-**Verification status (stub mode):** `pytest` runs 138 tests, all passing. Running the scripts with `--stub` executes the pipeline end-to-end but does **not** satisfy the go/no-go: G1 passes (1.0) because the stub predicts perfectly, but G2 and G3 fail because the stub has no learned uncertainty and therefore no prediction-error-driven exploration signal. Satisfying G2/G3 requires the real LLM-based World Model and learning loop.
-
-**Phase 1 is a hard go/no-go gate.** If the Grid World experiment fails with the real model after a reasonable grid search, stop before adding complexity.
-- **Review standard:** every new module must be justified by whether it improves the World Model. If it does not, reject it.
-- **Safety QA:** include adversarial tests that try to execute blacklist commands and verify interception.
+- **Language:** Python 3.10+ with type hints. `dataclasses` for structured data.
+- **Model code:** PyTorch + HuggingFace `transformers` + `peft` (LoRA). Keep base model frozen; update only LoRA adapters.
+- **Batch learning:** accumulate transitions, batch-update. Save multiple checkpoints for ensemble uncertainty.
+- **Uncertainty:** epistemic = variance across ensemble checkpoints; aleatoric = mean prediction error on repeated observations.
+- **Safety:** every command passes regex blacklist/whitelist, Docker capability drops, read-only rootfs, no network.
+- **Anti-patterns:** <1M parameter models, template-only action spaces, neuroscience labels on trivial classes, plan-document inflation, dishonest metrics.
 
 ## Agent Collaboration Rules
 
-- **Main agent:** owns architecture decisions, cross-file synthesis, and final verification. Keep broad context in your own head; do not offload reasoning to subagents.
-- **Subagents:** best for parallel investigation, mechanical refactors, and self-contained coding tasks. Give each one: exact files, a single change, and an observable acceptance criterion.
-- **Read-only `explore` agents:** use for scouting unknown areas; do not ask them to edit.
-- **Coordination:** if multiple subagents touch the same file, use `irc` to coordinate before they edit.
+- **Subagents: 积极调用。** 主要工作通过 subagent 完成。主模型只做编排——分析需求、设计合约、拆解任务、审核结果。
+- **调用流程**：分析范围 → 写合约（`local://` 文件，含 Target/Change/Acceptance）→ 分发给 subagent → 等待完成 → 检查交付物 → 合并报告。
+- **Main agent:** owns architecture decisions, cross-file synthesis, contract design, and final verification. Does NOT write code or run long experiments directly.
+- **Coordination:** if multiple subagents touch the same file, use IRC to coordinate before editing.
 - **Verify before yielding:** run the specific test or scenario that exercises your change; do not rely on "it compiles" or lint-only checks.

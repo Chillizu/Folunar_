@@ -1,0 +1,6 @@
+image,n_probes,l1_correct,l2_correct,l3_correct,dlr,threshold,threshold_met
+v4,30,30,30,30,1.0000,dlr >= 0.8,PASS
+counterintuitive-v2,30,4,18,8,0.3333,dlr <= 0.35,PASS
+
+m1_pass,ci_dlr,v4_dlr,criterion
+True,0.3333,1.0000,CI DLR <= 0.35 AND v4 DLR >= 0.8
