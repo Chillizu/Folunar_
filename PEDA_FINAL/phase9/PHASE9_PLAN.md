@@ -163,6 +163,12 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 - 但 aggregate（60 集）PE-new a0.5 70.0% / a1.0 55.0% < count 73.3% → 门维持 DEAD。对称失败：同一修复使高 success verb 的 unseen target（cat changelog.txt）被饿死，read_changelog_v4 a1.0 0%。
 - 结论：verb 级先验太粗；HG 作为独立方向确认死亡，修复经验（先验粒度需到 verb×target）归档备用。
 
+**FF-SBH-3（R1 空目录强制重选）: PASS — 41/45。** Report `results/phase9_sbh_r1_report.md` (commits 51b4b70 代码 + 4b4af98 报告；诊断 `results/phase9_sbh_failure_analysis.md`).
+- 5 个残余失败全部定位为「发现期」失败：T1 冷启动盲区×3（density=0 排除未知子目录 + 低层 cd 优先级垫底滞留根目录）、T2 字母序错向×2（open-loop 重选触发过弱）。
+- R1（纯高层）：cd 落入无可读文本文件目录→强制重选 goal + planner 排除 textless cwd。低层零改动，归因干净。
+- 结果：pooled **41/45**（find_api_key 3→4），deep-path **7/10**，零任务回退。λ 两臂仍逐位一致。
+- 剩余 4 失败（read_note×2、count_lines×1、find_api_key×1）：需预算扩展（max_steps 10→12/14，破坏 Phase 8 可比性）或低层改动（违反逐行复用），仅可作独立 arm。40→41 后 10 步预算+无任务知识下接近局部最优。
+
 ## Priority
 
 | Rank | Direction | Rationale |

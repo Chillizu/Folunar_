@@ -140,7 +140,7 @@ ruff check src tests
 
 ### Phase 9 (Post-PEDA Directions — verdicts emerging)
 - Direction 1 CI Sandbox: **COMPLETE** — M0/M1/M2 PASS; M4 FAIL (online/batch mismatch); **FF-CI-6 PASS: PE 0.400 ≥ count 0.367 (+3.3pp), failure hypothesis rejected (weak positive, non-inferiority)**. First agent-level PE signal. See `PEDA_FINAL/phase9/CI_M3M4_REPORT.md` §7.
-- Direction 2 Hierarchical Horizon: **ALIVE + 沙盒迁移成功** — open-loop 简化后 E1 Sandbox-HH FF-SBH-2 PASS：pooled 40/45（基线 39/45），deep-path 6/10（基线 2/10），无任务回退。See `PEDA_FINAL/phase9/HH_VERDICT.md` + `results/phase9_sbh_report.md`.
+- Direction 2 Hierarchical Horizon: **ALIVE + 沙盒迁移成功** — open-loop 简化后 E1 Sandbox-HH FF-SBH-2 PASS，FF-SBH-3 R1 修复再 +1：pooled **41/45**（基线 39/45），deep-path **7/10**（基线 2/10），无任务回退。See `PEDA_FINAL/phase9/HH_VERDICT.md` + `results/phase9_sbh_report.md` + `results/phase9_sbh_r1_report.md`.
 - Direction 3 Hypothesis-Generator: **DEAD 二次确认** — FF-HG-5 根因修复（verb 先验反转）使 held-out 0→65% 但 aggregate 仍 < count（对称失败）。See `results/phase9_hg_f5_report.md` + `results/phase9_hg_f5_rerun_report.md`.
 - Gate verdicts recorded in `PEDA_FINAL/phase9/PHASE9_PLAN.md` §Gate Verdicts (2026-08-02).
 
