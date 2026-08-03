@@ -129,6 +129,8 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 
 ## Gate Verdicts (2026-08-02)
 
+> **Phase 9 CLOSED 2026-08-03.** 终裁决与收官证据链（FF-SBH-2/3 → FF-GEN-1 → FF-CEIL-1 → FF-MLP-1 → FF-PEC-1）见 `PEDA_FINAL/phase9/PHASE9_FINAL_VERDICT.md`。
+
 **Direction 2 (HH): VERDICT — ALIVE at 20x20 Variant B, architecture simplified to open-loop.** Full analysis `PEDA_FINAL/phase9/HH_VERDICT.md` (commits 5445afb, 1b34b71); independent recomputation 282/282 rows match summary CSV.
 - FF-HH-1: PASS (20x20B ΔSCR_vs_random +0.2854, ΔFHT +102.0)
 - FF-HH-2: PASS at anchor (20x20B λ-range 0.14–0.24, all ≥ 0.05); literal reading at 15x15 FAIL — reading ambiguity recorded in HH_VERDICT §2.2, threshold NOT adjusted

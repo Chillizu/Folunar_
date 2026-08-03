@@ -1821,3 +1821,18 @@ Dead-loop rate: PEDA 0.00（从未死循环），Pragmatic 0.48-0.80（频繁 ls
 
 **下一步建议**：
 训练完成后，用新 adapter 跑 peda_known_read_hello smoke test，验证从 `/sandbox` 能否一步 `cat hello.txt` 拿到 hit。
+
+---
+
+## 2026-08-03 Phase 9 封盘（盖棺定论）
+
+**收官证据链（全部预注册门，无事后调整）**：
+- FF-SBH-2/3 PASS：沙盒分层 39/45 → 41/45，deep-path 2/10 → 7/10，零回退（2d3b467/51b4b70/4b4af98）
+- FF-GEN-1 弱 PASS：v5 深度树泛化非劣（SBH 8/40 ≥ flat 7/40），但 dist≥2 全臂 0/30，增益域收窄 dist-1（a217db8/d652cfd）
+- FF-CEIL-1 诊断：预算墙次要（s20 deep 3/30）、机制墙主导（94f51c6/78783e0）
+- FF-MLP-1 KILL：路径规划 38 次到达 dist≥2 零成功——瓶颈=方向信息（f4dd350/77ff446）
+- FF-PEC-1 NULL：PE 罗盘 deep 0→3/30（s10）、4/30（s20）。方向信号真实但弱；不确定≠有价值（7ad577b/008bece）
+
+**终裁决**：零任务知识 count 家族浅层 91.1% 可靠；深度树效果边界 ≈10-13% vs 盲选 0%。PE 作驱动（PEDA）与作方向启发（PEC）两次独立确认同一结论。研究线 CLOSED。
+**终裁决文档**：`PEDA_FINAL/phase9/PHASE9_FINAL_VERDICT.md`。
+**milestone squash-merge 至 main。**

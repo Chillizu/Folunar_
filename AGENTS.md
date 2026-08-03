@@ -6,10 +6,7 @@ Folunar_ is an autonomous AI agent research project. Phase 1-8 tested **PEDA** (
 
 **Status: PEDA DISPROVEN** (19 experiments, 3 charter sub-questions all No). See `PEDA_FINAL/PEDA_CONCLUSION.md`. The reliable mechanism is **count-based novelty** (62.2% on 9 sandbox tasks, zero task knowledge). See `PEDA_FINAL/COUNT_DRIVEN_CHARTER.md`.
 
-**Current phase: Phase 9** — three new research directions under design:
-1. LLM-as-Hypothesis-Generator + Lightweight Discriminator
-2. Hierarchical Horizon Decomposition (epistemic goal selection at horizon 20-100)
-3. Counter-Intuitive Sandbox (LLM prior-violation environment)
+**Phase 9: CLOSED（2026-08-03）** — 三方向终裁决 + 五个收官实验全部按预注册门走完。终裁决文档 `PEDA_FINAL/phase9/PHASE9_FINAL_VERDICT.md`：零任务知识下 count 家族浅层 91.1%；深度树效果边界 ≈10-13%（vs 盲选 0%）；不确定≠有价值（PEDA 之后第二次独立确认）。
 
 This document is a living guide for AI assistants. It inherits the global `AGENTS.md` in `~/.omp/agent/AGENTS.md`. Project Overrides below take precedence when they conflict.
 
