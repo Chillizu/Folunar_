@@ -149,6 +149,20 @@ Normal: `cd`, `pwd`, `wc`, `mkdir`, `touch`
 - **FF-CI-6: PASS — failure hypothesis REJECTED.** PE pooled 12/30 = 0.400 vs count(10ep) 11/30 = 0.367 (+3.3pp; vs count 20ep 0.333: +6.7pp), ≥ count − 10pp criterion met; min per-task delta 0 (read_secret tie 4/10, read_data win 8/10 vs 7/10, find_warn tie 0/10). PE early/late 0.200→0.600 (3×, meets ≥2× sub-metric); count 1.75× (misses). Honest reading: weak positive within non-inferiority bound, NOT a vindication — PE drives exploration (epi_err=1.000 on read_data wins) without in-episode error convergence (M3 PASS ⇔ M4 FAIL coherent).
 - OOM root cause (CPU): fp32 autograd graph ~13GB at batch 4; fixed bs=1 + malloc_trim (9570016).
 
+## Follow-up Experiments (2026-08-03)
+
+**E1 Sandbox-HH (D2 沙盒迁移): FF-SBH-2 PASS — 分层在沙盒携带信号。** Report `results/phase9_sbh_report.md` (commit 2d3b467; code `src/phase9/sandbox_hh/`, data `results/phase9_sbh_lam{0,05}.jsonl` 90/90 eps).
+- 两层 open-loop（高层 frontier-goal J(d)=unvisited_density−λ·dist；低层逐行复用 Phase 8 count 策略，唯一变量=目标选择）。
+- λ-best pooled **40/45** vs Phase 8 基线 39/45（FF-SBH-1 kill 线 37 未触发）；**deep-path（read_note+find_api_key）6/10 vs 基线 2/10** → positive bar 双条件满足。无任何任务回退。
+- λ=0 与 λ=0.5 逐任务完全一致（frontier 目录均为 dist-1 兄弟，λ 惩罚在此任务集空转）——与 HH_VERDICT λ 平坦性预告一致，如实记录。
+- 机制证据：find_api_key ep2 经 J=1.0 的 /sandbox/docs 直接目标导航 2 步发现（Phase 8 需 ep3 游走）。
+
+**E2 HG 根因修复 + F5 重跑: DEAD 维持（预注册门），根因部分证实。** Report `results/phase9_hg_f5_rerun_report.md` (fix cd1478a, 12 行; rerun a00b31f).
+- 修复：STRIPS unmatched-verb fallback `1−success_rate(verb)` → `success_rate(verb)`（未观察 0.5），cd 先验反转消除。
+- Held-out find_errors_v4 修复成功：PE-old 0% → PE-new a1.0 **65%**（count 20%；cd 步数 40→14，grep 10→87）。
+- 但 aggregate（60 集）PE-new a0.5 70.0% / a1.0 55.0% < count 73.3% → 门维持 DEAD。对称失败：同一修复使高 success verb 的 unseen target（cat changelog.txt）被饿死，read_changelog_v4 a1.0 0%。
+- 结论：verb 级先验太粗；HG 作为独立方向确认死亡，修复经验（先验粒度需到 verb×target）归档备用。
+
 ## Priority
 
 | Rank | Direction | Rationale |
