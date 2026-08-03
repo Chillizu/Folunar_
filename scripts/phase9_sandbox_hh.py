@@ -20,6 +20,12 @@ Usage:
     # FF-MLP-1 (path-level planner): v5 image + 8 new tasks, path-planner
     # arms lambda=0 / lambda=0.5, 40 episodes each (80 total):
     PYTHONPATH=src python3 scripts/phase9_sandbox_hh.py --mlp
+    # FF-PEC-1 (PE 罗盘): v5 image + 8 new tasks, PEC arm (λ=0, γ=1)
+    # s10 40 集（主）+ s20 40 集（次级）= 80 集；WM=Qwen2.5-0.5B-Instruct
+    # + 每 episode LoRA checkpoint ensemble；输出 phase9_pec_s{10,20}.jsonl：
+    PYTHONPATH=src python3 scripts/phase9_sandbox_hh.py --compass
+    # 中断后接续（resume，跳过已落盘的 task+episode）：
+    PYTHONPATH=src python3 scripts/phase9_sandbox_hh.py --compass --resume
 """
 import argparse
 import json
@@ -34,6 +40,13 @@ sys.path.insert(0, str(_PROJECT_ROOT / "src"))
 
 from phase9.sandbox_hh.runner import SandboxHHRunner, TASKS  # noqa: E402
 from phase9.gen_tasks import GEN_TASK_IMAGES  # noqa: E402  (FF-GEN-1 task data)
+
+# FF-PEC-1 常量（与 pe_compass.py 同源；build_meta_pec 在模块级引用）
+from phase9.sandbox_hh.pe_compass import (  # noqa: E402
+    FALLBACK_S as PEC_FALLBACK_S,
+    QUERIES_PER_EPISODE as PEC_QUERIES_PER_EPISODE,
+    MODEL_PATH as PEC_MODEL_PATH,
+)
 
 NUM_EPISODES = 5
 MAX_STEPS = 10
@@ -267,6 +280,135 @@ def run_mlp() -> int:
     return 0
 
 
+def build_meta_pec(max_steps: int, episodes: int, wm_model: str) -> dict:
+    """FF-PEC-1 meta header（WATCHDOG D4：git commit + WM 模型/adapter 标识）。"""
+    commit = subprocess.run(["git", "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip() or "unknown"
+    return {
+        "phase": 9,
+        "experiment": "sandbox-hh-pec1",
+        "arm": "pec_lam0",
+        "lam": 0.0,
+        "gamma": 1.0,
+        "commit": commit,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "host": socket.gethostname(),
+        "cpu_or_gpu": "cpu",
+        "planner": "path+pe-compass",
+        "sandbox_image": "peda-sandbox:v5",
+        "max_steps": max_steps,
+        "episodes_per_task": NUM_EPISODES,
+        "tasks": [tid for tid, _ in GEN_TASK_IMAGES],
+        "total_episodes": episodes,
+        "model": wm_model,
+        "wm_adapters": "LoRA per-episode checkpoints (PECEnsemble, r=16 alpha=32 "
+                        "dropout=0.05, batch_size=1, lr=2e-4, epochs=1; sliding "
+                        "window <= 5 checkpoints per task; per-task checkpoint dirs)",
+        "pe_definition": "charter ensemble pairwise variance of WM L2 (files) "
+                          "predictions of `cd <dir>` (EnsembleErrorComputer "
+                          "sandbox-branch ev formula, prediction-only); n<2 "
+                          "members -> s=0 (compass inert)",
+        "score": "J(path) = prior(end) - lam*depth + gamma*s(dir); lam=0, gamma=1",
+        "query_cap": PEC_QUERIES_PER_EPISODE,
+        "fallback": PEC_FALLBACK_S,
+        "zero_task_knowledge": True,
+        "low_layer": "generate_phase8_candidates + Phase8Explorer "
+                      "(byte-identical to Phase 8)",
+        "per_episode_data_present": True,
+    }
+
+
+def run_pec_arm(max_steps: int, out_path: Path, wm, resume: bool) -> dict:
+    """FF-PEC-1 arm：PECAgent（λ=0, γ=1）驱动 8 v5 任务 x 5 集。
+
+    与 CI M3 同构：单进程共享一个 WorldModel（LoRA 状态跨任务累积），
+    ec/lm/checkpoint 目录按任务隔离；每 episode 一次 LoRA update +
+    checkpoint（ensemble 增长）。
+
+    崩溃安全：每任务完成后把该任务的 rows 追加进 out_path（incremental
+    append），最后用正确 meta 重写全文件；resume 时先读盘上已有行，只跑缺
+    失的 (task, episode)（CI M3 的 resume 机制）。
+    """
+    from phase9.sandbox_hh.pe_compass import PECAgent
+
+    print(f"=== PEC arm lambda=0 gamma=1 (max_steps={max_steps}) ===", flush=True)
+    rows = []
+    if resume and out_path.exists():
+        with open(out_path) as f:
+            for line in f:
+                if line.startswith('{"meta"'):
+                    continue
+                try:
+                    rows.append(json.loads(line))
+                except json.JSONDecodeError:
+                    pass
+        print(f"  resume: {len(rows)} rows already on disk", flush=True)
+    summary = {}
+    for task_id, image in GEN_TASK_IMAGES:
+        done = {r.get("episode") for r in rows if r.get("task") == task_id}
+        agent = PECAgent(docker_image=image, task_id=task_id, lam=0.0, wm=wm)
+        eps = []
+        for i in range(NUM_EPISODES):
+            if i in done:
+                print(f"  {task_id} ep{i} RESUME-SKIP (already on disk)", flush=True)
+                continue
+            eps.append(agent.run_episode(i, max_steps))
+        for ep in eps:
+            ep["task"] = task_id
+            ep["image"] = image
+            ep["lam"] = 0.0
+            ep["max_steps"] = max_steps
+            ep["wm_queries_total"] = agent.compass.queries_total
+        ok = sum(1 for e in eps if e["success"])
+        # 计入盘上已有行（resume 场景下 summary 应覆盖全部）
+        done_ok = sum(1 for r in rows if r.get("task") == task_id and r.get("success"))
+        ok += done_ok
+        n_total = len(eps) + len(done)
+        summary[task_id] = f"{ok}/{n_total}"
+        print(f"  {task_id:22s} {ok}/{n_total} | wm queries this task: "
+              f"{agent.compass.queries_total} fallbacks: {agent.compass.fallbacks}",
+              flush=True)
+        rows.extend(eps)
+        # 崩溃安全：每任务落盘（追加，跳过 meta）
+        out_path.parent.mkdir(exist_ok=True)
+        with open(out_path, "a") as f:
+            for ep in eps:
+                f.write(json.dumps(ep, ensure_ascii=False) + "\n")
+    meta = build_meta_pec(max_steps, len(rows), PEC_MODEL_PATH)
+    write_jsonl(out_path, meta, rows)
+    pooled = sum(1 for e in rows if e["success"])
+    print(f"  pooled: {pooled}/{len(rows)} -> {out_path}", flush=True)
+    return {"arm": "pec_lam0", "lam": 0.0, "gamma": 1.0, "pooled": pooled,
+            "total": len(rows), "per_task": summary}
+
+
+def run_pec(resume: bool = False) -> int:
+    """FF-PEC-1：s10（主）+ s20（次级）= 80 集，单进程共享 WM。"""
+    from phase2.tasks import MICRO_TASKS
+    from phase9.gen_tasks import GEN_TASKS, GEN_IMAGE
+    from phase9.sandbox_hh.pe_compass import MODEL_PATH as PEC_MODEL
+
+    MICRO_TASKS.extend(GEN_TASKS)
+
+    import torch
+    from phase1.world_model import WorldModel
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Loading {PEC_MODEL} (device={device}) ...", flush=True)
+    wm = WorldModel(PEC_MODEL, device=device)
+    if wm.mode != "llm" or wm.model is None:
+        print("FATAL: WM fell back to stub — PE stack unavailable locally; "
+              "stopping (contract: 禁换模型)", file=sys.stderr)
+        return 2
+
+    res = {}
+    res["pec_s10"] = run_pec_arm(10, Path("results/phase9_pec_s10.jsonl"), wm, resume)
+    res["pec_s20"] = run_pec_arm(20, Path("results/phase9_pec_s20.jsonl"), wm, resume)
+    print("\nPEC-1 Summary:", json.dumps(res, indent=2))
+    print(f"image: {GEN_IMAGE}")
+    return 0
+
+
 def build_meta(lam: float, episodes: int, max_steps: int = MAX_STEPS) -> dict:
     commit = subprocess.run(["git", "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip() or "unknown"
@@ -344,6 +486,13 @@ def main() -> int:
                         help="High-layer planner for the --lam arms: 'single' "
                              "= frontier-goal (default, old behavior), 'path' "
                              "= path-level (FF-MLP-1)")
+    parser.add_argument("--compass", action="store_true",
+                        help="FF-PEC-1 mode: PE 罗盘 arm (λ=0, γ=1), v5 image + "
+                             "8 new tasks, s10 40 集（主）+ s20 40 集（次级）= "
+                             "80 集；WM 查询 ≤3 次/集，fallback 0.5")
+    parser.add_argument("--resume", action="store_true",
+                        help="Resume an interrupted run (skip (task, episode) "
+                             "already on disk, FF-PEC-1/--compass)")
     args = parser.parse_args()
 
     if args.ceil:
@@ -351,6 +500,9 @@ def main() -> int:
 
     if args.mlp:
         return run_mlp()
+
+    if args.compass:
+        return run_pec(resume=args.resume)
 
     if args.gen1:
         return run_gen1()
