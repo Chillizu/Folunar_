@@ -140,7 +140,7 @@ ruff check src tests
 
 ### Phase 9 (Post-PEDA Directions — verdicts emerging)
 - Direction 1 CI Sandbox: **COMPLETE** — M0/M1/M2 PASS; M4 FAIL (online/batch mismatch); **FF-CI-6 PASS: PE 0.400 ≥ count 0.367 (+3.3pp), failure hypothesis rejected (weak positive, non-inferiority)**. First agent-level PE signal. See `PEDA_FINAL/phase9/CI_M3M4_REPORT.md` §7.
-- Direction 2 Hierarchical Horizon: **ALIVE（增益域收窄）** — open-loop 简化后沙盒 41/45、deep-path 7/10；但 FF-GEN-1 泛化判别（v5 depth 2-3 新任务集）：SBH 8/40 vs flat 7/40 弱 PASS（非劣），dist≥2 全臂 0/30。HH 增益限 dist-1 frontier 导航；真深度树需多层规划。λ 维度跨全部实验零分叉，判死。See `results/phase9_sbh_r1_report.md` + `results/phase9_gen_report.md`.
+- Direction 2 Hierarchical Horizon: **ALIVE（增益域收窄）** — open-loop 简化后沙盒 41/45、deep-path 7/10；但 FF-GEN-1 泛化判别（v5 depth 2-3 新任务集）：SBH 8/40 vs flat 7/40 弱 PASS（非劣），dist≥2 全臂 0/30。HH 增益限 dist-1 frontier 导航；真深度树需多层规划。λ 维度跨全部实验零分叉，判死。FF-CEIL-1：预算墙次要（SBH s20 deep 3/30）、机制墙主导。FF-MLP-1 路径级规划器 KILL：机械到达 dist-2×38 但 0 成功——瓶颈是方向信息（未知目录选择=字典序赌博），非预算非可达性。λ 在路径规划下首次分叉（λ0 深导航 vs λ05 全浅）。See `results/phase9_sbh_r1_report.md` + `results/phase9_gen_report.md` + `results/phase9_ceil_report.md` + `results/phase9_mlp_report.md`.
 - Direction 3 Hypothesis-Generator: **DEAD 二次确认** — FF-HG-5 根因修复（verb 先验反转）使 held-out 0→65% 但 aggregate 仍 < count（对称失败）。See `results/phase9_hg_f5_report.md` + `results/phase9_hg_f5_rerun_report.md`.
 - Gate verdicts recorded in `PEDA_FINAL/phase9/PHASE9_PLAN.md` §Gate Verdicts (2026-08-02).
 
